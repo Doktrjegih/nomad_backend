@@ -3,12 +3,13 @@ import pickle
 from location import Location
 from player import Player
 from scene import Scene
-from console import console
 
 
 def main() -> None:
+    """
+    Entrypoint for game
+    """
     print('Hello, a big new world!')
-    # console('Hello, a big new world!')
     player = Player()
     scene = Scene(location=Location('hometown'), player=player)
     with open('quests.pkl', 'wb') as fd:

@@ -1,11 +1,10 @@
 import random
 
-# from console import console
+from battle import Battle
 from enemy import Enemy
 from location import Location
 from player import Player
 from tavern import Tavern
-from battle import Battle
 
 
 class Scene:
@@ -18,16 +17,21 @@ class Scene:
         self.tavern = None
 
     def show_current_scene(self) -> None:
+        """
+        Shows current scene during some actions if needed
+        """
         if self.state == 'battle':
-            battle = Battle(scene=self, player=self.player, enemy=self.player)
+            battle = Battle(scene=self, player=self.player, enemy=self.enemy)
             battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
 
     def show_peace_scene(self) -> None:
+        """
+        Shows actions outside tavern in peaceful time
+        """
         print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
         print('drunk level:', self.player.get_condition())
-        # console(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
         action = self.show_possible_options()
         if action == "go forward":
             self._new_scene()
@@ -43,6 +47,12 @@ class Scene:
             exit()
 
     def show_possible_options(self) -> str:
+        """
+        USER ACTION
+        Shows possible actions for each type of scene depends on current status (peaceful, battle, tavern)
+        Waits of user choice
+        :return: str type of action
+        """
         options = []
         if self.state == 'battle':
             options = ['attack', 'run away', 'get status', 'exit game']
@@ -53,7 +63,7 @@ class Scene:
             if not self.location.tavern:
                 options.remove('enter tavern')
         elif self.state == 'tavern':
-            options = ['go out', 'take a beer', 'get quest', 'get status', 'exit game']
+            options = ['go out', 'take a beer', 'check quests', 'get status', 'exit game']
         options_len = len(options)
         while True:
             try:
@@ -68,6 +78,10 @@ class Scene:
                 print('\nERROR! Incorrect input')
 
     def _new_scene(self) -> None:
+        """
+        USER ACTION
+        Leads player through new random locations, checks either there are enemies or not
+        """
         new_location_type = random.choice(['peaceful', 'hostile'])
         location = Location(new_location_type)
         self.location = location
