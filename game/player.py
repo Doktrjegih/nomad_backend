@@ -5,11 +5,11 @@ class Player:
     def __init__(self) -> None:
         self.name = None
         self.health = 10
-        self.attack = 3
-        self.defence = 0
-        self.strength = 5
-        self.agility = 0
-        self.luck = 0
+        self.attack = 1
+        self.defence = 1
+        self.strength = 1
+        self.agility = 1
+        self.luck = 1
         self.level = 1
         self.scores = 0
         self.gold = 20
@@ -17,10 +17,18 @@ class Player:
         self.create_player()
 
     def create_player(self) -> None:
+        """
+        USER ACTION
+        Add name to player in the beginning of game
+        """
         self.name = input('Enter your name: ')
         print(self.name)
 
     def show_player_info(self) -> None:
+        """
+        USER ACTION
+        Shows all stats of player
+        """
         print('\nStatus:')
         print('name =', self.name)
         print('health =', self.health)
@@ -43,5 +51,9 @@ class Player:
             print('*', quest.order.name, '-', quest.goal_amount, f'({quest.goal_amount - quest.current_amount} left)')
 
     def get_condition(self) -> str:
+        """
+        Makes "graphic" scale of drinking value
+        :return: graphical value of Player.drunk
+        """
         drunk = '▇' * self.drunk + ' ' * (10 - self.drunk)
         return f'[{drunk}]'

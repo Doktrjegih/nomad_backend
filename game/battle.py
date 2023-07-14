@@ -5,10 +5,13 @@ class Battle:
         self.enemy = enemy
 
     def show_battle_scene(self) -> None:
+        """
+        Shows process of the battle
+        """
         print(f"""\nYou're in the location "{self.scene.location.name}" ({self.scene.location.type}) """)
         print('\nWARNING! Battle mode')
         print('drunk level:', self.player.drunk)
-        self.enemy.show_enemy_stats()
+        self.enemy.show_rivals_stats()
         action = self.scene.show_possible_options()
         if action == "attack":
             attack = self.player.attack - self.enemy.defence
@@ -29,6 +32,10 @@ class Battle:
             exit()
 
     def try_run_away(self) -> None:
+        """
+        USER ACTION
+        Trying to run away from enemy, if attempt is failed, blocks next attempts
+        """
         if self.player.agility > self.enemy.agility:
             print('you have ran away')
             self.finish_battle()
@@ -44,6 +51,9 @@ class Battle:
                 self.show_battle_scene()
 
     def finish_battle(self) -> None:
+        """
+        Finishes battle
+        """
         self.enemy = None
         self.scene.run_able = True
         self.scene.state = 'peace'
