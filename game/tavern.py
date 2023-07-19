@@ -42,6 +42,9 @@ class Tavern:
             print('not enough money, is 10 gold coins for beer')
             return
         self.player.drunk += beer
+        self.player.health += 2
+        if self.player.health > 10:
+            self.player.health = 10
         if self.player.drunk > 10:
             self.player.drunk = 10
         self.player.gold -= 10
