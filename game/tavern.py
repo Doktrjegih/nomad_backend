@@ -74,13 +74,13 @@ class Tavern:
         print(f'Award for this is {award} gold coins')
         while True:
             answer = input(f'Are you accept? (yes/no)')
-            if answer.lower() in ['y', 'yes']:
+            if answer.lower() in ['y', 'yes', '1']:
                 print('quest has been taken')
                 self.active_quests = False
                 quest = Quest(order=order, amount=amount, award=award)
                 quest.add_to_list()
                 self.tavern_menu()
-            elif answer.lower() in ['n', 'no']:
+            elif answer.lower() in ['n', 'no', '2']:
                 self.tavern_menu()
             else:
                 print('ERROR! incorrect input')
