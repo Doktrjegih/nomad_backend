@@ -69,12 +69,15 @@ class Tavern:
         print(f'I need to clean this area from {order.name}s')
         print(f'Think {amount} ones will be enough for now')
         print(f'Award for this is {award} gold coins')
-        answer = input(f'Are you accept? (yes/no)')
-        if answer.lower() in ['y', 'yes']:
-            print('quest has been taken')
-            self.active_quests = False
-            quest = Quest(order=order, amount=amount, award=award)
-            quest.add_to_list()
-            self.tavern_menu()
-        elif answer.lower() in ['n', 'no']:
-            self.tavern_menu()
+        while True:
+            answer = input(f'Are you accept? (yes/no)')
+            if answer.lower() in ['y', 'yes']:
+                print('quest has been taken')
+                self.active_quests = False
+                quest = Quest(order=order, amount=amount, award=award)
+                quest.add_to_list()
+                self.tavern_menu()
+            elif answer.lower() in ['n', 'no']:
+                self.tavern_menu()
+            else:
+                print('ERROR! incorrect input')
