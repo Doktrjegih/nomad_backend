@@ -50,7 +50,7 @@ class Enemy:
         self.player.scores += 100
         quests = get_current_quests()
         if quests:
-            if quests[0].order.name == self.name:
+            if quests[0].order.name == self.name and quests[0].current_amount < quests[0].goal_amount:
                 quests[0].increase_goal()
 
     def enemy_attack(self) -> None:
