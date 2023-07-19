@@ -23,7 +23,7 @@ class Enemy:
         """
         level = self.player.level + random.randint(-2, 2)
         if level < 1:
-            return level
+            return 1
         return level
 
     def show_rivals_stats(self) -> None:
@@ -59,6 +59,8 @@ class Enemy:
         """
         print(f'{self.name} attacks!')
         attack = self.attack - self.player.defence
+        if attack < 1:
+            attack = 1
         self.player.health -= attack
         if self.player.health <= 0:
             print('your HP is 0')

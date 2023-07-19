@@ -15,6 +15,8 @@ class Battle:
         action = self.scene.show_possible_options()
         if action == "attack":
             attack = self.player.attack - self.enemy.defence
+            if attack < 1:
+                attack = 1
             print(f'your attack is {attack}')
             self.enemy.get_damage(attack)
             if self.enemy.health <= 0:
