@@ -65,5 +65,6 @@ class Enemy:
             print('your HP is 0')
             print('GAME OVER!')
             print('total score =', self.player.scores)
+            input('click Enter to exit...')
             exit()
         print(f'your HP is {self.player.health}')
