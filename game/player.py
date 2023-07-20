@@ -57,3 +57,12 @@ class Player:
         """
         drunk = '▇' * self.drunk + ' ' * (10 - self.drunk)
         return f'[{drunk}]'
+
+    def award_for_enemy(self):
+        """
+        Gives award and counts current player's level
+        """
+        print('you get 100 XP and 5 gold coins')
+        self.scores += 100
+        self.level = 1 + (self.scores // 500)
+        self.gold += 5
