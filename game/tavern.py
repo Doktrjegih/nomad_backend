@@ -68,7 +68,7 @@ class Tavern:
         if not self.tavern_quest:
             order = Enemy(self.player)
             amount = random.randint(2, 5)
-            award = amount * 5
+            award = amount * 5 + random.randint(0, 10)
             quest = Quest(order=order, amount=amount, award=award)
             self.tavern_quest = quest
 
