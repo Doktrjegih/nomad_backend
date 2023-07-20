@@ -2,10 +2,12 @@ import random
 
 from enemy import Enemy
 from quest import Quest, get_current_quests
+from player import Player
 
 
 class Tavern:
-    def __init__(self, scene, player) -> None:
+    def __init__(self, scene, player: Player) -> None:
+        self.tavern_quest = None
         self.scene = scene
         self.player = player
         self.active_quests = True
@@ -43,6 +45,7 @@ class Tavern:
             return
         self.player.drunk += beer
         self.player.health += 2
+        self.player.attack = self.player.strength + self.player.drunk
         if self.player.health > 10:
             self.player.health = 10
         if self.player.drunk > 10:
@@ -60,25 +63,30 @@ class Tavern:
             if quests[0].is_finished:
                 quests[0].close_quest(self.player)
                 self.active_quests = True
+            else:
+                self.active_quests = False
         if not self.active_quests:
             print("sorry, I don't have quests for you now")
             self.tavern_menu()
             return
-        order = Enemy(self.player)
-        amount = random.randint(2, 5)
-        award = amount * 5
+        if not self.tavern_quest:
+            order = Enemy(self.player)
+            amount = random.randint(2, 5)
+            award = amount * 5 + random.randint(0, 10)
+            quest = Quest(order=order, amount=amount, award=award)
+            self.tavern_quest = quest
 
         print('\nHello stranger!')
-        print(f'I need to clean this area from {order.name}s')
-        print(f'Think {amount} ones will be enough for now')
-        print(f'Award for this is {award} gold coins')
+        print(f'I need to clean this area from {self.tavern_quest.order.name}s')
+        print(f'Think {self.tavern_quest.goal_amount} ones will be enough for now')
+        print(f'Award for this is {self.tavern_quest.award} gold coins')
+
         while True:
             answer = input(f'Are you accept? (yes/no)')
             if answer.lower() in ['y', 'yes', '1']:
                 print('quest has been taken')
                 self.active_quests = False
-                quest = Quest(order=order, amount=amount, award=award)
-                quest.add_to_list()
+                self.tavern_quest.add_to_list()
                 self.tavern_menu()
             elif answer.lower() in ['n', 'no', '2']:
                 self.tavern_menu()

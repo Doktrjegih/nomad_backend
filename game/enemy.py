@@ -8,7 +8,7 @@ class Enemy:
     def __init__(self, player: Player) -> None:
         self.player = player
 
-        self.name = 'Anthon'
+        self.name = random.choice(['Anthon', 'wet dog', 'homeless guy'])
         self.level = self.get_random_level_of_enemy()
         self.health = 2 * self.level
         self.attack = 1 * self.level
@@ -46,8 +46,7 @@ class Enemy:
         Kills enemy, gets XP, checks if enemy was a quest goal
         """
         print(f'\n{self.name} was killed!')
-        print('you get 100 XP')
-        self.player.scores += 100
+        self.player.award_for_enemy()
         quests = get_current_quests()
         if quests:
             if quests[0].order.name == self.name and quests[0].current_amount < quests[0].goal_amount:
@@ -65,5 +64,7 @@ class Enemy:
         if self.player.health <= 0:
             print('your HP is 0')
             print('GAME OVER!')
+            print('total score =', self.player.scores)
+            input('click Enter to exit...')
             exit()
         print(f'your HP is {self.player.health}')

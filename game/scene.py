@@ -85,6 +85,8 @@ class Scene:
         new_location_type = random.choice(['peaceful', 'hostile'])
         location = Location(new_location_type)
         self.location = location
+        if self.tavern:
+            self.tavern = None
         if self.location.enemies:
             self.state = 'battle'
             self.enemy = Enemy(self.player)
