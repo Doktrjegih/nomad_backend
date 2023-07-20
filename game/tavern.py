@@ -2,10 +2,11 @@ import random
 
 from enemy import Enemy
 from quest import Quest, get_current_quests
+from player import Player
 
 
 class Tavern:
-    def __init__(self, scene, player) -> None:
+    def __init__(self, scene, player: Player) -> None:
         self.tavern_quest = None
         self.scene = scene
         self.player = player
@@ -44,6 +45,7 @@ class Tavern:
             return
         self.player.drunk += beer
         self.player.health += 2
+        self.player.attack = self.player.strength + self.player.drunk
         if self.player.health > 10:
             self.player.health = 10
         if self.player.drunk > 10:
@@ -61,6 +63,8 @@ class Tavern:
             if quests[0].is_finished:
                 quests[0].close_quest(self.player)
                 self.active_quests = True
+            else:
+                self.active_quests = False
         if not self.active_quests:
             print("sorry, I don't have quests for you now")
             self.tavern_menu()
