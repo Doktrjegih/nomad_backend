@@ -1,7 +1,7 @@
 import random
 
 from battle import Battle
-from enemy import Enemy
+from enemy import Enemy, DrunkEnemy1
 from location import Location
 from player import Player
 from tavern import Tavern
@@ -69,7 +69,15 @@ class Scene:
             try:
                 for counter, act in enumerate(options, start=1):
                     print(f'{counter} - {act}')
-                action = int(input(f'What do you want to do? '))
+                action = input(f'What do you want to do? ')
+                if action == "HESOYAM":
+                    self.player.health = 10
+                    self.player.gold += 250
+                    self.show_current_scene()
+                elif action == "BAGUVIX":
+                    self.player.defence = 100
+                else:
+                    action = int(action)
                 if 1 <= action <= options_len:
                     return options[action - 1]
                 else:
@@ -89,7 +97,10 @@ class Scene:
             self.tavern = None
         if self.location.enemies:
             self.state = 'battle'
-            self.enemy = Enemy(self.player)
+            if self.player.drunk < 2:
+                self.enemy = Enemy(self.player)
+            else:
+                self.enemy = DrunkEnemy1(self.player)
             battle = Battle(scene=self, player=self.player, enemy=self.enemy)
             battle.show_battle_scene()
             return

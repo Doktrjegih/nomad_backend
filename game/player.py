@@ -3,13 +3,14 @@ import pickle
 
 class Player:
     def __init__(self) -> None:
-        self.name = None
+        self.name = None  # todo: fix bug with empty name
         self.health = 10
         self.attack = 1
         self.defence = 1
-        self.strength = 1
-        self.agility = 1
-        self.luck = 1
+        self.endurance = 1  # influences HP
+        self.strength = 1  # influences attack
+        self.agility = 1  # influences attack + side-roll
+        self.luck = 1  # increases rewards and chances to get good loot
         self.level = 1
         self.scores = 0
         self.gold = 20
@@ -33,7 +34,7 @@ class Player:
         print('name =', self.name)
         print('health =', self.health)
         print('drunk level =', self.get_condition(), f'({self.drunk})')
-        print('attack =', self.attack)
+        print('attack =', self.attack)  # todo: 12 attack with 10 drunk (refactor the counter of stats)
         print('defence =', self.defence)
         print('strength =', self.strength)
         print('agility =', self.agility)
@@ -58,7 +59,7 @@ class Player:
         drunk = '▇' * self.drunk + ' ' * (10 - self.drunk)
         return f'[{drunk}]'
 
-    def award_for_enemy(self):
+    def award_for_enemy(self) -> None:
         """
         Gives award and counts current player's level
         """
@@ -66,3 +67,5 @@ class Player:
         self.scores += 100
         self.level = 1 + (self.scores // 500)
         self.gold += 5
+        if self.drunk > 0:
+            self.drunk -= 1

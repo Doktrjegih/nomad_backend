@@ -3,12 +3,17 @@ import random
 from player import Player
 from quest import get_current_quests
 
+HUMANS = {1: 'homeless guy', 2: 'bandit'}
+DOGS = {1: 'wet dog', 2: 'Anthon'}
+TYPES = [HUMANS, DOGS]
+
 
 class Enemy:
     def __init__(self, player: Player) -> None:
         self.player = player
 
-        self.name = random.choice(['Anthon', 'wet dog', 'homeless guy'])
+        self.type = random.choice(TYPES)
+        self.name = self.type.get(1)
         self.level = self.get_random_level_of_enemy()
         self.health = 2 * self.level
         self.attack = 1 * self.level
@@ -68,3 +73,11 @@ class Enemy:
             input('click Enter to exit...')
             exit()
         print(f'your HP is {self.player.health}')
+
+
+class DrunkEnemy1(Enemy):
+    def __init__(self, player: Player):
+        super().__init__(player)
+
+        self.name = self.type.get(2)
+        self.health = int(self.health * 1.5)
