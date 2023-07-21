@@ -18,7 +18,7 @@ class Enemy:
         self.health = 2 * self.level
         self.attack = 1 * self.level
         self.strength = 2
-        self.agility = 2
+        self.agility = random.randint(0, 2)
         self.defence = 1 * self.level
 
     def get_random_level_of_enemy(self) -> int:
