@@ -8,6 +8,7 @@ DOGS = {1: 'wet dog', 2: 'Anthon'}
 TYPES = [HUMANS, DOGS]
 
 
+# антоха пидер
 class Enemy:
     def __init__(self, player: Player) -> None:
         self.player = player
