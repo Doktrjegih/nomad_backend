@@ -25,6 +25,8 @@ class Scene:
             battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
+        elif self.state == 'tavern':
+            self.tavern.tavern_menu()
 
     def show_peace_scene(self) -> None:
         """

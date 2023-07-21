@@ -64,7 +64,7 @@ class Enemy:
         print(f'{self.name} attacks!')
         attack = self.attack - self.player.defence
         if attack < 1:
-            attack = 1
+            attack = 0
         self.player.health -= attack
         if self.player.health <= 0:
             print('your HP is 0')
