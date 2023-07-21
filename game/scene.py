@@ -76,6 +76,7 @@ class Scene:
                     self.show_current_scene()
                 elif action == "BAGUVIX":
                     self.player.defence = 100
+                    self.show_current_scene()
                 else:
                     action = int(action)
                 if 1 <= action <= options_len:
