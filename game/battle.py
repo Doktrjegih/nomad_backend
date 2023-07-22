@@ -1,29 +1,33 @@
+from console import warning
+
+
 class Battle:
     def __init__(self, scene, player, enemy):
         self.scene = scene
         self.player = player
         self.enemy = enemy
+        self.damage_taken = 0
 
     def show_battle_scene(self) -> None:
         """
         Shows process of the battle
         """
         print(f"""\nYou're in the location "{self.scene.location.name}" ({self.scene.location.type}) """)
-        print('\nWARNING! Battle mode')
-        print('drunk level:', self.player.drunk)
+        warning('Battle mode')
+        print('Drunk level:', self.player.get_condition())
         self.enemy.show_rivals_stats()
         action = self.scene.show_possible_options()
         if action == "attack":
             attack = self.player.attack - self.enemy.defence
             if attack < 1:
                 attack = 1
-            print(f'your attack is {attack}')
+            print(f'Your attack is {attack}')
             self.enemy.get_damage(attack)
             if self.enemy.health <= 0:
                 self.enemy.died()
-                self.finish_battle()
+                self.finish_battle(type_='battle')
             else:
-                self.enemy.enemy_attack()
+                self.damage_taken += self.enemy.enemy_attack()
                 self.show_battle_scene()
         elif action == "run away":
             self.try_run_away()
@@ -39,24 +43,32 @@ class Battle:
         Trying to run away from enemy, if attempt is failed, blocks next attempts
         """
         if self.player.agility > self.enemy.agility:
-            print('you have ran away')
-            self.finish_battle()
+            print('You have ran away')
+            self.finish_battle('run')
         else:
             diff = self.enemy.agility - self.player.agility
             if self.player.luck > diff:
-                print('your luck let you to run away')
-                self.finish_battle()
+                print('Your luck let you to run away')
+                self.finish_battle('run')
             else:
-                print("you couldn't run away")
+                print("You couldn't run away")
                 self.enemy.enemy_attack()
                 self.scene.run_able = False
                 self.show_battle_scene()
 
-    def finish_battle(self) -> None:
+    def finish_battle(self, type_: str) -> None:
         """
         Finishes battle
         """
         self.enemy = None
         self.scene.run_able = True
         self.scene.state = 'peace'
+        if type_ == 'run':
+            self.player.drunk -= 1
+        elif type_ == 'battle':
+            if self.player.drunk > 3:
+                self.player.drunk -= 3
+            else:
+                self.player.drunk = 0
+        print(f'Damage taken during battle: {self.damage_taken}')
         self.scene.show_current_scene()

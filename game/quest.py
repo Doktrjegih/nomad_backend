@@ -15,11 +15,11 @@ def get_current_quests() -> list:
 
 
 class Quest:
-    def __init__(self, order, amount, award) -> None:
+    def __init__(self, order, amount, reward) -> None:
         self.order = order
         self.goal_amount = amount
         self.current_amount = 0
-        self.award = award
+        self.reward = reward
         self.is_finished = False
 
     def add_to_list(self) -> None:  # todo: several quests simultaneously
@@ -42,17 +42,17 @@ class Quest:
         self.current_amount += 1
         if self.current_amount >= self.goal_amount:
             self.is_finished = True
-            print("you've finish the quest conditions!")
-            print("you can get a reward in any tavern")
+            print("You've finished the quest conditions!")
+            print("You can get a reward in any tavern")
         with open('quests.pkl', 'wb') as fd:
             pickle.dump([self], fd)
 
     def close_quest(self, player) -> None:
         """
-        Removes quest from player's activities, gives award for mission
+        Removes quest from player's activities, gives reward for mission
         :param player: object of Player class
         """
-        player.gold += self.award
+        player.gold += self.reward
         with open('quests.pkl', 'wb') as fd:
             pickle.dump([], fd)
-        print(f"thanks! your reward is: {self.award} coins")
+        print(f"\nThanks! Your reward is: {self.reward} coins")

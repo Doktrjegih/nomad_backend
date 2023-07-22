@@ -10,11 +10,11 @@ class Location:
         self.enemies = False
         self.tavern = False
         if self.type == 'hostile':
-            self.enemies = True if random.randint(0, 10) > 1 else False
+            self.enemies = True if random.randint(0, 10) > 6 else False
             self.name = random.choice(HOSTILE)
         if self.type == 'peaceful':
             self.name = random.choice(PEACEFUL)
-            self.tavern = True if random.randint(0, 10) > 7 else False
+            self.tavern = True if random.randint(0, 10) > 8 else False
         elif self.type == 'hometown':
             self.name = 'hometown'
             self.type = 'peaceful'
