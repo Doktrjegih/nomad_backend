@@ -3,7 +3,7 @@ import random
 from enemy import Enemy
 from quest import Quest, get_current_quests
 from player import Player
-from console import error
+from console import error, color
 
 
 class Tavern:
@@ -28,6 +28,9 @@ class Tavern:
         elif action == "take a beer":
             self.buy_beer(10)
             self.tavern_menu()
+        elif action == "take a steak":
+            self.buy_steak()
+            self.tavern_menu()
         elif action == 'check quests':
             self.check_quests()
         elif action == "get status":
@@ -39,19 +42,26 @@ class Tavern:
     def buy_beer(self, beer: int) -> None:
         """
         USER ACTION
-        Buy a cup of beer for 10 coins, increases Player.drunk level
+        Buy a cup of beer for 5 coins, increases Player.drunk level
         """
-        if self.player.gold < 10:
-            print('Not enough money, is 10 gold coins for beer')
+        if self.player.gold < 5:
+            print("Not enough money, it's 5 gold coins for beer")
             return
-        self.player.drunk += beer
+        self.player.set_drunk(beer)
+        self.player.gold -= 5
+
+    def buy_steak(self) -> None:
+        """
+        USER ACTION
+        Buy a steak for 5 coins, increases Player.health level
+        """
+        if self.player.gold < 5:
+            print("Not enough money, it's 5 gold coins for steak")
+            return
         self.player.health += 2
-        if self.player.health > 10:
-            self.player.health = 10
-        if self.player.drunk > 100:
-            self.player.drunk = 100
-        self.player.attack = self.player.strength + (self.player.drunk // 10)
-        self.player.gold -= 10
+        if self.player.health > self.player.max_hp:
+            self.player.health = self.player.max_hp
+        self.player.gold -= 5
 
     def check_quests(self) -> None:
         """
@@ -73,17 +83,17 @@ class Tavern:
         if not self.tavern_quest:
             order = Enemy(self.player)
             amount = random.randint(2, 5)
-            reward = amount * 5 + random.randint(0, 10)
+            reward = amount * 5 * self.player.level + random.randint(0, 10)
             quest = Quest(order=order, amount=amount, reward=reward)
             self.tavern_quest = quest
 
         print('\nHello stranger!')
-        print(f'I need to clean this area from {self.tavern_quest.order.name}s')
+        print(f'I need to clean this area from {color("red", self.tavern_quest.order.name + "s")}')
         print(f'Think {self.tavern_quest.goal_amount} ones will be enough for now')
         print(f'Reward for this is {self.tavern_quest.reward} gold coins')
 
         while True:
-            answer = input(f'Are you accept? (yes/no)')
+            answer = input(f'Are you accept? (yes/no) ')
             if answer.lower() in ['y', 'yes', '1']:
                 print('Quest has been taken')
                 self.active_quests = False

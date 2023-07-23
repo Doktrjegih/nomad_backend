@@ -37,7 +37,7 @@ class Scene:
         if action == "go forward":
             self._new_scene()
         elif action == "enter tavern":
-            self.state = 'tavern'
+            self.state = "tavern"
             if not self.tavern:
                 self.tavern = Tavern(scene=self, player=self.player)
             self.tavern.tavern_menu()
@@ -64,7 +64,7 @@ class Scene:
             if not self.location.tavern:
                 options.remove('enter tavern')
         elif self.state == 'tavern':
-            options = ['go out', 'take a beer', 'check quests', 'get status', 'exit game']
+            options = ['go out', 'take a beer', 'take a steak', 'check quests', 'get status', 'exit game']
         options_len = len(options)
         while True:
             try:
@@ -74,9 +74,6 @@ class Scene:
                 if action == "HESOYAM":
                     self.player.health = 10
                     self.player.gold += 250
-                    self.show_current_scene()
-                elif action == "BAGUVIX":
-                    self.player.defence = 1000
                     self.show_current_scene()
                 else:
                     action = int(action)
@@ -96,7 +93,7 @@ class Scene:
         location = Location(new_location_type)
         self.location = location
         if self.player.drunk > 0:
-            self.player.drunk -= 1
+            self.player.set_drunk(-1)
         if self.tavern:
             self.tavern = None
         if self.location.enemies:
