@@ -59,6 +59,7 @@ class Tavern:
             print("Not enough money, it's 5 gold coins for steak")
             return
         self.player.health += 2
+        self.player.set_drunk(-3)
         if self.player.health > self.player.max_hp:
             self.player.health = self.player.max_hp
         self.player.gold -= 5
