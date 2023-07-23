@@ -2,7 +2,7 @@ import pickle
 
 from console import error, color
 
-STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck"
+STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
 
 
 class Player:
@@ -115,6 +115,13 @@ class Player:
         USER ACTION
         Lets to spend available stats points
         """
+        def apply_changes(param: str) -> None:
+            attr = getattr(self, param)  # also there is a dirty hack: exec(f'self.{param} += 1')
+            setattr(self, param, attr + 1)
+            print(f'{param.capitalize()} has been increased! Current value: {getattr(self, param)}')
+            self.available_stats_point -= 1
+            self.recount_params()
+
         print('Available stats points:', self.available_stats_point)
         while True:
             answer = input(f'\nDo you want to distribute stats points? (yes/no) ')
@@ -122,22 +129,17 @@ class Player:
                 print(f'{STATS}')
                 answer2 = input(f'Which one do you want to increase? ')
                 if answer2 == '1':
-                    self.endurance += 1
-                    print(f'Endurance has been increased! Current value: {self.endurance}')
+                    apply_changes('endurance')
                 elif answer2 == '2':
-                    self.strength += 1
-                    print(f'Strength has been increased! Current value: {self.strength}')
+                    apply_changes('strength')
                 elif answer2 == '3':
-                    self.agility += 1
-                    print(f'Agility has been increased! Current value: {self.agility}')
+                    apply_changes('agility')
                 elif answer2 == '4':
-                    self.luck += 1
-                    print(f'Luck has been increased! Current value: {self.luck}')
+                    apply_changes('luck')
+                if answer2 in ['1', '2', '3', '4', '0']:
+                    return
                 else:
                     error('Incorrect input')
-                self.available_stats_point -= 1
-                self.recount_params()
-                return
             elif answer.lower() in ['n', 'no', '2']:
                 return
             else:
@@ -145,7 +147,7 @@ class Player:
 
     def recount_params(self):
         """
-        Recount all player stats after some actions
+        Recounts all player stats after some actions
         """
         self.max_hp = 5 + (self.endurance * 5)
         self.attack = self.strength + (self.drunk // 10)

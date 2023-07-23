@@ -75,14 +75,15 @@ class Enemy:
 
     def game_over(self) -> None:
         """
-
+        Finishes the game and writes Player.total_scores to file with datetime
         """
         print('Your HP is 0')
         print('GAME OVER!')
         print('Total score =', self.player.scores)
         input('Click Enter to exit...')
         with open('high_scores.txt', 'a', encoding='utf-8') as fd:
-            fd.write(f'\n{self.player.name} - {self.player.scores} ({datetime.datetime.now().isoformat()})')
+            fd.write(f'{self.player.name} - {self.player.scores} '
+                     f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
         exit()
 
 
