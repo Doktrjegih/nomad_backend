@@ -17,8 +17,8 @@ class Player:
         self.agility = 1  # influences attack + side-roll
         self.luck = 1  # increases rewards and chances to get good loot
         self.level = 1
-        self.scores = 960
-        self.total_scores = 960
+        self.scores = 0
+        self.total_scores = 0
         self.gold = 0
         self.drunk = 0
         self.available_stats_point = 0
