@@ -1,10 +1,9 @@
-import random
-
 from battle import Battle
-from enemy import Enemy
+from enemy import *
 from location import Location
 from player import Player
 from tavern import Tavern
+from console import error
 
 
 class Scene:
@@ -25,13 +24,15 @@ class Scene:
             battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
+        elif self.state == 'tavern':
+            self.tavern.tavern_menu()
 
     def show_peace_scene(self) -> None:
         """
         Shows actions outside tavern in peaceful time
         """
         print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
-        print('drunk level:', self.player.get_condition())
+        print('Drunk level:', self.player.get_condition())
         action = self.show_possible_options()
         if action == "go forward":
             self._new_scene()
@@ -69,13 +70,22 @@ class Scene:
             try:
                 for counter, act in enumerate(options, start=1):
                     print(f'{counter} - {act}')
-                action = int(input(f'What do you want to do? '))
+                action = input(f'What do you want to do? ')
+                if action == "HESOYAM":
+                    self.player.health = 10
+                    self.player.gold += 250
+                    self.show_current_scene()
+                elif action == "BAGUVIX":
+                    self.player.defence = 1000
+                    self.show_current_scene()
+                else:
+                    action = int(action)
                 if 1 <= action <= options_len:
                     return options[action - 1]
                 else:
-                    print(f'\nERROR! You must choose options only from 1-{options_len} range')
+                    error(f'You must choose options only from 1-{options_len} range')
             except ValueError:
-                print('\nERROR! Incorrect input')
+                error('Incorrect input')
 
     def _new_scene(self) -> None:
         """
@@ -85,11 +95,39 @@ class Scene:
         new_location_type = random.choice(['peaceful', 'hostile'])
         location = Location(new_location_type)
         self.location = location
+        if self.player.drunk > 0:
+            self.player.drunk -= 1
         if self.tavern:
             self.tavern = None
         if self.location.enemies:
             self.state = 'battle'
-            self.enemy = Enemy(self.player)
+
+            # detect an enemy
+            if self.player.drunk < 26:
+                self.enemy = Enemy(self.player)
+            elif 51 > self.player.drunk > 25:
+                if random.randint(1, 100) > 80:
+                    self.enemy = DrunkEnemy1(self.player)
+                else:
+                    self.enemy = Enemy(self.player)
+            elif 76 > self.player.drunk > 50:
+                if random.randint(1, 100) > 90:
+                    self.enemy = DrunkEnemy2(self.player)
+                elif 91 > random.randint(1, 100) > 60:
+                    self.enemy = DrunkEnemy1(self.player)
+                else:
+                    self.enemy = Enemy(self.player)
+            else:
+                if random.randint(1, 100) > 95:
+                    print('Prepare your anus, puppy')
+                    self.enemy = Boss(self.player)
+                elif 96 > random.randint(1, 100) > 80:
+                    self.enemy = DrunkEnemy2(self.player)
+                elif 81 > random.randint(1, 100) > 55:
+                    self.enemy = DrunkEnemy1(self.player)
+                else:
+                    self.enemy = Enemy(self.player)
+
             battle = Battle(scene=self, player=self.player, enemy=self.enemy)
             battle.show_battle_scene()
             return
