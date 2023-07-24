@@ -7,21 +7,25 @@ from console import color
 
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
-TYPES = [HUMANS, DOGS]
+TEST = {1: 'test', 2: 'test1', 3: 'test2', 4: 'test3'}
+TEST2 = {1: 'test_', 2: 'test1_', 3: 'test2_', 4: 'test3_'}
 
 
 class Enemy:
-    def __init__(self, player: Player) -> None:
+    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
         self.player = player
-
-        self.type = random.choice(TYPES)
+        types = [HUMANS, DOGS, TEST, TEST2]
+        if exclude:
+            for type_ in exclude:
+                types.remove(type_)
+        self.type = random.choice(types)
         self.name = self.type.get(1)
         self.level = self.get_random_level_of_enemy()
         self.health = 2 * self.level
+        # self.strength = 2
         self.attack = 1 * self.level
-        self.strength = 2
-        self.agility = random.randint(0, 2)
         self.defence = 1 * self.level
+        self.agility = random.randint(0, 2) * self.level
 
     def get_random_level_of_enemy(self) -> int:
         """
@@ -56,8 +60,9 @@ class Enemy:
         self.player.reward_for_enemy(self.level)
         quests = get_current_quests()
         if quests:
-            if quests[0].order.name == self.name and quests[0].current_amount < quests[0].goal_amount:
-                quests[0].increase_goal()
+            for quest in quests:
+                if quest.order.name == self.name and quest.current_amount < quest.goal_amount:
+                    quest.increase_goal(quests)
 
     def enemy_attack(self) -> int:
         """
@@ -93,6 +98,9 @@ class DrunkEnemy1(Enemy):
 
         self.name = self.type.get(2)
         self.health = int(self.health * 1.5)
+        self.strength = self.level + 3
+        self.defence = self.strength + random.randint(0, 3)
+        self.attack = self.strength + random.randint(0, 3)
 
 
 class DrunkEnemy2(Enemy):
@@ -101,6 +109,9 @@ class DrunkEnemy2(Enemy):
 
         self.name = self.type.get(3)
         self.health = int(self.health * 3)
+        self.strength = self.level * 2
+        self.defence = self.strength + random.randint(1, 4)
+        self.attack = self.strength + random.randint(1, 4)
 
 
 class Boss(Enemy):
@@ -109,3 +120,6 @@ class Boss(Enemy):
 
         self.name = self.type.get(4)
         self.health = int(self.health * 5)
+        self.strength = self.level * 3
+        self.defence = self.strength + random.randint(2, 5)
+        self.attack = self.strength + random.randint(2, 5)
