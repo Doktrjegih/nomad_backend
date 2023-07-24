@@ -22,7 +22,7 @@ class Quest:
         self.reward = reward
         self.is_finished = False
 
-    def add_to_list(self) -> None:  # todo: several quests simultaneously (now there is bug with vanishing quests)
+    def add_to_list(self) -> None:
         """
         Adds quests objects to pickle file
         """
