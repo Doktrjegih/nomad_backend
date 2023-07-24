@@ -64,11 +64,8 @@ class Battle:
         self.scene.run_able = True
         self.scene.state = 'peace'
         if type_ == 'run':
-            self.player.drunk -= 1
+            self.player.set_drunk(-1)
         elif type_ == 'battle':
-            if self.player.drunk > 3:
-                self.player.drunk -= 3
-            else:
-                self.player.drunk = 0
-        print(f'Damage taken during battle: {self.damage_taken}')
+            self.player.set_drunk(-3)  # todo: depends on taken damage
+        # print(f'Damage taken during battle: {self.damage_taken}')
         self.scene.show_current_scene()

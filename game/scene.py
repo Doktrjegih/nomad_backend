@@ -3,7 +3,7 @@ from enemy import *
 from location import Location
 from player import Player
 from tavern import Tavern
-from console import error
+from console import error, color
 
 
 class Scene:
@@ -37,7 +37,7 @@ class Scene:
         if action == "go forward":
             self._new_scene()
         elif action == "enter tavern":
-            self.state = 'tavern'
+            self.state = "tavern"
             if not self.tavern:
                 self.tavern = Tavern(scene=self, player=self.player)
             self.tavern.tavern_menu()
@@ -64,7 +64,7 @@ class Scene:
             if not self.location.tavern:
                 options.remove('enter tavern')
         elif self.state == 'tavern':
-            options = ['go out', 'take a beer', 'check quests', 'get status', 'exit game']
+            options = ['go out', 'take a beer', 'take a steak', 'check quests', 'get status', 'exit game']
         options_len = len(options)
         while True:
             try:
@@ -74,9 +74,6 @@ class Scene:
                 if action == "HESOYAM":
                     self.player.health = 10
                     self.player.gold += 250
-                    self.show_current_scene()
-                elif action == "BAGUVIX":
-                    self.player.defence = 1000
                     self.show_current_scene()
                 else:
                     action = int(action)
@@ -96,37 +93,62 @@ class Scene:
         location = Location(new_location_type)
         self.location = location
         if self.player.drunk > 0:
-            self.player.drunk -= 1
+            self.player.set_drunk(-1)
         if self.tavern:
             self.tavern = None
         if self.location.enemies:
             self.state = 'battle'
 
-            # detect an enemy
+            # detect an enemy (first version)
+            # if self.player.drunk < 26:
+            #     self.enemy = Enemy(self.player)
+            # elif 51 > self.player.drunk > 25:
+            #     if random.randint(1, 100) > 80:
+            #         self.enemy = DrunkEnemy1(self.player)
+            #     else:
+            #         self.enemy = Enemy(self.player)
+            # elif 76 > self.player.drunk > 50:
+            #     if random.randint(1, 100) > 90:
+            #         self.enemy = DrunkEnemy2(self.player)
+            #     elif 91 > random.randint(1, 100) > 60:
+            #         self.enemy = DrunkEnemy1(self.player)
+            #     else:
+            #         self.enemy = Enemy(self.player)
+            # else:
+            #     if random.randint(1, 100) > 95:
+            #         print('Prepare your anus, puppy')
+            #         self.enemy = Boss(self.player)
+            #     elif 96 > random.randint(1, 100) > 80:
+            #         self.enemy = DrunkEnemy2(self.player)
+            #     elif 81 > random.randint(1, 100) > 55:
+            #         self.enemy = DrunkEnemy1(self.player)
+            #     else:
+            #         self.enemy = Enemy(self.player)
+
+            # detect an enemy (second version)
             if self.player.drunk < 26:
                 self.enemy = Enemy(self.player)
             elif 51 > self.player.drunk > 25:
-                if random.randint(1, 100) > 80:
-                    self.enemy = DrunkEnemy1(self.player)
-                else:
+                if random.randint(1, 100) > 90:
                     self.enemy = Enemy(self.player)
+                else:
+                    self.enemy = DrunkEnemy1(self.player)
             elif 76 > self.player.drunk > 50:
                 if random.randint(1, 100) > 90:
-                    self.enemy = DrunkEnemy2(self.player)
-                elif 91 > random.randint(1, 100) > 60:
+                    self.enemy = Enemy(self.player)
+                elif 91 > random.randint(1, 100) > 80:
                     self.enemy = DrunkEnemy1(self.player)
                 else:
-                    self.enemy = Enemy(self.player)
+                    self.enemy = DrunkEnemy2(self.player)
             else:
-                if random.randint(1, 100) > 95:
-                    print('Prepare your anus, puppy')
-                    self.enemy = Boss(self.player)
-                elif 96 > random.randint(1, 100) > 80:
-                    self.enemy = DrunkEnemy2(self.player)
-                elif 81 > random.randint(1, 100) > 55:
-                    self.enemy = DrunkEnemy1(self.player)
-                else:
+                if random.randint(1, 100) > 90:
                     self.enemy = Enemy(self.player)
+                elif 91 > random.randint(1, 100) > 80:
+                    self.enemy = DrunkEnemy1(self.player)
+                elif 81 > random.randint(1, 100) > 70:
+                    self.enemy = DrunkEnemy2(self.player)
+                else:
+                    self.enemy = Boss(self.player)
 
             battle = Battle(scene=self, player=self.player, enemy=self.enemy)
             battle.show_battle_scene()

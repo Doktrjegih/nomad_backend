@@ -1,7 +1,9 @@
+import datetime
 import random
 
 from player import Player
 from quest import get_current_quests
+from console import color
 
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
@@ -35,7 +37,7 @@ class Enemy:
         """
         Shows status of enemy and player
         """
-        print(f'Your enemy is: {self.name} ({self.level} level)')
+        print(f'Your enemy is: {color("red", self.name)} ({self.level} level)')
         print(f'Your health: {self.player.health}')
         print(f'Enemy health: {self.health}')
 
@@ -50,8 +52,8 @@ class Enemy:
         """
         Kills enemy, gets XP, checks if enemy was a quest goal
         """
-        print(f'\n{self.name} was killed!')
-        self.player.reward_for_enemy()
+        print(f'\n{color("red", self.name)} was killed!')
+        self.player.reward_for_enemy(self.level)
         quests = get_current_quests()
         if quests:
             if quests[0].order.name == self.name and quests[0].current_amount < quests[0].goal_amount:
@@ -68,12 +70,21 @@ class Enemy:
             attack = 0
         self.player.health -= attack
         if self.player.health <= 0:
-            print('Your HP is 0')
-            print('GAME OVER!')
-            print('Total score =', self.player.scores)
-            input('Click Enter to exit...')
-            exit()
+            self.game_over()
         return attack
+
+    def game_over(self) -> None:
+        """
+        Finishes the game and writes Player.total_scores to file with datetime
+        """
+        print('Your HP is 0')
+        print('GAME OVER!')
+        print('Total score =', self.player.scores)
+        input('Click Enter to exit...')
+        with open('high_scores.txt', 'a', encoding='utf-8') as fd:
+            fd.write(f'{self.player.name} - {self.player.scores} '
+                     f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
+        exit()
 
 
 class DrunkEnemy1(Enemy):
