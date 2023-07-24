@@ -70,19 +70,29 @@ class Tavern:
         Checks if there are finished quests, closes quests if yes.
         Generates random new tasks for player, restricts getting of quests if player already has active mission
         """
+        # check if there are finished quests
         quests = get_current_quests()
         if quests:
-            if quests[0].is_finished:
-                quests[0].close_quest(self.player)
-                self.active_quests = True
-            else:
-                self.active_quests = False
-        if not self.active_quests:
+            for quest in quests:
+                if quest.is_finished:
+                    quest.close_quest(self.player)
+
+        # check if max value of current quests
+        quests = get_current_quests()
+        if len(quests) == 3 or not self.active_quests:
             print("Sorry, I don't have quests for you now")
             self.tavern_menu()
             return
+
+        # check if tavern quest was taken
         if not self.tavern_quest:
-            order = Enemy(self.player)
+            if len(quests) == 0:
+                order = Enemy(self.player)
+            else:
+                current_orders = []
+                for quest in quests:
+                    current_orders.append(quest.order.type)
+                order = Enemy(self.player, exclude=current_orders)
             amount = random.randint(2, 5)
             reward = amount * 5 * self.player.level + (random.randint(2, 10) * self.player.level)
             quest = Quest(order=order, amount=amount, reward=reward)

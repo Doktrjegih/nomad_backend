@@ -41,6 +41,11 @@ class Scene:
             if not self.tavern:
                 self.tavern = Tavern(scene=self, player=self.player)
             self.tavern.tavern_menu()
+        elif action == "check a chest":
+            self.player.gold += (loot := random.randint(15, 50))
+            print(f"You've found {loot} gold coins")
+            self.location.chest = False
+            self.show_current_scene()
         elif action == "get status":
             self.player.show_player_info()
             self.show_current_scene()
@@ -60,9 +65,11 @@ class Scene:
             if not self.run_able:
                 options.remove('run away')
         elif self.state == 'peace':
-            options = ['go forward', 'enter tavern', 'get status', 'exit game']
+            options = ['go forward', 'enter tavern', 'check a chest', 'get status', 'exit game']
             if not self.location.tavern:
                 options.remove('enter tavern')
+            if not self.location.chest:
+                options.remove('check a chest')
         elif self.state == 'tavern':
             options = ['go out', 'take a beer', 'take a steak', 'check quests', 'get status', 'exit game']
         options_len = len(options)
@@ -90,7 +97,7 @@ class Scene:
         Leads player through new random locations, checks either there are enemies or not
         """
         new_location_type = random.choice(['peaceful', 'hostile'])
-        location = Location(new_location_type)
+        location = Location(new_location_type, self.player)
         self.location = location
         if self.player.drunk > 0:
             self.player.set_drunk(-1)

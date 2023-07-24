@@ -22,7 +22,7 @@ class Quest:
         self.reward = reward
         self.is_finished = False
 
-    def add_to_list(self) -> None:  # todo: several quests simultaneously
+    def add_to_list(self) -> None:  # todo: several quests simultaneously (now there is bug with vanishing quests)
         """
         Adds quests objects to pickle file
         """
@@ -45,7 +45,8 @@ class Quest:
             print("You've finished the quest conditions!")
             print("You can get a reward in any tavern")
         with open('quests.pkl', 'wb') as fd:
-            pickle.dump([self], fd)
+            quests = get_current_quests()
+            pickle.dump(quests, fd)
 
     def close_quest(self, player) -> None:
         """
@@ -53,6 +54,8 @@ class Quest:
         :param player: object of Player class
         """
         player.gold += self.reward
+        quests = get_current_quests()
+        quests.remove(self)
         with open('quests.pkl', 'wb') as fd:
-            pickle.dump([], fd)
+            pickle.dump(quests, fd)
         print(f"\nThanks! Your reward is: {self.reward} coins")
