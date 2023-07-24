@@ -35,7 +35,7 @@ class Quest:
             with open('quests.pkl', 'wb') as fd:
                 pickle.dump(active, fd)
 
-    def increase_goal(self) -> None:
+    def increase_goal(self, quests: list) -> None:
         """
         Updates quest's goal in the pickle file
         """
@@ -45,7 +45,6 @@ class Quest:
             print("You've finished the quest conditions!")
             print("You can get a reward in any tavern")
         with open('quests.pkl', 'wb') as fd:
-            quests = get_current_quests()
             pickle.dump(quests, fd)
 
     def close_quest(self, player) -> None:

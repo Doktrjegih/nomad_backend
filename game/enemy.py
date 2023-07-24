@@ -62,7 +62,7 @@ class Enemy:
         if quests:
             for quest in quests:
                 if quest.order.name == self.name and quest.current_amount < quest.goal_amount:
-                    quest.increase_goal()
+                    quest.increase_goal(quests)
 
     def enemy_attack(self) -> int:
         """
