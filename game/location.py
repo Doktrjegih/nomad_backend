@@ -25,5 +25,5 @@ class Location:
             self.tavern = True
 
         if self.type != 'hometown' and not self.tavern and not self.enemies:
-            if random.randint(1, 100) + self.player.luck * 2 > 90:
+            if random.randint(1, 100) + self.player.luck * 2 > 95:
                 self.chest = True

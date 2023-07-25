@@ -156,7 +156,7 @@ class Player:
             self.health = self.max_hp
         self.attack = self.strength + (self.drunk // 10) + self.weapon[1]
         self.defence = self.strength + (self.drunk // 10)
-        if self.scores > self.next_level:
+        if self.scores >= self.next_level:
             to_next_level = self.scores - self.next_level
             self.level += 1
             self.scores = to_next_level
@@ -173,10 +173,12 @@ class Player:
         if inventory:
             print()
             for counter, item in enumerate(inventory, start=1):
-                active_weapon = ''
+                active_weapon, attack = '', ''
                 if item[1].name == self.weapon[0]:  # todo: may be weak spot, need to observe usefulness
-                    active_weapon = ' (active weapon)'
-                print(f"{counter} - {item[1].name}: {item[0].amount}{active_weapon}")
+                    active_weapon = ' [active weapon]'
+                if item[1].type_ == 'weapon':
+                    attack = f' (attack {item[1].attack})'
+                print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
             print(f"0 - cancel")
             while True:
                 try:
