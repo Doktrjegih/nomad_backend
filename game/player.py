@@ -24,18 +24,17 @@ class Player:
         self.drunk = 0
         self.available_stats_point = 0
         self.next_level = 1000
-        self.create_player()
-        self.inventory = get_inventory()
+        self.inventory = []
         self.weapon = [None, 0]
 
-    def create_player(self) -> None:
+    def enter_name(self) -> None:
         """
         USER ACTION
-        Add name to player in the beginning of game
+        Add name to player in the end of game (for high score file)
         """
         while True:
             self.name = input('Enter your name: ')
-            if len(self.name) > 1:
+            if len(self.name) > 0:
                 return
             error('Incorrect input')
 
@@ -143,12 +142,10 @@ class Player:
                     apply_changes('luck')
                 if answer2 in ['1', '2', '3', '4', '0']:
                     return
-                else:
-                    error('Incorrect input')
+                error('Incorrect input')
             elif answer.lower() in ['n', 'no', '2']:
                 return
-            else:
-                error('Incorrect input')
+            error('Incorrect input')
 
     def recount_params(self) -> None:
         """

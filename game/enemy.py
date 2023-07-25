@@ -59,10 +59,11 @@ class Enemy:
         print(f'\n{color("red", self.name)} was killed!')
         self.player.reward_for_enemy(self.level)
         quests = get_current_quests()
-        if quests:
-            for quest in quests:
-                if quest.order.name == self.name and quest.current_amount < quest.goal_amount:
-                    quest.increase_goal(quests)
+        if not quests:
+            return
+        for quest in quests:
+            if quest.order.name == self.name and quest.current_amount < quest.goal_amount:
+                quest.increase_goal(quests)
 
     def enemy_attack(self) -> int:
         """
@@ -85,6 +86,7 @@ class Enemy:
         print('Your HP is 0')
         print('GAME OVER!')
         print('Total score =', self.player.scores)
+        self.player.enter_name()
         input('Click Enter to exit...')
         with open('high_scores.txt', 'a', encoding='utf-8') as fd:
             fd.write(f'{self.player.name} - {self.player.scores} '
