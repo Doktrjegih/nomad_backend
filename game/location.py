@@ -14,16 +14,16 @@ class Location:
         self.player = player
 
         if self.type == 'hostile':
-            self.enemies = True if random.randint(0, 10) > 5 else False
+            self.enemies = True if random.randint(0, 10) > 4 else False
             self.name = random.choice(HOSTILE)
         if self.type == 'peaceful':
             self.name = random.choice(PEACEFUL)
-            self.tavern = True if random.randint(0, 10) > 8 else False
+            self.tavern = True if random.randint(0, 10) > 9 else False
         elif self.type == 'hometown':
             self.name = 'hometown'
             self.type = 'peaceful'
             self.tavern = True
 
         if self.type != 'hometown' and not self.tavern and not self.enemies:
-            if random.randint(1, 100) + self.player.luck * 2 > 90:
+            if random.randint(1, 100) + self.player.luck * 2 > 95:
                 self.chest = True

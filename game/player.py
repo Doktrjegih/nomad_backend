@@ -1,6 +1,7 @@
 import pickle
 
 from console import error, color
+from db import get_inventory, remove_item
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
 
@@ -23,16 +24,17 @@ class Player:
         self.drunk = 0
         self.available_stats_point = 0
         self.next_level = 1000
-        self.create_player()
+        self.inventory = []
+        self.weapon = [None, 0]
 
-    def create_player(self) -> None:
+    def enter_name(self) -> None:
         """
         USER ACTION
-        Add name to player in the beginning of game
+        Add name to player in the end of game (for high score file)
         """
         while True:
             self.name = input('Enter your name: ')
-            if len(self.name) > 1:
+            if len(self.name) > 0:
                 return
             error('Incorrect input')
 
@@ -44,6 +46,8 @@ class Player:
         print('\nStatus:')
         print('Name:', self.name)
         print(f'Health: {self.health}/{self.max_hp}')
+        if self.weapon:
+            print(f"Weapon: {self.weapon[0]} (attack {self.weapon[1]})")
         print('Drunk level:', self.get_condition())
         print('Attack:', self.attack)
         print('Defence:', self.defence)
@@ -110,7 +114,7 @@ class Player:
             self.drunk = 0
         self.recount_params()
 
-    def improve_stats(self):
+    def improve_stats(self) -> None:
         """
         USER ACTION
         Lets to spend available stats points
@@ -138,24 +142,70 @@ class Player:
                     apply_changes('luck')
                 if answer2 in ['1', '2', '3', '4', '0']:
                     return
-                else:
-                    error('Incorrect input')
+                error('Incorrect input')
             elif answer.lower() in ['n', 'no', '2']:
                 return
-            else:
-                error('Incorrect input')
+            error('Incorrect input')
 
-    def recount_params(self):
+    def recount_params(self) -> None:
         """
         Recounts all player stats after some actions
         """
         self.max_hp = 5 + (self.endurance * 5)
-        self.attack = self.strength + (self.drunk // 10)
+        if self.health > self.max_hp:
+            self.health = self.max_hp
+        self.attack = self.strength + (self.drunk // 10) + self.weapon[1]
         self.defence = self.strength + (self.drunk // 10)
-        if self.scores > self.next_level:
+        if self.scores >= self.next_level:
             to_next_level = self.scores - self.next_level
             self.level += 1
             self.scores = to_next_level
             self.next_level = int(self.next_level * 1.2)
             if self.scores > self.next_level:  # todo: for debug
                 error(f'Sanya look! More than 1 level per time')
+
+    def show_inventory(self) -> None:
+        """
+        Shows inventory and lets to manage it
+        :return:
+        """
+        inventory = get_inventory()
+        if inventory:
+            print()
+            for counter, item in enumerate(inventory, start=1):
+                active_weapon, attack = '', ''
+                if item[1].name == self.weapon[0]:  # todo: may be weak spot, need to observe usefulness
+                    active_weapon = ' [active weapon]'
+                if item[1].type_ == 'weapon':
+                    attack = f' (attack {item[1].attack})'
+                print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
+            print(f"0 - cancel")
+            while True:
+                try:
+                    answer = input(f'\nWhich one do you want to use? ')
+                    if answer in [str(x) for x in range(1, counter + 1)]:
+                        item_index = int(answer) - 1
+                        item_name = inventory[item_index][1].name
+                        type_of_item = inventory[item_index][1].type_
+                        if type_of_item == "food":
+                            self.health += 2
+                            self.set_drunk(-2)
+                            remove_item(inventory[item_index][0])
+                            print(f"You've eaten {item_name}")
+                        elif type_of_item == "alcohol":
+                            self.set_drunk(10)
+                            remove_item(inventory[item_index][0])
+                            print(f"You've drunk {item_name}")
+                        elif type_of_item == "weapon":
+                            self.weapon = [item_name, (attack := inventory[item_index][1].attack)]
+                            print(f"Current weapon: {item_name} (attack {attack})")
+                        elif type_of_item == "garbage":
+                            print(f"You can't use {item_name}, but you will be able to sell it sometime")
+                        self.recount_params()
+                        return
+                    elif answer == '0':
+                        return
+                except ValueError:
+                    error('Incorrect input')
+        else:
+            print('Empty inventory')

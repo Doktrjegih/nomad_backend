@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Rust sword",
+    "type": "weapon",
+    "attack": 2,
+    "cost": 5
+  },
+  {
+    "name": "Iron sword",
+    "type": "weapon",
+    "attack": 5,
+    "cost": 10
+  },
+  {
+    "name": "Beer bottle",
+    "type": "alcohol",
+    "attack": null,
+    "cost": 5
+  },
+  {
+    "name": "Steak",
+    "type": "food",
+    "attack": null,
+    "cost": 5
+  },
+  {
+    "name": "Anthoha's underpants",
+    "type": "garbage",
+    "attack": null,
+    "cost": 1
+  }
+]

@@ -31,13 +31,16 @@ class Tavern:
         elif action == "take a steak":
             self.buy_steak()
             self.tavern_menu()
-        elif action == 'check quests':
+        elif action == "check quests":
             self.check_quests()
+        elif action == "inventory":
+            self.player.show_inventory()
+            self.tavern_menu()
         elif action == "get status":
             self.player.show_player_info()
             self.tavern_menu()
         elif action == "exit game":
-            exit()
+            self.scene.ask_about_exit()
 
     def buy_beer(self, beer: int) -> None:
         """
@@ -59,7 +62,7 @@ class Tavern:
             print("Not enough money, it's 5 gold coins for steak")
             return
         self.player.health += 2
-        self.player.set_drunk(-3)
+        self.player.set_drunk(-2)
         if self.player.health > self.player.max_hp:
             self.player.health = self.player.max_hp
         self.player.gold -= 5
@@ -72,10 +75,11 @@ class Tavern:
         """
         # check if there are finished quests
         quests = get_current_quests()
-        if quests:
-            for quest in quests:
-                if quest.is_finished:
-                    quest.close_quest(self.player)
+        if not quests:
+            return
+        for quest in quests[:]:
+            if quest.is_finished:
+                quest.close_quest(quests, quest, self.player)
 
         # check if max value of current quests
         quests = get_current_quests()

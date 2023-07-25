@@ -31,11 +31,14 @@ class Battle:
                 self.show_battle_scene()
         elif action == "run away":
             self.try_run_away()
+        elif action == "inventory":
+            self.player.show_inventory()
+            self.scene.show_current_scene()
         elif action == "get status":
             self.player.show_player_info()
             self.scene.show_current_scene()
         elif action == "exit game":
-            exit()
+            self.scene.ask_about_exit()
 
     def try_run_away(self) -> None:
         """

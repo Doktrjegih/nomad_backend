@@ -4,6 +4,7 @@ from location import Location
 from player import Player
 from tavern import Tavern
 from console import error, color
+from db import get_all_items, add_item_to_inventory
 
 
 class Scene:
@@ -42,15 +43,21 @@ class Scene:
                 self.tavern = Tavern(scene=self, player=self.player)
             self.tavern.tavern_menu()
         elif action == "check a chest":
+            item = random.choice(get_all_items())
+            print(f"You've found {item.name}")
+            add_item_to_inventory({"item_id": item.item_id, "amount": 1})
             self.player.gold += (loot := random.randint(15, 50))
             print(f"You've found {loot} gold coins")
             self.location.chest = False
+            self.show_current_scene()
+        elif action == 'inventory':
+            self.player.show_inventory()
             self.show_current_scene()
         elif action == "get status":
             self.player.show_player_info()
             self.show_current_scene()
         elif action == "exit game":
-            exit()
+            self.ask_about_exit()
 
     def show_possible_options(self) -> str:
         """
@@ -61,17 +68,17 @@ class Scene:
         """
         options = []
         if self.state == 'battle':
-            options = ['attack', 'run away', 'get status', 'exit game']
+            options = ['attack', 'run away', 'inventory', 'get status', 'exit game']
             if not self.run_able:
                 options.remove('run away')
         elif self.state == 'peace':
-            options = ['go forward', 'enter tavern', 'check a chest', 'get status', 'exit game']
+            options = ['go forward', 'enter tavern', 'check a chest', 'inventory', 'get status', 'exit game']
             if not self.location.tavern:
                 options.remove('enter tavern')
             if not self.location.chest:
                 options.remove('check a chest')
         elif self.state == 'tavern':
-            options = ['go out', 'take a beer', 'take a steak', 'check quests', 'get status', 'exit game']
+            options = ['go out', 'take a beer', 'take a steak', 'check quests', 'inventory', 'get status', 'exit game']
         options_len = len(options)
         while True:
             try:
@@ -161,3 +168,16 @@ class Scene:
             battle.show_battle_scene()
             return
         self.show_peace_scene()
+
+    def ask_about_exit(self) -> None:
+        """
+        Dialog for confirmation if player wants to exit
+        """
+        while True:
+            answer = input(f'\nDo you want to exit? (yes/no) ')
+            if answer.lower() in ['y', 'yes', '1']:
+                exit()
+            elif answer.lower() in ['n', 'no', '2']:
+                self.show_current_scene()
+            else:
+                error('Incorrect input')
