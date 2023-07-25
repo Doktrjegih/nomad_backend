@@ -78,7 +78,7 @@ class Tavern:
         if quests:
             for quest in quests:
                 if quest.is_finished:
-                    quest.close_quest(self.player)
+                    quest.close_quest(quests, quest, self.player)
 
         # check if max value of current quests
         quests = get_current_quests()

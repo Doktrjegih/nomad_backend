@@ -47,14 +47,13 @@ class Quest:
         with open('quests.pkl', 'wb') as fd:
             pickle.dump(quests, fd)
 
-    def close_quest(self, player) -> None:
+    def close_quest(self, quests, quest, player) -> None:
         """
         Removes quest from player's activities, gives reward for mission
         :param player: object of Player class
         """
         player.gold += self.reward
-        quests = get_current_quests()
-        quests.remove(self)
+        quests.remove(quest)
         with open('quests.pkl', 'wb') as fd:
             pickle.dump(quests, fd)
         print(f"\nThanks! Your reward is: {self.reward} coins")
