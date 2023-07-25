@@ -18,7 +18,7 @@ class Location:
             self.name = random.choice(HOSTILE)
         if self.type == 'peaceful':
             self.name = random.choice(PEACEFUL)
-            self.tavern = True if random.randint(0, 10) > 8 else False
+            self.tavern = True if random.randint(0, 10) > 9 else False
         elif self.type == 'hometown':
             self.name = 'hometown'
             self.type = 'peaceful'
