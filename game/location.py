@@ -14,7 +14,7 @@ class Location:
         self.player = player
 
         if self.type == 'hostile':
-            self.enemies = True if random.randint(0, 10) > 5 else False
+            self.enemies = True if random.randint(0, 10) > 4 else False
             self.name = random.choice(HOSTILE)
         if self.type == 'peaceful':
             self.name = random.choice(PEACEFUL)
