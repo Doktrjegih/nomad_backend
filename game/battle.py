@@ -1,12 +1,14 @@
 from console import warning
+from items import Items
 
 
 class Battle:
-    def __init__(self, scene, player, enemy):
+    def __init__(self, scene, player, enemy, items: Items):
         self.scene = scene
         self.player = player
         self.enemy = enemy
         self.damage_taken = 0
+        self.items = items
 
     def show_battle_scene(self) -> None:
         """
@@ -32,7 +34,7 @@ class Battle:
         elif action == "run away":
             self.try_run_away()
         elif action == "inventory":
-            self.player.show_inventory()
+            self.items.show_inventory()
             self.scene.show_current_scene()
         elif action == "get status":
             self.player.show_player_info()

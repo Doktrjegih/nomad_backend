@@ -4,14 +4,16 @@ from enemy import Enemy
 from quest import Quest, get_current_quests
 from player import Player
 from console import error, color
+from items import Items
 
 
 class Tavern:
-    def __init__(self, scene, player: Player) -> None:
+    def __init__(self, scene, player: Player, items: Items) -> None:
         self.tavern_quest = None
         self.scene = scene
         self.player = player
-        self.active_quests = True
+        self.active_quests = True if self.scene.location.name == 'hometown' else random.choice([True, False])
+        self.items = items
 
     def tavern_menu(self) -> None:
         """
@@ -34,7 +36,7 @@ class Tavern:
         elif action == "check quests":
             self.check_quests()
         elif action == "inventory":
-            self.player.show_inventory()
+            self.items.show_inventory()
             self.tavern_menu()
         elif action == "get status":
             self.player.show_player_info()

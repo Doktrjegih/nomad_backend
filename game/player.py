@@ -1,7 +1,6 @@
 import pickle
 
 from console import error, color
-from db import get_inventory, remove_item
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
 
@@ -46,8 +45,11 @@ class Player:
         print('\nStatus:')
         print('Name:', self.name)
         print(f'Health: {self.health}/{self.max_hp}')
-        if self.weapon:
-            print(f"Weapon: {self.weapon[0]} (attack {self.weapon[1]})")
+        if self.weapon[0]:
+            unavailable = ''
+            if self.drunk < 1:
+                unavailable = color('red', ' UNAVAILABLE')
+            print(f"Weapon: {self.weapon[0]} (attack {self.weapon[1]}){unavailable}")
         print('Drunk level:', self.get_condition())
         print('Attack:', self.attack)
         print('Defence:', self.defence)
@@ -110,7 +112,7 @@ class Player:
         self.drunk += drunk
         if self.drunk > 100:
             self.drunk = 100
-        elif self.drunk < 1:
+        elif self.drunk < 0:
             self.drunk = 0
         self.recount_params()
 
@@ -154,7 +156,7 @@ class Player:
         self.max_hp = 5 + (self.endurance * 5)
         if self.health > self.max_hp:
             self.health = self.max_hp
-        self.attack = self.strength + (self.drunk // 10) + self.weapon[1]
+        self.attack = self.strength + (self.drunk // 10) + (self.weapon[1] if self.drunk > 0 else 0)
         self.defence = self.strength + (self.drunk // 10)
         if self.scores >= self.next_level:
             to_next_level = self.scores - self.next_level
@@ -163,49 +165,3 @@ class Player:
             self.next_level = int(self.next_level * 1.2)
             if self.scores > self.next_level:  # todo: for debug
                 error(f'Sanya look! More than 1 level per time')
-
-    def show_inventory(self) -> None:
-        """
-        Shows inventory and lets to manage it
-        :return:
-        """
-        inventory = get_inventory()
-        if inventory:
-            print()
-            for counter, item in enumerate(inventory, start=1):
-                active_weapon, attack = '', ''
-                if item[1].name == self.weapon[0]:  # todo: may be weak spot, need to observe usefulness
-                    active_weapon = ' [active weapon]'
-                if item[1].type_ == 'weapon':
-                    attack = f' (attack {item[1].attack})'
-                print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
-            print(f"0 - cancel")
-            while True:
-                try:
-                    answer = input(f'\nWhich one do you want to use? ')
-                    if answer in [str(x) for x in range(1, counter + 1)]:
-                        item_index = int(answer) - 1
-                        item_name = inventory[item_index][1].name
-                        type_of_item = inventory[item_index][1].type_
-                        if type_of_item == "food":
-                            self.health += 2
-                            self.set_drunk(-2)
-                            remove_item(inventory[item_index][0])
-                            print(f"You've eaten {item_name}")
-                        elif type_of_item == "alcohol":
-                            self.set_drunk(10)
-                            remove_item(inventory[item_index][0])
-                            print(f"You've drunk {item_name}")
-                        elif type_of_item == "weapon":
-                            self.weapon = [item_name, (attack := inventory[item_index][1].attack)]
-                            print(f"Current weapon: {item_name} (attack {attack})")
-                        elif type_of_item == "garbage":
-                            print(f"You can't use {item_name}, but you will be able to sell it sometime")
-                        self.recount_params()
-                        return
-                    elif answer == '0':
-                        return
-                except ValueError:
-                    error('Incorrect input')
-        else:
-            print('Empty inventory')
