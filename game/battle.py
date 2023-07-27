@@ -1,5 +1,8 @@
+import random
+
 from console import warning
 from items import Items
+from console import color
 
 
 class Battle:
@@ -20,17 +23,7 @@ class Battle:
         self.enemy.show_rivals_stats()
         action = self.scene.show_possible_options()
         if action == "attack":
-            attack = self.player.attack - self.enemy.defence
-            if attack < 1:
-                attack = 1
-            print(f'Your attack is {attack}')
-            self.enemy.get_damage(attack)
-            if self.enemy.health <= 0:
-                self.enemy.died()
-                self.finish_battle(type_='battle')
-            else:
-                self.damage_taken += self.enemy.enemy_attack()
-                self.show_battle_scene()
+            self.player_attack()
         elif action == "run away":
             self.try_run_away()
         elif action == "inventory":
@@ -41,6 +34,29 @@ class Battle:
             self.scene.show_current_scene()
         elif action == "exit game":
             self.scene.ask_about_exit()
+
+    def player_attack(self):
+        attack = self.player.attack - self.enemy.defence
+        if attack < 1:
+            attack = 1
+        lucky_hit, critical_hit = '', ''
+        if self.player.luck > random.randint(0, 100):
+            lucky_hit = color('green', 'Lucky hit! ')
+        if self.player.luck / 2 + self.player.agility > random.randint(0, 100):
+            critical_hit = color('green', 'CRITICAL HIT! ')
+        lucky_hit = '' if critical_hit else lucky_hit
+        if lucky_hit:
+            attack = int(attack * 1.2)
+        if critical_hit:
+            attack = int(attack * 1.5)
+        print(f'{lucky_hit}{critical_hit}Your attack is {attack}')
+        self.enemy.get_damage(attack)
+        if self.enemy.health <= 0:
+            self.enemy.died()
+            self.finish_battle(type_='battle')
+        else:
+            self.damage_taken += self.enemy.enemy_attack()
+            self.show_battle_scene()
 
     def try_run_away(self) -> None:
         """

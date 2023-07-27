@@ -75,6 +75,7 @@ class Enemy:
         if attack < 1:
             attack = 0
         self.player.health -= attack
+        self.player.recount_params()
         if self.player.health <= 0:
             self.game_over()
         return attack
