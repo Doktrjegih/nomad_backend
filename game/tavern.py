@@ -3,8 +3,9 @@ import random
 from enemy import Enemy
 from quest import Quest, get_current_quests
 from player import Player
-from console import error, color
+from console import error, color, print
 from items import Items
+import db
 
 
 class Tavern:
@@ -79,8 +80,10 @@ class Tavern:
         quests = get_current_quests()
         if quests:
             for quest in quests[:]:
+                quest: Quest
                 if quest.is_finished:
-                    quest.close_quest(quests, quest, self.player)
+                    quest.close_quest(quests, self.player)
+                    db.add_item_to_inventory(1)
 
         # check if max value of current quests
         quests = get_current_quests()

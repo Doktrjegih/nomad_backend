@@ -3,7 +3,7 @@ import random
 
 from player import Player
 from quest import get_current_quests
-from console import color
+from console import color, print
 
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
@@ -57,13 +57,14 @@ class Enemy:
         Kills enemy, gets XP, checks if enemy was a quest goal
         """
         print(f'\n{color("red", self.name)} was killed!')
-        self.player.reward_for_enemy(self.level)
+        self.player.reward_for_enemy(self)
         quests = get_current_quests()
         if not quests:
             return
         for quest in quests:
             if quest.order.name == self.name and quest.current_amount < quest.goal_amount:
-                quest.increase_goal(quests)
+                xp = 100 * self.level if self.player.drunk > 0 else 0
+                quest.update_quest(quests, xp)
 
     def enemy_attack(self) -> int:
         """

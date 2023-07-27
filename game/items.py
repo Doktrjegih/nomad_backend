@@ -1,7 +1,7 @@
 import random
 
-from console import error
-from db import *
+from console import error, print
+import db
 from player import Player
 
 ALWAYS_SHOWED = ['food', 'alcohol', 'garbage']
@@ -16,7 +16,7 @@ class Items:
         Shows inventory and lets to manage it
         :return:
         """
-        inventory = get_inventory()
+        inventory = db.get_inventory()
         if inventory:
 
             # showing of items
@@ -46,11 +46,11 @@ class Items:
                         if type_of_item == "food":
                             self.player.health += 2
                             self.player.set_drunk(-2)
-                            remove_item(inventory[item_index][0])
+                            db.remove_item(inventory[item_index][0])
                             print(f"You've eaten {item_name}")
                         elif type_of_item == "alcohol":
                             self.player.set_drunk(10)
-                            remove_item(inventory[item_index][0])
+                            db.remove_item(inventory[item_index][0])
                             print(f"You've drunk {item_name}")
                         elif type_of_item == "weapon":
                             self.player.weapon = [item_name, (attack := inventory[item_index][1].attack)]
@@ -69,13 +69,13 @@ class Items:
             print('[Empty inventory]')
 
     def get_chest_item(self):
-        item = random.choice(get_all_items())
+        item = random.choice(db.get_all_items())
         if item.type_ in ALWAYS_SHOWED:
             print(f"You've found {item.name}")
-            add_item_to_inventory({"item_id": item.item_id, "amount": 1})
+            db.add_item_to_inventory(item.item_id)
         else:
             if self.player.drunk > 0:
                 print(f"You've found {item.name}")
-                add_item_to_inventory({"item_id": item.item_id, "amount": 1})
-        self.player.gold += (loot := random.randint(15, 50))
+                db.add_item_to_inventory(item.item_id)
+        self.player.gold += (loot := random.randint(5, 25))
         print(f"You've found {loot} gold coins")

@@ -15,13 +15,14 @@ with open('items.json', 'r', encoding='utf-8') as fd:
 class Items(base):
     __tablename__ = 'items'
 
-    item_id = Column(Integer, primary_key=True, autoincrement=True)
+    item_id = Column(Integer, primary_key=True)
     name = Column(String)
     type_ = Column(String)
     attack = Column(Integer)
     cost = Column(Integer)
 
-    def __init__(self, name, type_, attack, cost):
+    def __init__(self, item_id, name, type_, attack, cost):
+        self.item_id = item_id
         self.name = name
         self.type_ = type_
         self.attack = attack
@@ -56,23 +57,23 @@ def add_item_to_game(data: dict) -> None:
     Add a new game item to database
     :param data: contains params for new item
     """
+    item_id = data["id"]
     name = data["name"]
     type_ = data["type"]
     attack = data["attack"]
     cost = data["cost"]
 
-    tr = Items(name=name, type_=type_, attack=attack, cost=cost)
+    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, cost=cost)
     session.add(tr)
     session.commit()
 
 
-def add_item_to_inventory(data: dict) -> None:
+def add_item_to_inventory(item_id: int, amount: int = 1) -> None:
     """
     Add an item to player inventory table
-    :param data: contains id and amount of adding item
+    :param item_id: contains id of adding item
+    :param amount: contains amount of adding item (1 by default)
     """
-    item_id = data["item_id"]
-    amount = data["amount"]
     item = session.query(Inventory).filter(Inventory.item_id == item_id).first()
     if item:
         item.amount += 1
@@ -88,6 +89,14 @@ def get_all_items() -> list:
     :return: list of items
     """
     return session.query(Items).all()
+
+
+def get_item(item_id: int) -> type(Items):
+    """
+    Returns specified game item
+    :return: one item
+    """
+    return session.query(Items).filter(Items.item_id == item_id).first()
 
 
 def get_inventory() -> list:

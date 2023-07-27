@@ -1,4 +1,5 @@
 import pickle
+from console import print
 
 
 def get_current_quests() -> list:
@@ -21,6 +22,7 @@ class Quest:
         self.current_amount = 0
         self.reward = reward
         self.is_finished = False
+        self.xp_for_quest = 0
 
     def add_to_list(self) -> None:
         """
@@ -35,7 +37,7 @@ class Quest:
             with open('quests.pkl', 'wb') as fd:
                 pickle.dump(active, fd)
 
-    def increase_goal(self, quests: list) -> None:
+    def update_quest(self, quests: list, xp: int) -> None:
         """
         Updates quest's goal in the pickle file
         """
@@ -44,16 +46,20 @@ class Quest:
             self.is_finished = True
             print("You've finished the quest conditions!")
             print("You can get a reward in any tavern")
+        self.xp_for_quest += xp
         with open('quests.pkl', 'wb') as fd:
             pickle.dump(quests, fd)
 
-    def close_quest(self, quests, quest, player) -> None:
+    def close_quest(self, quests, player) -> None:
         """
         Removes quest from player's activities, gives reward for mission
+        :param quests: list of active player's quests
+        # :param quest: target quest for closing
         :param player: object of Player class
         """
         player.gold += self.reward
-        quests.remove(quest)
+        player.gain_scores(self.xp_for_quest)
+        quests.remove(self)
         with open('quests.pkl', 'wb') as fd:
             pickle.dump(quests, fd)
         print(f"\nThanks! Your reward is: {self.reward} coins")

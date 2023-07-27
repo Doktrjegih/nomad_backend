@@ -1,6 +1,7 @@
 import pickle
+import random
 
-from console import error, color
+from console import error, color, print
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
 
@@ -20,7 +21,7 @@ class Player:
         self.scores = 0
         self.total_scores = 0
         self.gold = 0
-        self.drunk = 0
+        self.drunk = 24
         self.available_stats_point = 0
         self.next_level = 1000
         self.inventory = []
@@ -80,14 +81,15 @@ class Player:
         drunk = '▇' * (self.drunk // 10) + ' ' * ((100 - self.drunk) // 10)
         return f'[{drunk}] ({self.drunk})'
 
-    def reward_for_enemy(self, enemy_level: int) -> None:
+    def reward_for_enemy(self, enemy) -> None:
         """
         Gives reward for killed enemy
-        :param enemy_level: enemy level for counting
+        # :param enemy: object of Enemy class
         """
-        reward = 50 * enemy_level
-        print(f'You get {reward} XP')
-        self.gain_scores(reward)
+        if self.drunk > 0:
+            reward = round((total := 50 * enemy.level) + total * random.uniform(0.03, 0.1))
+            print(f'You get {reward} XP')
+            self.gain_scores(reward)
 
     def gain_scores(self, scores: int) -> None:
         """
