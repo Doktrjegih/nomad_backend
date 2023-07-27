@@ -1,17 +1,23 @@
+import os
 import pickle
 
+import db
+from console import print
+from items import Items
 from location import Location
 from player import Player
 from scene import Scene
-from db import create_database
-from items import Items
 
 
 def main() -> None:
     """
     Entrypoint for game
     """
-    create_database()
+    try:
+        os.remove('last_game.log')
+    except FileNotFoundError:
+        pass
+    db.create_database()
     print('Hello, a big new world!')
     player = Player()
     items = Items(player=player)

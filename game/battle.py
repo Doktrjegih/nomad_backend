@@ -2,7 +2,7 @@ import random
 
 from console import warning
 from items import Items
-from console import color
+from console import color, print
 
 
 class Battle:

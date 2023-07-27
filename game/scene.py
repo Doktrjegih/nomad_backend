@@ -3,7 +3,7 @@ from enemy import *
 from location import Location
 from player import Player
 from tavern import Tavern
-from console import error, color
+from console import error, color, print
 from items import Items
 
 
