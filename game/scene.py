@@ -3,25 +3,27 @@ from enemy import *
 from location import Location
 from player import Player
 from tavern import Tavern
-from console import error, color
-from db import get_all_items, add_item_to_inventory
+from console import error, color, print
+from items import Items
 
 
 class Scene:
-    def __init__(self, location: Location, player: Player) -> None:
+    def __init__(self, location: Location, player: Player, items: Items) -> None:
         self.run_able = True
         self.location = location
         self.player = player
         self.state = 'peace'
         self.enemy = None
         self.tavern = None
+        self.items = items
+        self.turn_without_tavern = 0
 
     def show_current_scene(self) -> None:
         """
         Shows current scene during some actions if needed
         """
         if self.state == 'battle':
-            battle = Battle(scene=self, player=self.player, enemy=self.enemy)
+            battle = Battle(scene=self, player=self.player, enemy=self.enemy, items=self.items)
             battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
@@ -40,18 +42,14 @@ class Scene:
         elif action == "enter tavern":
             self.state = "tavern"
             if not self.tavern:
-                self.tavern = Tavern(scene=self, player=self.player)
+                self.tavern = Tavern(scene=self, player=self.player, items=self.items)
             self.tavern.tavern_menu()
         elif action == "check a chest":
-            item = random.choice(get_all_items())
-            print(f"You've found {item.name}")
-            add_item_to_inventory({"item_id": item.item_id, "amount": 1})
-            self.player.gold += (loot := random.randint(15, 50))
-            print(f"You've found {loot} gold coins")
+            self.items.get_chest_item()
             self.location.chest = False
             self.show_current_scene()
         elif action == 'inventory':
-            self.player.show_inventory()
+            self.items.show_inventory()
             self.show_current_scene()
         elif action == "get status":
             self.player.show_player_info()
@@ -104,12 +102,14 @@ class Scene:
         Leads player through new random locations, checks either there are enemies or not
         """
         new_location_type = random.choice(['peaceful', 'hostile'])
-        location = Location(new_location_type, self.player)
+        self.turn_without_tavern += 1
+        if self.tavern:
+            self.tavern = None
+            self.turn_without_tavern = 1
+        location = Location(new_location_type, self.player, self.turn_without_tavern)
         self.location = location
         if self.player.drunk > 0:
             self.player.set_drunk(-1)
-        if self.tavern:
-            self.tavern = None
         if self.location.enemies:
             self.state = 'battle'
 
@@ -164,7 +164,7 @@ class Scene:
                 else:
                     self.enemy = Boss(self.player)
 
-            battle = Battle(scene=self, player=self.player, enemy=self.enemy)
+            battle = Battle(scene=self, player=self.player, enemy=self.enemy, items=self.items)
             battle.show_battle_scene()
             return
         self.show_peace_scene()

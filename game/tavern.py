@@ -3,15 +3,18 @@ import random
 from enemy import Enemy
 from quest import Quest, get_current_quests
 from player import Player
-from console import error, color
+from console import error, color, print
+from items import Items
+import db
 
 
 class Tavern:
-    def __init__(self, scene, player: Player) -> None:
+    def __init__(self, scene, player: Player, items: Items) -> None:
         self.tavern_quest = None
         self.scene = scene
         self.player = player
-        self.active_quests = True
+        self.active_quests = True if self.scene.location.name == 'hometown' else random.choice([True, False])
+        self.items = items
 
     def tavern_menu(self) -> None:
         """
@@ -34,7 +37,7 @@ class Tavern:
         elif action == "check quests":
             self.check_quests()
         elif action == "inventory":
-            self.player.show_inventory()
+            self.items.show_inventory()
             self.tavern_menu()
         elif action == "get status":
             self.player.show_player_info()
@@ -75,11 +78,12 @@ class Tavern:
         """
         # check if there are finished quests
         quests = get_current_quests()
-        if not quests:
-            return
-        for quest in quests[:]:
-            if quest.is_finished:
-                quest.close_quest(quests, quest, self.player)
+        if quests:
+            for quest in quests[:]:
+                quest: Quest
+                if quest.is_finished:
+                    quest.close_quest(quests, self.player)
+                    db.add_item_to_inventory(1)
 
         # check if max value of current quests
         quests = get_current_quests()

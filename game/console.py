@@ -1,4 +1,5 @@
 import os
+import builtins
 
 
 class Colors:
@@ -17,6 +18,13 @@ def console(*args):
     os.system('clear')
     for row in args:
         print(row)
+
+
+def print(*args):
+    row = " ".join(f"{value}" for value in args)
+    builtins.print(row)
+    with open('last_game.log', 'a') as fd:
+        fd.write(row + '\n')
 
 
 def error(text: str) -> None:

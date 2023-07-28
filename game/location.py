@@ -6,7 +6,7 @@ PEACEFUL = ["village", "river"]
 
 
 class Location:
-    def __init__(self, type_, player: Player) -> None:
+    def __init__(self, type_, player: Player, turn_without_tavern=0) -> None:
         self.type = type_
         self.enemies = False
         self.tavern = False
@@ -14,11 +14,12 @@ class Location:
         self.player = player
 
         if self.type == 'hostile':
-            self.enemies = True if random.randint(0, 10) > 4 else False
+            self.enemies = True if random.randint(0, 10) > 5 else False
             self.name = random.choice(HOSTILE)
         if self.type == 'peaceful':
             self.name = random.choice(PEACEFUL)
-            self.tavern = True if random.randint(0, 10) > 9 else False
+            if turn_without_tavern > 15:
+                self.tavern = True if random.randint(0, 10) > 9 else False
         elif self.type == 'hometown':
             self.name = 'hometown'
             self.type = 'peaceful'
