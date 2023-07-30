@@ -40,9 +40,9 @@ class Battle:
         if attack < 1:
             attack = 1
         lucky_hit, critical_hit = '', ''
-        if self.player.luck > random.randint(0, 100):
+        if self.player.luck > random.randint(1, 100):
             lucky_hit = color('green', 'Lucky hit! ')
-        if self.player.luck / 2 + self.player.agility > random.randint(0, 100):
+        if self.player.luck / 2 + self.player.agility > random.randint(1, 100):
             critical_hit = color('green', 'CRITICAL HIT! ')
         lucky_hit = '' if critical_hit else lucky_hit
         if lucky_hit:

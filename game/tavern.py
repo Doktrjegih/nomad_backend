@@ -68,13 +68,14 @@ class Tavern:
         self.player.set_drunk(-2)
         if self.player.health > self.player.max_hp:
             self.player.health = self.player.max_hp
+        print(f'Your HP is {self.player.health} now')
         self.player.gold -= 5
 
     def check_quests(self) -> None:
         """
         USER ACTION
         Checks if there are finished quests, closes quests if yes.
-        Generates random new tasks for player, restricts getting of quests if player already has active mission
+        Generates random new tasks for player, restricts getting of quests if player already has max amount of quests
         """
         # check if there are finished quests
         quests = get_current_quests()
@@ -87,7 +88,7 @@ class Tavern:
 
         # check if max value of current quests
         quests = get_current_quests()
-        if len(quests) == 3 or not self.active_quests:
+        if len(quests) > 2 or not self.active_quests:
             print("Sorry, I don't have quests for you now")
             self.tavern_menu()
             return

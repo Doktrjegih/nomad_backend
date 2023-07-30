@@ -5,6 +5,7 @@ from player import Player
 from tavern import Tavern
 from console import error, color, print
 from items import Items
+from npc import Npc
 
 
 class Scene:
@@ -15,6 +16,7 @@ class Scene:
         self.state = 'peace'
         self.enemy = None
         self.tavern = None
+        self.npc = None
         self.items = items
         self.turn_without_tavern = 0
 
@@ -29,6 +31,8 @@ class Scene:
             self.show_peace_scene()
         elif self.state == 'tavern':
             self.tavern.tavern_menu()
+        elif self.state == 'npc':
+            self.npc.npc_dialog()
 
     def show_peace_scene(self) -> None:
         """
@@ -38,7 +42,7 @@ class Scene:
         print('Drunk level:', self.player.get_condition())
         action = self.show_possible_options()
         if action == "go forward":
-            self._new_scene()
+            self.new_scene()
         elif action == "enter tavern":
             self.state = "tavern"
             if not self.tavern:
@@ -57,7 +61,7 @@ class Scene:
         elif action == "exit game":
             self.ask_about_exit()
 
-    def show_possible_options(self) -> str:
+    def show_possible_options(self, npc_quest: bool = True) -> str:
         """
         USER ACTION
         Shows possible actions for each type of scene depends on current status (peaceful, battle, tavern)
@@ -77,6 +81,10 @@ class Scene:
                 options.remove('check a chest')
         elif self.state == 'tavern':
             options = ['go out', 'take a beer', 'take a steak', 'check quests', 'inventory', 'get status', 'exit game']
+        elif self.state == 'npc':
+            options = ['go forward', 'talk with Carl', 'inventory', 'get status', 'exit game']
+            if not npc_quest:
+                options.remove('talk with Carl')
         options_len = len(options)
         while True:
             try:
@@ -96,14 +104,14 @@ class Scene:
             except ValueError:
                 error('Incorrect input')
 
-    def _new_scene(self) -> None:
+    def new_scene(self) -> None:
         """
         USER ACTION
         Leads player through new random locations, checks either there are enemies or not
         """
         new_location_type = random.choice(['peaceful', 'hostile'])
         self.turn_without_tavern += 1
-        if self.tavern:
+        if self.location.tavern:
             self.tavern = None
             self.turn_without_tavern = 1
         location = Location(new_location_type, self.player, self.turn_without_tavern)
@@ -112,60 +120,14 @@ class Scene:
             self.player.set_drunk(-1)
         if self.location.enemies:
             self.state = 'battle'
-
-            # detect an enemy (first version)
-            # if self.player.drunk < 26:
-            #     self.enemy = Enemy(self.player)
-            # elif 51 > self.player.drunk > 25:
-            #     if random.randint(1, 100) > 80:
-            #         self.enemy = DrunkEnemy1(self.player)
-            #     else:
-            #         self.enemy = Enemy(self.player)
-            # elif 76 > self.player.drunk > 50:
-            #     if random.randint(1, 100) > 90:
-            #         self.enemy = DrunkEnemy2(self.player)
-            #     elif 91 > random.randint(1, 100) > 60:
-            #         self.enemy = DrunkEnemy1(self.player)
-            #     else:
-            #         self.enemy = Enemy(self.player)
-            # else:
-            #     if random.randint(1, 100) > 95:
-            #         print('Prepare your anus, puppy')
-            #         self.enemy = Boss(self.player)
-            #     elif 96 > random.randint(1, 100) > 80:
-            #         self.enemy = DrunkEnemy2(self.player)
-            #     elif 81 > random.randint(1, 100) > 55:
-            #         self.enemy = DrunkEnemy1(self.player)
-            #     else:
-            #         self.enemy = Enemy(self.player)
-
-            # detect an enemy (second version)
-            if self.player.drunk < 26:
-                self.enemy = Enemy(self.player)
-            elif 51 > self.player.drunk > 25:
-                if random.randint(1, 100) > 90:
-                    self.enemy = Enemy(self.player)
-                else:
-                    self.enemy = DrunkEnemy1(self.player)
-            elif 76 > self.player.drunk > 50:
-                if random.randint(1, 100) > 90:
-                    self.enemy = Enemy(self.player)
-                elif 91 > random.randint(1, 100) > 80:
-                    self.enemy = DrunkEnemy1(self.player)
-                else:
-                    self.enemy = DrunkEnemy2(self.player)
-            else:
-                if random.randint(1, 100) > 90:
-                    self.enemy = Enemy(self.player)
-                elif 91 > random.randint(1, 100) > 80:
-                    self.enemy = DrunkEnemy1(self.player)
-                elif 81 > random.randint(1, 100) > 70:
-                    self.enemy = DrunkEnemy2(self.player)
-                else:
-                    self.enemy = Boss(self.player)
-
+            self.enemy = generate_enemy(self.player)
             battle = Battle(scene=self, player=self.player, enemy=self.enemy, items=self.items)
             battle.show_battle_scene()
+            return
+        if self.location.npc:
+            self.state = "npc"
+            self.npc = Npc(scene=self, player=self.player, items=self.items)
+            self.npc.npc_dialog()
             return
         self.show_peace_scene()
 

@@ -47,7 +47,7 @@ class Items:
                             self.player.health += 2
                             self.player.set_drunk(-2)
                             db.remove_item(inventory[item_index][0])
-                            print(f"You've eaten {item_name}")
+                            print(f"Your HP is {self.player.health} now")
                         elif type_of_item == "alcohol":
                             self.player.set_drunk(10)
                             db.remove_item(inventory[item_index][0])
