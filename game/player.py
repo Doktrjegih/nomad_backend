@@ -21,7 +21,7 @@ class Player:
         self.scores = 0
         self.total_scores = 0
         self.gold = 0
-        self.drunk = 24
+        self.drunk = 0
         self.available_stats_point = 0
         self.next_level = 1000
         self.inventory = []
