@@ -15,6 +15,7 @@ class Tavern:
         self.player = player
         self.active_quests = True if self.scene.location.name == 'hometown' else random.choice([True, False])
         self.items = items
+        self.merchant = random.choice([True, False])
 
     def tavern_menu(self) -> None:
         """
@@ -34,6 +35,8 @@ class Tavern:
         elif action == "take a steak":
             self.buy_steak()
             self.tavern_menu()
+        elif action == "merchant":
+            self.merchant_dialog()
         elif action == "check quests":
             self.check_quests()
         elif action == "inventory":
@@ -123,3 +126,107 @@ class Tavern:
                 self.tavern_menu()
             else:
                 error('Incorrect input')
+
+    def merchant_dialog(self) -> None:
+        """
+        USER ACTION
+        Shows menu with merchant
+        """
+        self.scene.state = 'merchant'
+        print("\nYou're in the merchant shop")
+        print('Drunk level:', self.player.get_condition())
+        action = self.scene.show_possible_options()
+        if action == "buy":
+            pass
+            self.scene.show_current_scene()
+        elif action == "sell":
+            self.merchant_sell()
+            self.scene.show_current_scene()
+        elif action == "inventory":
+            self.items.show_inventory()
+            self.scene.show_current_scene()
+        elif action == "get status":
+            self.player.show_player_info()
+            self.scene.show_current_scene()
+        elif action == "exit game":
+            self.scene.ask_about_exit()
+
+    def merchant_sell(self) -> None:
+        """
+        USER ACTION
+        Shows sell menu which manipulates with items
+        """
+        inventory = db.get_inventory()
+        if inventory:
+
+            # showing of items
+            counter = self.items.print_inventory(inventory)
+
+            # dialog for manipulating with items
+            answer_item = answer_handler(question="Which one do you want to sell? ",
+                                         is_int=True,
+                                         items=[x for x in range(1, counter + 1)],
+                                         cancel=[0])
+            if answer_item[0] == 'cancel':
+                return
+            elif answer_item[0] == 'items':
+                item_index = answer_item[1] - 1
+                item_name = inventory[item_index][1].name
+                amount = inventory[item_index][0].amount
+                if amount == 1:
+                    answer_confirm = answer_handler(question=f'You chose {item_name}. Sell it? (yes/no) ',
+                                                    is_int=False,
+                                                    yes=['y', 'yes', '1'],
+                                                    no=['n', 'no', '2'])
+                    if answer_confirm[0] == 'yes':
+                        db.remove_item(inventory[item_index][0])
+                        self.player.gold += inventory[item_index][1].cost
+                        print(f'Sold 1 {item_name}')
+                    elif answer_confirm[0] == 'no':
+                        return
+                else:
+                    answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
+                                                            f'How many item would you want to sell? (0 for cancel) ',
+                                                   is_int=True,
+                                                   correct_range=[x for x in range(1, amount + 1)],
+                                                   cancel=[0])
+                    if answer_amount[0] == 'cancel':
+                        return
+                    elif answer_amount[0] == 'correct_range':
+                        answer_confirm_several = answer_handler(question=f'Sell {answer_amount[1]} ones? (yes/no) ',
+                                                                is_int=False,
+                                                                yes=['y', 'yes', '1'],
+                                                                no=['n', 'no', '2'])
+                        if answer_confirm_several[0] == 'yes':
+                            db.remove_item(inventory[item_index][0], answer_amount[1])
+                            self.player.gold += inventory[item_index][1].cost * answer_amount[1]
+                            print(f'Sold {answer_amount[1]} {item_name}')
+                        elif answer_confirm_several[0] == 'no':
+                            return
+        else:
+            print('[Empty inventory]')
+
+
+def answer_handler(question: str, is_int: bool, **kwargs) -> (str, str | int):
+    """
+    USER ACTION
+    Global answer handler. Works with any question-answer dialogs
+    :param question: text showing during question
+    :param is_int: checks either answer is int or str type
+    :param kwargs: gets string with group name as key and list with conditional as value
+    For example: items=[x for x in range(1, counter + 1)] - it will check if answer in list
+    :return: tuple with group name and user answer if answer in one of the groups
+    """
+    while True:
+        try:
+            if is_int:
+                answer = int(input(question))
+            else:
+                answer = input(question).lower()
+
+            for group, conditional in kwargs.items():
+                if answer in conditional:
+                    return group, answer
+            error('Incorrect input')
+        except ValueError:
+            error('Incorrect input (value error)')

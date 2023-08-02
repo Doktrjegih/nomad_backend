@@ -33,6 +33,8 @@ class Scene:
             self.tavern.tavern_menu()
         elif self.state == 'npc':
             self.npc.npc_dialog()
+        elif self.state == 'merchant':
+            self.tavern.merchant_dialog()
 
     def show_peace_scene(self) -> None:
         """
@@ -80,7 +82,11 @@ class Scene:
             if not self.location.chest:
                 options.remove('check a chest')
         elif self.state == 'tavern':
-            options = ['go out', 'take a beer', 'take a steak', 'check quests', 'inventory', 'get status', 'exit game']
+            options = ['go out', 'take a beer', 'take a steak', 'merchant', 'check quests', 'inventory', 'get status', 'exit game']
+            if not self.tavern.merchant or self.player.drunk < 25:
+                options.remove('merchant')
+        elif self.state == 'merchant':
+            options = ['buy', 'sell', 'inventory', 'get status', 'exit game']
         elif self.state == 'npc':
             options = ['go forward', 'talk with Carl', 'inventory', 'get status', 'exit game']
             if not npc_quest:

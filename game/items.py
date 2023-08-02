@@ -14,7 +14,6 @@ class Items:
     def show_inventory(self) -> None:
         """
         Shows inventory and lets to manage it
-        :return:
         """
         inventory = db.get_inventory()
         if inventory:
@@ -25,15 +24,7 @@ class Items:
                 if not inventory:
                     print('[Empty inventory]')
                     return
-            print()
-            for counter, item in enumerate(inventory, start=1):
-                active_weapon, attack = '', ''
-                if item[1].name == self.player.weapon[0]:  # todo: may be weak spot, need to observe usefulness
-                    active_weapon = ' [active weapon]'
-                if item[1].type_ == 'weapon':
-                    attack = f' (attack {item[1].attack})'
-                print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
-            print(f"0 - cancel")
+            counter = self.print_inventory(inventory)
 
             # dialog for manipulating with items
             while True:
@@ -68,7 +59,27 @@ class Items:
         else:
             print('[Empty inventory]')
 
-    def get_chest_item(self):
+    def print_inventory(self, inventory: list) -> int:
+        """
+        Prints inventory with serial numbers for further interaction
+        :param inventory: list with items from DB
+        :return: int value with actual len of inventory (amount of different items)
+        """
+        print()
+        for counter, item in enumerate(inventory, start=1):
+            active_weapon, attack = '', ''
+            if item[1].name == self.player.weapon[0]:  # todo: may be weak spot, need to observe usefulness
+                active_weapon = ' [active weapon]'
+            if item[1].type_ == 'weapon':
+                attack = f' (attack {item[1].attack})'
+            print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
+        print(f"0 - cancel")
+        return counter
+
+    def get_chest_item(self) -> None:
+        """
+        Gives random item from chest to player
+        """
         item = random.choice(db.get_all_items())
         if item.type_ in ALWAYS_SHOWED:
             print(f"You've found {item.name}")

@@ -110,14 +110,15 @@ def get_inventory() -> list:
         return []
 
 
-def remove_item(item: Inventory) -> None:
+def remove_item(item: Inventory, amount: int = 1) -> None:
     """
     Removes item from inventory, reduces amount if possible
     :param item: Inventory object to removing
+    :param amount: specifies amount of removing items
     """
     item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
-    if item.amount > 1:
-        item.amount -= 1
-    elif item.amount == 1:
+    if item.amount > amount:
+        item.amount -= amount
+    elif item.amount == amount:
         session.delete(item)
     session.commit()
