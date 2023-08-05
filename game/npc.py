@@ -1,7 +1,7 @@
 import random
 
 import db
-from console import error, color, print
+from console import *
 from enemy import enemy_for_npc_quest
 from items import Items
 from player import Player

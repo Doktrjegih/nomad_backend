@@ -1,15 +1,15 @@
 import random
 
-from console import warning
+from console import *
 from items import Items
 from console import color, print
 
 
 class Battle:
-    def __init__(self, scene, player, enemy, items: Items):
+    def __init__(self, scene, player, items: Items):
         self.scene = scene
         self.player = player
-        self.enemy = enemy
+        self.enemy = scene.enemy
         self.damage_taken = 0
         self.items = items
 

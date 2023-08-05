@@ -44,8 +44,10 @@ class Items:
                             db.remove_item(inventory[item_index][0])
                             print(f"You've drunk {item_name}")
                         elif type_of_item == "weapon":
-                            self.player.weapon = [item_name, (attack := inventory[item_index][1].attack)]
-                            print(f"Current weapon: {item_name} (attack {attack})")
+                            if self.player.weapon:
+                                db.put_on_off_item(self.player.weapon, on=False)
+                            db.put_on_off_item(inventory[item_index][0], on=True)
+                            print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
                         elif type_of_item == "garbage":
                             print(f"You can't use {item_name}, but you will be able to sell it sometime")
                         self.player.recount_params()
@@ -68,8 +70,9 @@ class Items:
         print()
         for counter, item in enumerate(inventory, start=1):
             active_weapon, attack = '', ''
-            if item[1].name == self.player.weapon[0]:  # todo: may be weak spot, need to observe usefulness
-                active_weapon = ' [active weapon]'
+            if self.player.weapon:
+                if item[1].name == self.player.weapon.name:  # todo: may be weak spot, need to observe usefulness
+                    active_weapon = ' [active weapon]'
             if item[1].type_ == 'weapon':
                 attack = f' (attack {item[1].attack})'
             print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")

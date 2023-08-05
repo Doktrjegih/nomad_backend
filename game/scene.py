@@ -3,7 +3,7 @@ from enemy import *
 from location import Location
 from player import Player
 from tavern import Tavern
-from console import error, color, print
+from console import *
 from items import Items
 from npc import Npc
 
@@ -25,7 +25,7 @@ class Scene:
         Shows current scene during some actions if needed
         """
         if self.state == 'battle':
-            battle = Battle(scene=self, player=self.player, enemy=self.enemy, items=self.items)
+            battle = Battle(scene=self, player=self.player, items=self.items)
             battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
@@ -127,7 +127,7 @@ class Scene:
         if self.location.enemies:
             self.state = 'battle'
             self.enemy = generate_enemy(self.player)
-            battle = Battle(scene=self, player=self.player, enemy=self.enemy, items=self.items)
+            battle = Battle(scene=self, player=self.player, items=self.items)
             battle.show_battle_scene()
             return
         if self.location.npc:
