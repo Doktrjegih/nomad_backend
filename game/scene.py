@@ -1,11 +1,11 @@
 from battle import Battle
+from console import *
 from enemy import *
+from items import Items
 from location import Location
+from npc import Npc
 from player import Player
 from tavern import Tavern
-from console import *
-from items import Items
-from npc import Npc
 
 
 class Scene:
@@ -82,20 +82,22 @@ class Scene:
             if not self.location.chest:
                 options.remove('check a chest')
         elif self.state == 'tavern':
-            options = ['go out', 'take a beer', 'take a steak', 'merchant', 'check quests', 'inventory', 'get status', 'exit game']
+            options = ['go out', 'take a beer', 'take a steak', 'merchant', 'check quests', 'inventory', 'get status',
+                       'exit game']
             if not self.tavern.merchant or self.player.drunk < 25:
                 options.remove('merchant')
         elif self.state == 'merchant':
-            options = ['buy', 'sell', 'inventory', 'get status', 'exit game']
+            options = ['back to tavern', 'buy', 'sell', 'inventory', 'get status', 'exit game']
         elif self.state == 'npc':
             options = ['go forward', 'talk with Carl', 'inventory', 'get status', 'exit game']
             if not npc_quest:
                 options.remove('talk with Carl')
         options_len = len(options)
+        highlight_actions = ['enter tavern', 'check a chest']
         while True:
             try:
                 for counter, act in enumerate(options, start=1):
-                    print(f'{counter} - {act}')
+                    print(f'{counter} - {act if act not in highlight_actions else color("green", act)}')
                 action = input(f'What do you want to do? ')
                 if action == "HESOYAM":
                     self.player.health = 10

@@ -136,7 +136,10 @@ class Tavern:
         print("\nYou're in the merchant shop")
         print('Drunk level:', self.player.get_condition())
         action = self.scene.show_possible_options()
-        if action == "buy":
+        if action == "back to tavern":
+            self.scene.state = 'tavern'
+            self.tavern_menu()
+        elif action == "buy":
             pass
             self.scene.show_current_scene()
         elif action == "sell":

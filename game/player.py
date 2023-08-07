@@ -168,7 +168,8 @@ class Player:
                 break
         if not weapon:
             self.weapon = None
-        self.attack = self.strength + (self.drunk // 10) + (self.weapon.attack if self.drunk > 0 else 0)
+        self.attack = self.strength + (self.drunk // 10) + (
+            (self.weapon.attack if self.weapon else 0) if self.drunk > 0 else 0)
         self.defence = self.strength + (self.drunk // 10)
         if self.scores >= self.next_level:
             to_next_level = self.scores - self.next_level
