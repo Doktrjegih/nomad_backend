@@ -55,3 +55,28 @@ def color(color: str, text: str) -> str:
         return Colors.YELLOW + text + Colors.ENDC
     elif color == 'green':
         return Colors.GREEN + text + Colors.ENDC
+
+
+def answer_handler(question: str, is_int: bool, **kwargs) -> (str, str | int):
+    """
+    USER ACTION
+    Global answer handler. Works with any question-answer dialogs
+    :param question: text showing during question
+    :param is_int: checks either answer is int or str type
+    :param kwargs: gets string with group name as key and list with conditional as value
+    For example: items=[x for x in range(1, counter + 1)] - it will check if answer in list
+    :return: tuple with group name and user answer if answer in one of the groups
+    """
+    while True:
+        try:
+            if is_int:
+                answer = int(input(question))
+            else:
+                answer = input(question).lower()
+
+            for group, conditional in kwargs.items():
+                if answer in conditional:
+                    return group, answer
+            error('Incorrect input')
+        except ValueError:
+            error('Incorrect input (value error)')

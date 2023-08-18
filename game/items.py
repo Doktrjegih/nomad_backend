@@ -14,7 +14,6 @@ class Items:
     def show_inventory(self) -> None:
         """
         Shows inventory and lets to manage it
-        :return:
         """
         inventory = db.get_inventory()
         if inventory:
@@ -25,15 +24,7 @@ class Items:
                 if not inventory:
                     print('[Empty inventory]')
                     return
-            print()
-            for counter, item in enumerate(inventory, start=1):
-                active_weapon, attack = '', ''
-                if item[1].name == self.player.weapon[0]:  # todo: may be weak spot, need to observe usefulness
-                    active_weapon = ' [active weapon]'
-                if item[1].type_ == 'weapon':
-                    attack = f' (attack {item[1].attack})'
-                print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
-            print(f"0 - cancel")
+            counter = self.print_inventory(inventory)
 
             # dialog for manipulating with items
             while True:
@@ -47,14 +38,16 @@ class Items:
                             self.player.health += 2
                             self.player.set_drunk(-2)
                             db.remove_item(inventory[item_index][0])
-                            print(f"You've eaten {item_name}")
+                            print(f"Your HP is {self.player.health} now")
                         elif type_of_item == "alcohol":
                             self.player.set_drunk(10)
                             db.remove_item(inventory[item_index][0])
                             print(f"You've drunk {item_name}")
                         elif type_of_item == "weapon":
-                            self.player.weapon = [item_name, (attack := inventory[item_index][1].attack)]
-                            print(f"Current weapon: {item_name} (attack {attack})")
+                            if self.player.weapon:
+                                db.put_on_off_item(self.player.weapon, on=False)
+                            db.put_on_off_item(inventory[item_index][0], on=True)
+                            print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
                         elif type_of_item == "garbage":
                             print(f"You can't use {item_name}, but you will be able to sell it sometime")
                         self.player.recount_params()
@@ -68,7 +61,28 @@ class Items:
         else:
             print('[Empty inventory]')
 
-    def get_chest_item(self):
+    def print_inventory(self, inventory: list) -> int:
+        """
+        Prints inventory with serial numbers for further interaction
+        :param inventory: list with items from DB
+        :return: int value with actual len of inventory (amount of different items)
+        """
+        print()
+        for counter, item in enumerate(inventory, start=1):
+            active_weapon, attack = '', ''
+            if self.player.weapon:
+                if item[1].name == self.player.weapon.name:  # todo: may be weak spot, need to observe usefulness
+                    active_weapon = ' [active weapon]'
+            if item[1].type_ == 'weapon':
+                attack = f' (attack {item[1].attack})'
+            print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
+        print(f"0 - cancel")
+        return counter
+
+    def get_chest_item(self) -> None:
+        """
+        Gives random item from chest to player
+        """
         item = random.choice(db.get_all_items())
         if item.type_ in ALWAYS_SHOWED:
             print(f"You've found {item.name}")

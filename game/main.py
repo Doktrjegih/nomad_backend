@@ -15,6 +15,7 @@ def main() -> None:
     """
     try:
         os.remove('last_game.log')
+        os.remove('sqalch.sqlite')
     except FileNotFoundError:
         pass
     db.create_database()

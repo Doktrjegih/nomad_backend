@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import create_engine, Column, String, Integer
+from sqlalchemy import create_engine, Column, String, Integer, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 engine = create_engine('sqlite:///sqalch.sqlite', echo=False)
@@ -34,10 +34,12 @@ class Inventory(base):
 
     item_id = Column(Integer, primary_key=True)
     amount = Column(Integer)
+    used = Column(Boolean)
 
-    def __init__(self, item_id, amount):
+    def __init__(self, item_id, amount, used):
         self.item_id = item_id
         self.amount = amount
+        self.used = used
 
 
 def create_database() -> None:
@@ -78,7 +80,7 @@ def add_item_to_inventory(item_id: int, amount: int = 1) -> None:
     if item:
         item.amount += 1
     else:
-        tr = Inventory(item_id=item_id, amount=amount)
+        tr = Inventory(item_id=item_id, amount=amount, used=False)
         session.add(tr)
     session.commit()
 
@@ -110,14 +112,25 @@ def get_inventory() -> list:
         return []
 
 
-def remove_item(item: Inventory) -> None:
+def remove_item(item: Inventory, amount: int = 1) -> None:
     """
     Removes item from inventory, reduces amount if possible
     :param item: Inventory object to removing
+    :param amount: specifies amount of removing items
     """
     item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
-    if item.amount > 1:
-        item.amount -= 1
-    elif item.amount == 1:
+    if item.amount > amount:
+        item.amount -= amount
+    elif item.amount == amount:
         session.delete(item)
+    session.commit()
+
+
+def put_on_off_item(item: Inventory, on: bool) -> None:
+    """
+    :param item: Inventory object to removing
+    :param on: if True, puts on the item, otherwise puts off
+    """
+    item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
+    item.used = True if on else False
     session.commit()

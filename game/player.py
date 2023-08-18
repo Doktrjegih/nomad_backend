@@ -1,6 +1,7 @@
 import pickle
 import random
 
+import db
 from console import error, color, print
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
@@ -25,7 +26,7 @@ class Player:
         self.available_stats_point = 0
         self.next_level = 1000
         self.inventory = []
-        self.weapon = [None, 0]
+        self.weapon = None
 
     def enter_name(self) -> None:
         """
@@ -46,11 +47,11 @@ class Player:
         print('\nStatus:')
         print('Name:', self.name)
         print(f'Health: {self.health}/{self.max_hp}')
-        if self.weapon[0]:
+        if self.weapon:
             unavailable = ''
             if self.drunk < 1:
                 unavailable = color('red', ' UNAVAILABLE')
-            print(f"Weapon: {self.weapon[0]} (attack {self.weapon[1]}){unavailable}")
+            print(f"Weapon: {self.weapon.name} (attack {self.weapon.attack}){unavailable}")
         print('Drunk level:', self.get_condition())
         print('Attack:', self.attack)
         print('Defence:', self.defence)
@@ -158,7 +159,17 @@ class Player:
         self.max_hp = 5 + (self.endurance * 5)
         if self.health > self.max_hp:
             self.health = self.max_hp
-        self.attack = self.strength + (self.drunk // 10) + (self.weapon[1] if self.drunk > 0 else 0)
+        inventory = db.get_inventory()
+        weapon = False
+        for item in inventory:
+            if item[0].used and item[1].type_ == 'weapon':
+                self.weapon = item[1]
+                weapon = True
+                break
+        if not weapon:
+            self.weapon = None
+        self.attack = self.strength + (self.drunk // 10) + (
+            (self.weapon.attack if self.weapon else 0) if self.drunk > 0 else 0)
         self.defence = self.strength + (self.drunk // 10)
         if self.scores >= self.next_level:
             to_next_level = self.scores - self.next_level

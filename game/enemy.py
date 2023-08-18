@@ -97,8 +97,8 @@ class Enemy:
 
 
 class DrunkEnemy1(Enemy):
-    def __init__(self, player: Player):
-        super().__init__(player)
+    def __init__(self, player: Player, exclude: list[dict] = None):
+        super().__init__(player, exclude)
 
         self.name = self.type.get(2)
         self.health = int(self.health * 1.5)
@@ -108,8 +108,8 @@ class DrunkEnemy1(Enemy):
 
 
 class DrunkEnemy2(Enemy):
-    def __init__(self, player: Player):
-        super().__init__(player)
+    def __init__(self, player: Player, exclude: list[dict] = None):
+        super().__init__(player, exclude)
 
         self.name = self.type.get(3)
         self.health = int(self.health * 3)
@@ -119,11 +119,86 @@ class DrunkEnemy2(Enemy):
 
 
 class Boss(Enemy):
-    def __init__(self, player: Player):
-        super().__init__(player)
+    def __init__(self, player: Player, exclude: list[dict] = None):
+        super().__init__(player, exclude)
 
         self.name = self.type.get(4)
         self.health = int(self.health * 5)
         self.strength = self.level * 3
         self.defence = self.strength + random.randint(2, 5)
         self.attack = self.strength + random.randint(2, 5)
+
+
+def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
+    """
+    Generates enemy according to current player drunk state
+    :param player: object of Player class
+    :return: object of Enemy class
+    """
+    # detect an enemy (first version)
+    # if player.drunk < 26:
+    #     enemy = Enemy(player)
+    # elif 51 > player.drunk > 25:
+    #     if random.randint(1, 100) > 80:
+    #         enemy = DrunkEnemy1(player)
+    #     else:
+    #         enemy = Enemy(player)
+    # elif 76 > player.drunk > 50:
+    #     if random.randint(1, 100) > 90:
+    #         enemy = DrunkEnemy2(player)
+    #     elif 91 > random.randint(1, 100) > 60:
+    #         enemy = DrunkEnemy1(player)
+    #     else:
+    #         enemy = Enemy(player)
+    # else:
+    #     if random.randint(1, 100) > 95:
+    #         print('Prepare your anus, puppy')
+    #         enemy = Boss(player)
+    #     elif 96 > random.randint(1, 100) > 80:
+    #         enemy = DrunkEnemy2(player)
+    #     elif 81 > random.randint(1, 100) > 55:
+    #         enemy = DrunkEnemy1(player)
+    #     else:
+    #         enemy = Enemy(player)
+
+    # detect an enemy (second version)
+    if player.drunk < 26:
+        enemy = Enemy(player)
+    elif 51 > player.drunk > 25:
+        if random.randint(1, 100) > 90:
+            enemy = Enemy(player)
+        else:
+            enemy = DrunkEnemy1(player)
+    elif 76 > player.drunk > 50:
+        if random.randint(1, 100) > 90:
+            enemy = Enemy(player)
+        elif 91 > random.randint(1, 100) > 80:
+            enemy = DrunkEnemy1(player)
+        else:
+            enemy = DrunkEnemy2(player)
+    else:
+        if random.randint(1, 100) > 90:
+            enemy = Enemy(player)
+        elif 91 > random.randint(1, 100) > 80:
+            enemy = DrunkEnemy1(player)
+        elif 81 > random.randint(1, 100) > 70:
+            enemy = DrunkEnemy2(player)
+        else:
+            enemy = Boss(player)
+    return enemy
+
+
+def enemy_for_npc_quest(player: Player, exclude: list[dict] = None) -> DrunkEnemy1 | DrunkEnemy2 | Boss:
+    """
+    Generates enemy for NPC quest according to current player drunk state
+    :param player: object of Player class
+    :param exclude: used for exclude already taken player's quests targets
+    :return: object of enemy depends on its stage
+    """
+    if 51 > player.drunk > 25:
+        enemy = DrunkEnemy1(player, exclude=exclude)
+    elif 76 > player.drunk > 50:
+        enemy = DrunkEnemy2(player, exclude=exclude)
+    elif player.drunk > 75:
+        enemy = Boss(player, exclude=exclude)
+    return enemy
