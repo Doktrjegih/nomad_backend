@@ -140,7 +140,7 @@ class Tavern:
             self.scene.state = 'tavern'
             self.tavern_menu()
         elif action == "buy":
-            pass
+            pass  # todo: add mechanics
             self.scene.show_current_scene()
         elif action == "sell":
             self.merchant_sell()
@@ -189,7 +189,7 @@ class Tavern:
                                                 no=['n', 'no', '2'])
                 if answer_confirm[0] == 'yes':
                     db.remove_item(inventory[item_index][0])
-                    self.player.gold += inventory[item_index][1].cost
+                    self.player.gain_scores(inventory[item_index][1].cost)
                     print(f'Sold 1 {item_name}')
                 elif answer_confirm[0] == 'no':
                     return
@@ -208,8 +208,20 @@ class Tavern:
                                                             no=['n', 'no', '2'])
                     if answer_confirm_several[0] == 'yes':
                         db.remove_item(inventory[item_index][0], answer_amount[1])
-                        self.player.gold += inventory[item_index][1].cost * answer_amount[1]
+                        self.player.gain_scores(inventory[item_index][1].cost * answer_amount[1])
                         print(f'Sold {answer_amount[1]} {item_name}')
                     elif answer_confirm_several[0] == 'no':
                         return
         self.player.recount_params()
+
+    def merchant_buy(self) -> None:
+        """
+        USER ACTION
+        Shows buying menu
+        """
+        # 1. show merchant items
+        # 2. ask which one player wants to buy
+        # 3. if more than one, ask how many
+        # 4. check player's gold is enough
+        # 5. confirmation, writing to DB
+        pass

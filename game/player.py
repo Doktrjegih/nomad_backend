@@ -64,7 +64,7 @@ class Player:
         print('Total scores:', self.total_scores)
         print('Gold:', self.gold)
 
-        print('Active quests: ')
+        print('Active quests:')
         with open('quests.pkl', 'rb') as fd:
             data = pickle.load(fd)
         if not data:

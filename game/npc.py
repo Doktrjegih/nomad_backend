@@ -3,16 +3,14 @@ import random
 import db
 from console import *
 from enemy import enemy_for_npc_quest
-from items import Items
-from player import Player
 from quest import Quest, get_current_quests
 
 
 class Npc:
-    def __init__(self, scene, player: Player, items: Items) -> None:
+    def __init__(self, scene) -> None:
         self.scene = scene
-        self.player = player
-        self.items = items
+        self.player = self.scene.player
+        self.items = self.scene.items
         self.phrase = 'Random welcome phrase'
         self.active_quests = True if random.randint(1, 10) > 2 else False  # shows if NPC has quest
         self.npc_quest = None  # keeps object of Quest class

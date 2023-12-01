@@ -25,7 +25,7 @@ class Scene:
         Shows current scene during some actions if needed
         """
         if self.state == 'battle':
-            battle = Battle(scene=self, player=self.player, items=self.items)
+            battle = Battle(scene=self)
             battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
@@ -129,12 +129,12 @@ class Scene:
         if self.location.enemies:
             self.state = 'battle'
             self.enemy = generate_enemy(self.player)
-            battle = Battle(scene=self, player=self.player, items=self.items)
+            battle = Battle(scene=self)
             battle.show_battle_scene()
             return
         if self.location.npc:
             self.state = "npc"
-            self.npc = Npc(scene=self, player=self.player, items=self.items)
+            self.npc = Npc(scene=self)
             self.npc.npc_dialog()
             return
         self.show_peace_scene()
