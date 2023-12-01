@@ -3,8 +3,6 @@ import random
 import db
 from console import *
 from enemy import enemy_for_npc_quest
-from items import Items
-from player import Player
 from quest import Quest, get_current_quests
 
 
