@@ -40,7 +40,7 @@ class Scene:
         """
         Shows actions outside tavern in peaceful time
         """
-        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
+        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type})""")
         print('Drunk level:', self.player.get_condition())
         action = self.show_possible_options()
         if action == "go forward":

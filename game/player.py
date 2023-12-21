@@ -1,3 +1,4 @@
+import os
 import pickle
 import random
 
@@ -5,6 +6,8 @@ import db
 from console import error, color, print
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
+base_path = os.getcwd()
+quests_file = os.path.join(base_path, "quests.pkl")
 
 
 class Player:
@@ -65,7 +68,7 @@ class Player:
         print('Gold:', self.gold)
 
         print('Active quests:')
-        with open('quests.pkl', 'rb') as fd:
+        with open(quests_file, 'rb') as fd:
             data = pickle.load(fd)
         if not data:
             print('[Empty list]')
@@ -124,6 +127,7 @@ class Player:
         USER ACTION
         Lets to spend available stats points
         """
+
         def apply_changes(param: str) -> None:
             attr = getattr(self, param)  # also there is a dirty hack: exec(f'self.{param} += 1')
             setattr(self, param, attr + 1)

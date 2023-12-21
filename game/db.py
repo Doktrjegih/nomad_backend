@@ -1,14 +1,19 @@
 import json
+import os
 
 from sqlalchemy import create_engine, Column, String, Integer, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-engine = create_engine('sqlite:///sqalch.sqlite', echo=False)
+base_path = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(base_path, "sqalch.sqlite")
+items_path = os.path.join(base_path, "items.json")
+
+engine = create_engine(f'sqlite:///{db_path}', echo=False)
 base = declarative_base()
 Session = sessionmaker(bind=engine)
 session = Session()
 
-with open('items.json', 'r', encoding='utf-8') as fd:
+with open(items_path, 'r', encoding='utf-8') as fd:
     GAME_ITEMS = json.load(fd)
 
 
@@ -46,9 +51,16 @@ def create_database() -> None:
     """
     Creates database if it's needed, clear DB before new game if it exists
     """
-    base.metadata.create_all(engine)
-    session.query(Items).delete()
-    session.query(Inventory).delete()
+    # base.metadata.create_all(engine)
+    # session.query(Items).delete()
+    # session.query(Inventory).delete()
+
+    inv_items = session.query(Inventory).all()
+    for item in inv_items:
+        session.delete(item)
+    items = session.query(Items).all()
+    for item in items:
+        session.delete(item)
     session.commit()
     for item in GAME_ITEMS:
         add_item_to_game(item)
