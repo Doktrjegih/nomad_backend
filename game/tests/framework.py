@@ -22,7 +22,7 @@ def world_creation() -> Scene:
     player = Player()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player=player), player=player, items=items)
-    with open('quests.pkl', 'wb') as fd:
+    with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
         pickle.dump([], fd)
     return scene
 
@@ -30,6 +30,11 @@ def world_creation() -> Scene:
 def turns_generator(data) -> GeneratorType:
     for item in data:
         yield str(item)
+
+
+def open_inventory(scene: Scene) -> int:
+    options = scene.get_possible_options()
+    return options.index("inventory") + 1
 
 
 def read_rows_in_range(file_path, start_row: int, finish_row: int) -> str:

@@ -6,8 +6,6 @@ import db
 from console import error, color, print
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
-base_path = os.getcwd()
-quests_file = os.path.join(base_path, "quests.pkl")
 
 
 class Player:
@@ -30,6 +28,7 @@ class Player:
         self.next_level = 1000
         self.inventory = []
         self.weapon = None
+        self.armor = None
 
     def enter_name(self) -> None:
         """
@@ -50,11 +49,19 @@ class Player:
         print('\nStatus:')
         print('Name:', self.name)
         print(f'Health: {self.health}/{self.max_hp}')
+
+        # todo: optimize
         if self.weapon:
             unavailable = ''
             if self.drunk < 1:
                 unavailable = color('red', ' UNAVAILABLE')
             print(f"Weapon: {self.weapon.name} (attack {self.weapon.attack}){unavailable}")
+        if self.armor:
+            unavailable = ''
+            if self.drunk < 1:
+                unavailable = color('red', ' UNAVAILABLE')
+            print(f"Armor: {self.armor.name} (defence {self.armor.defence}){unavailable}")
+
         print('Drunk level:', self.get_condition())
         print('Attack:', self.attack)
         print('Defence:', self.defence)
@@ -68,7 +75,7 @@ class Player:
         print('Gold:', self.gold)
 
         print('Active quests:')
-        with open(quests_file, 'rb') as fd:
+        with open(os.path.join(os.getcwd(), "quests.pkl"), 'rb') as fd:
             data = pickle.load(fd)
         if not data:
             print('[Empty list]')
@@ -164,6 +171,8 @@ class Player:
         if self.health > self.max_hp:
             self.health = self.max_hp
         inventory = db.get_inventory()
+
+        # todo: optimize
         weapon = False
         for item in inventory:
             if item[0].used and item[1].type_ == 'weapon':
@@ -172,9 +181,19 @@ class Player:
                 break
         if not weapon:
             self.weapon = None
+        armor = False
+        for item in inventory:
+            if item[0].used and item[1].type_ == 'armor':
+                self.armor = item[1]
+                armor = True
+                break
+        if not armor:
+            self.armor = None
         self.attack = self.strength + (self.drunk // 10) + (
             (self.weapon.attack if self.weapon else 0) if self.drunk > 0 else 0)
-        self.defence = self.strength + (self.drunk // 10)
+        self.defence = self.strength + (self.drunk // 10) + (
+            (self.armor.defence if self.armor else 0) if self.drunk > 0 else 0)
+
         if self.scores >= self.next_level:
             to_next_level = self.scores - self.next_level
             self.level += 1

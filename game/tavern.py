@@ -178,40 +178,36 @@ class Tavern:
                                      cancel=[0])
         if answer_item[0] == 'cancel':
             return
-        elif answer_item[0] == 'items':
-            item_index = answer_item[1] - 1
-            item_name = inventory[item_index][1].name
-            amount = inventory[item_index][0].amount
-            if amount == 1:
-                answer_confirm = answer_handler(question=f'You chose {item_name}. Sell it? (yes/no) ',
-                                                is_int=False,
-                                                yes=['y', 'yes', '1'],
-                                                no=['n', 'no', '2'])
-                if answer_confirm[0] == 'yes':
-                    db.remove_item(inventory[item_index][0])
-                    self.player.gain_scores(inventory[item_index][1].cost)
-                    print(f'Sold 1 {item_name}')
-                elif answer_confirm[0] == 'no':
-                    return
-            else:
-                answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
-                                                        f'How many item would you want to sell? (0 for cancel) ',
-                                               is_int=True,
-                                               correct_range=[x for x in range(1, amount + 1)],
-                                               cancel=[0])
-                if answer_amount[0] == 'cancel':
-                    return
-                elif answer_amount[0] == 'correct_range':
-                    answer_confirm_several = answer_handler(question=f'Sell {answer_amount[1]} ones? (yes/no) ',
-                                                            is_int=False,
-                                                            yes=['y', 'yes', '1'],
-                                                            no=['n', 'no', '2'])
-                    if answer_confirm_several[0] == 'yes':
-                        db.remove_item(inventory[item_index][0], answer_amount[1])
-                        self.player.gain_scores(inventory[item_index][1].cost * answer_amount[1])
-                        print(f'Sold {answer_amount[1]} {item_name}')
-                    elif answer_confirm_several[0] == 'no':
-                        return
+        item_index = answer_item[1] - 1
+        item_name = inventory[item_index][1].name
+        amount = inventory[item_index][0].amount
+        if amount == 1:
+            answer_confirm = answer_handler(question=f'You chose {item_name}. Sell it? (yes/no) ',
+                                            is_int=False,
+                                            yes=['y', 'yes', '1'],
+                                            no=['n', 'no', '2'])
+            if answer_confirm[0] == 'no':
+                return
+            db.remove_item(inventory[item_index][0])
+            self.player.gain_scores(inventory[item_index][1].cost)
+            print(f'Sold 1 {item_name}')
+        else:
+            answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
+                                                    f'How many item would you want to sell? (0 for cancel) ',
+                                           is_int=True,
+                                           correct_range=[x for x in range(1, amount + 1)],
+                                           cancel=[0])
+            if answer_amount[0] == 'cancel':
+                return
+            answer_confirm_several = answer_handler(question=f'Sell {answer_amount[1]} ones? (yes/no) ',
+                                                    is_int=False,
+                                                    yes=['y', 'yes', '1'],
+                                                    no=['n', 'no', '2'])
+            if answer_confirm_several[0] == 'no':
+                return
+            db.remove_item(inventory[item_index][0], answer_amount[1])
+            self.player.gain_scores(inventory[item_index][1].cost * answer_amount[1])
+            print(f'Sold {answer_amount[1]} {item_name}')
         self.player.recount_params()
 
     def merchant_buy(self) -> None:

@@ -1,5 +1,8 @@
 import os
 import pickle
+import sys
+
+import pytest
 
 import db
 from console import print
@@ -8,8 +11,16 @@ from location import Location
 from player import Player
 from scene import Scene
 
-base_path = os.getcwd()
-quests_file = os.path.join(base_path, "quests.pkl")
+
+def run_unit_tests():
+    """
+    Runs all tests
+    """
+    os.chdir('tests')
+    result = pytest.main(['-x', '.'])
+    if result != pytest.ExitCode.OK:
+        sys.exit(1)
+    os.chdir(os.path.dirname(__file__))
 
 
 def main() -> None:
@@ -25,10 +36,11 @@ def main() -> None:
     player = Player()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player=player), player=player, items=items)
-    with open(quests_file, 'wb') as fd:
+    with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
         pickle.dump([], fd)
     scene.show_peace_scene()
 
 
 if __name__ == '__main__':
+    run_unit_tests()
     main()
