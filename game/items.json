@@ -3,14 +3,12 @@
     "id": 1,
     "name": "Beer bottle",
     "type": "alcohol",
-    "attack": null,
     "cost": 5
   },
   {
     "id": 2,
     "name": "Steak",
     "type": "food",
-    "attack": null,
     "cost": 5
   },
   {
@@ -30,8 +28,8 @@
   {
     "id": 5,
     "name": "Anthoha's underpants",
-    "type": "garbage",
-    "attack": null,
-    "cost": 1
+    "type": "armor",
+    "defence": 5
+    "cost": 10
   }
 ]
