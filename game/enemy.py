@@ -1,9 +1,9 @@
 import datetime
 import random
 
+from console import color, print
 from player import Player
 from quest import get_current_quests
-from console import color, print
 
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
@@ -97,7 +97,7 @@ class Enemy:
 
 
 class DrunkEnemy1(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None):
+    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
         super().__init__(player, exclude)
 
         self.name = self.type.get(2)
@@ -108,7 +108,7 @@ class DrunkEnemy1(Enemy):
 
 
 class DrunkEnemy2(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None):
+    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
         super().__init__(player, exclude)
 
         self.name = self.type.get(3)
@@ -119,7 +119,7 @@ class DrunkEnemy2(Enemy):
 
 
 class Boss(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None):
+    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
         super().__init__(player, exclude)
 
         self.name = self.type.get(4)
@@ -129,6 +129,7 @@ class Boss(Enemy):
         self.attack = self.strength + random.randint(2, 5)
 
 
+# todo: shitcode
 def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
     """
     Generates enemy according to current player drunk state

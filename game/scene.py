@@ -40,7 +40,7 @@ class Scene:
         """
         Shows actions outside tavern in peaceful time
         """
-        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
+        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type})""")
         print('Drunk level:', self.player.get_condition())
         action = self.show_possible_options()
         if action == "go forward":
@@ -70,6 +70,28 @@ class Scene:
         Waits of user choice
         :return: str type of action
         """
+        options = self.get_possible_options(npc_quest)
+        options_len = len(options)
+        highlight_actions = ['enter tavern', 'check a chest']
+        while True:
+            try:
+                for counter, act in enumerate(options, start=1):
+                    print(f'{counter} - {act if act not in highlight_actions else color("green", act)}')
+                action = input(f'What do you want to do? ')
+                if action == "HESOYAM":
+                    self.player.health = 10
+                    self.player.gold += 250
+                    self.show_current_scene()
+                else:
+                    action = int(action)
+                if 1 <= action <= options_len:
+                    return options[action - 1]
+                else:
+                    error(f'You must choose options only from 1-{options_len} range')
+            except ValueError:
+                error('Incorrect input')
+
+    def get_possible_options(self, npc_quest: bool = True) -> list[str]:
         options = []
         if self.state == 'battle':
             options = ['attack', 'run away', 'inventory', 'get status', 'exit game']
@@ -92,25 +114,7 @@ class Scene:
             options = ['go forward', 'talk with Carl', 'inventory', 'get status', 'exit game']
             if not npc_quest:
                 options.remove('talk with Carl')
-        options_len = len(options)
-        highlight_actions = ['enter tavern', 'check a chest']
-        while True:
-            try:
-                for counter, act in enumerate(options, start=1):
-                    print(f'{counter} - {act if act not in highlight_actions else color("green", act)}')
-                action = input(f'What do you want to do? ')
-                if action == "HESOYAM":
-                    self.player.health = 10
-                    self.player.gold += 250
-                    self.show_current_scene()
-                else:
-                    action = int(action)
-                if 1 <= action <= options_len:
-                    return options[action - 1]
-                else:
-                    error(f'You must choose options only from 1-{options_len} range')
-            except ValueError:
-                error('Incorrect input')
+        return options
 
     def new_scene(self) -> None:
         """
@@ -144,7 +148,7 @@ class Scene:
         Dialog for confirmation if player wants to exit
         """
         while True:
-            answer = input(f'\nDo you want to exit? (yes/no) ')
+            answer = input('\nDo you want to exit? (yes/no) ')
             if answer.lower() in ['y', 'yes', '1']:
                 exit()
             elif answer.lower() in ['n', 'no', '2']:

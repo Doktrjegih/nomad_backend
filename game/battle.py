@@ -35,6 +35,7 @@ class Battle:
             self.scene.ask_about_exit()
 
     def player_attack(self):
+        # todo: docstring
         attack = self.player.attack - self.enemy.defence
         if attack < 1:
             attack = 1

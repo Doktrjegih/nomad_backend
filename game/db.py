@@ -1,14 +1,19 @@
 import json
+import os
 
 from sqlalchemy import create_engine, Column, String, Integer, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-engine = create_engine('sqlite:///sqalch.sqlite', echo=False)
+base_path = os.path.dirname(__file__)
+db_path = os.path.join(base_path, "sqalch.sqlite")
+items_path = os.path.join(base_path, "items.json")
+
+engine = create_engine(f'sqlite:///{db_path}', echo=False)
 base = declarative_base()
 Session = sessionmaker(bind=engine)
 session = Session()
 
-with open('items.json', 'r', encoding='utf-8') as fd:
+with open(items_path, 'r', encoding='utf-8') as fd:
     GAME_ITEMS = json.load(fd)
 
 
@@ -19,13 +24,15 @@ class Items(base):
     name = Column(String)
     type_ = Column(String)
     attack = Column(Integer)
+    defence = Column(Integer)
     cost = Column(Integer)
 
-    def __init__(self, item_id, name, type_, attack, cost):
+    def __init__(self, item_id, name, type_, cost, attack, defence):
         self.item_id = item_id
         self.name = name
         self.type_ = type_
         self.attack = attack
+        self.defence = defence
         self.cost = cost
 
 
@@ -46,9 +53,16 @@ def create_database() -> None:
     """
     Creates database if it's needed, clear DB before new game if it exists
     """
-    base.metadata.create_all(engine)
-    session.query(Items).delete()
-    session.query(Inventory).delete()
+    # base.metadata.create_all(engine)
+    # session.query(Items).delete()
+    # session.query(Inventory).delete()
+
+    inv_items = session.query(Inventory).all()
+    for item in inv_items:
+        session.delete(item)
+    items = session.query(Items).all()
+    for item in items:
+        session.delete(item)
     session.commit()
     for item in GAME_ITEMS:
         add_item_to_game(item)
@@ -62,10 +76,11 @@ def add_item_to_game(data: dict) -> None:
     item_id = data["id"]
     name = data["name"]
     type_ = data["type"]
-    attack = data["attack"]
+    attack = data.get("attack")
+    defence = data.get("defence")
     cost = data["cost"]
 
-    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, cost=cost)
+    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence, cost=cost)
     session.add(tr)
     session.commit()
 
@@ -108,8 +123,7 @@ def get_inventory() -> list:
     """
     if inventory := session.query(Inventory, Items).select_from(Inventory).join(Items, Inventory.item_id == Items.item_id).all():
         return inventory
-    else:
-        return []
+    return []
 
 
 def remove_item(item: Inventory, amount: int = 1) -> None:
@@ -132,5 +146,5 @@ def put_on_off_item(item: Inventory, on: bool) -> None:
     :param on: if True, puts on the item, otherwise puts off
     """
     item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
-    item.used = True if on else False
+    item.used = bool(on)
     session.commit()

@@ -1,4 +1,6 @@
+import os
 import pickle
+
 from console import print
 
 
@@ -8,7 +10,7 @@ def get_current_quests() -> list:
     :return: list of Enemy objects or None
     """
     try:
-        with open('quests.pkl', 'rb') as fd:
+        with open(os.path.join(os.getcwd(), "quests.pkl"), 'rb') as fd:
             data = pickle.load(fd)
         return data
     except EOFError:
@@ -30,11 +32,11 @@ class Quest:
         """
         active = get_current_quests()
         if not active:
-            with open('quests.pkl', 'wb') as fd:
+            with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
                 pickle.dump([self], fd)
         else:
             active.append(self)
-            with open('quests.pkl', 'wb') as fd:
+            with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
                 pickle.dump(active, fd)
 
     def update_quest(self, quests: list, xp: int) -> None:
@@ -47,7 +49,7 @@ class Quest:
             print("You've finished the quest conditions!")
             print("You can get a reward in any tavern")
         self.xp_for_quest += xp
-        with open('quests.pkl', 'wb') as fd:
+        with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
             pickle.dump(quests, fd)
 
     def close_quest(self, quests, player) -> None:
@@ -60,6 +62,6 @@ class Quest:
         player.gold += self.reward
         player.gain_scores(self.xp_for_quest)
         quests.remove(self)
-        with open('quests.pkl', 'wb') as fd:
+        with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
             pickle.dump(quests, fd)
         print(f"\nThanks! Your reward is: {self.reward} coins")

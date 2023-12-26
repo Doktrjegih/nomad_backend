@@ -1,6 +1,6 @@
 import random
 
-from console import error, print
+from console import *
 import db
 from player import Player
 
@@ -27,39 +27,39 @@ class Items:
             counter = self.print_inventory(inventory)
 
             # dialog for manipulating with items
-            while True:
-                try:
-                    answer = input(f'Which one do you want to use? ')
-                    if answer in [str(x) for x in range(1, counter + 1)]:
-                        item_index = int(answer) - 1
-                        item_name = inventory[item_index][1].name
-                        type_of_item = inventory[item_index][1].type_
-                        if type_of_item == "food":
-                            self.player.health += 2
-                            self.player.set_drunk(-2)
-                            db.remove_item(inventory[item_index][0])
-                            print(f"Your HP is {self.player.health} now")
-                        elif type_of_item == "alcohol":
-                            self.player.set_drunk(10)
-                            db.remove_item(inventory[item_index][0])
-                            print(f"You've drunk {item_name}")
-                        elif type_of_item == "weapon":
-                            if self.player.weapon:
-                                db.put_on_off_item(self.player.weapon, on=False)
-                            db.put_on_off_item(inventory[item_index][0], on=True)
-                            print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
-                        elif type_of_item == "garbage":
-                            print(f"You can't use {item_name}, but you will be able to sell it sometime")
-                        self.player.recount_params()
-                        return
-                    elif answer == '0':
-                        return
-                    else:
-                        error('Incorrect input')
-                except ValueError:
-                    error('Incorrect input')
-        else:
-            print('[Empty inventory]')
+            answer = answer_handler('Which one do you want to use? ',
+                                    is_int=True,
+                                    items=[x for x in range(1, counter + 1)],
+                                    cancel=[0])
+            if answer[0] == 'cancel':
+                return
+            item_index = answer[1] - 1
+            item_name = inventory[item_index][1].name
+            type_of_item = inventory[item_index][1].type_
+            if type_of_item == "food":
+                self.player.health += 2
+                self.player.set_drunk(-2)
+                db.remove_item(inventory[item_index][0])
+                print(f"Your HP is {self.player.health} now")
+            elif type_of_item == "alcohol":
+                self.player.set_drunk(10)
+                db.remove_item(inventory[item_index][0])
+                print(f"You've drunk {item_name}")
+            elif type_of_item == "weapon":
+                if self.player.weapon:
+                    db.put_on_off_item(self.player.weapon, on=False)
+                db.put_on_off_item(inventory[item_index][0], on=True)
+                print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
+            elif type_of_item == "armor":
+                if self.player.armor:
+                    db.put_on_off_item(self.player.armor, on=False)
+                db.put_on_off_item(inventory[item_index][0], on=True)
+                print(f"Current armor: {item_name} (defence {inventory[item_index][1].defence})")
+            elif type_of_item == "garbage":
+                print(f"You can't use {item_name}, but you will be able to sell it sometime")
+            self.player.recount_params()
+            return
+        print('[Empty inventory]')
 
     def print_inventory(self, inventory: list) -> int:
         """
@@ -69,14 +69,25 @@ class Items:
         """
         print()
         for counter, item in enumerate(inventory, start=1):
-            active_weapon, attack = '', ''
+
+            # todo: optimize
+            active_weapon, attack, active_armor, defence = '', '', '', ''
             if self.player.weapon:
                 if item[1].name == self.player.weapon.name:  # todo: may be weak spot, need to observe usefulness
                     active_weapon = ' [active weapon]'
             if item[1].type_ == 'weapon':
                 attack = f' (attack {item[1].attack})'
-            print(f"{counter} - {item[1].name}{attack}: {item[0].amount}{active_weapon}")
-        print(f"0 - cancel")
+            if self.player.armor:
+                if item[1].name == self.player.armor.name:
+                    active_armor = ' [active armor]'
+            if item[1].type_ == 'armor':
+                defence = f' (defence {item[1].defence})'
+            equipment_params = f"{attack}{defence}"
+            active_equipment = f"{active_weapon}{active_armor}"
+            string = f"{counter} - {item[1].name}" + equipment_params + f": {item[0].amount}" + active_equipment
+
+            print(string)
+        print("0 - cancel")
         return counter
 
     def get_chest_item(self) -> None:

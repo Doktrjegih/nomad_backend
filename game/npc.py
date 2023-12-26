@@ -29,7 +29,7 @@ class Npc:
         print('Drunk level:', self.player.get_condition())
         quests = get_current_quests()
         if not self.reaction:
-            print(color('green', '\n' + self.phrase))
+            print(color('green', self.phrase))
         if len(quests) < 3:
             if not self.reaction:
                 if self.player.drunk > 24 and self.active_quests:

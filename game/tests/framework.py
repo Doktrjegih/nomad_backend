@@ -1,5 +1,7 @@
+import linecache
 import os
 import pickle
+import re
 from types import GeneratorType
 
 import db
@@ -20,7 +22,7 @@ def world_creation() -> Scene:
     player = Player()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player=player), player=player, items=items)
-    with open('quests.pkl', 'wb') as fd:
+    with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
         pickle.dump([], fd)
     return scene
 
@@ -28,3 +30,42 @@ def world_creation() -> Scene:
 def turns_generator(data) -> GeneratorType:
     for item in data:
         yield str(item)
+
+
+def open_inventory(scene: Scene) -> int:
+    options = scene.get_possible_options()
+    return options.index("inventory") + 1
+
+
+def read_rows_in_range(file_path, start_row: int, finish_row: int) -> str:
+    if start_row >= finish_row:
+        raise ValueError('Start row must be less than finish')
+    content = ""
+    with open(file_path, 'r') as file:
+        for counter, line in enumerate(file, start=1):
+            if counter < start_row:
+                continue
+            if counter > finish_row:
+                break
+            content += line
+    return content
+
+
+def read_file_ignoring_rows(file_path: str, ignore: list[int]) -> str:
+    content = ""
+    with open(file_path, 'r') as file:
+        for counter, line in enumerate(file, start=1):
+            if counter in ignore:
+                continue
+            content += line
+    return content
+
+
+def compare_strings_ignore_numbers(str1: str, str2: str) -> None:
+    str1_without_numbers = re.sub(r'\d', '', str1)
+    str2_without_numbers = re.sub(r'\d', '', str2)
+    assert str1_without_numbers == str2_without_numbers
+
+
+def get_row_from_file(file_path, row: int) -> str:
+    return linecache.getline(file_path, row)
