@@ -4,14 +4,14 @@
     "name": "Bottle of Ale",
     "type": "alcohol",
     "cost": 5
-    "discription": "some beer in bottle. You can drink this everywhere."
+    "discription": "Some beer in bottle. You can drink this everywhere."
   },
   {
     "id": 2,
     "name": "Chicken legk",
     "type": "food",
     "cost": 5
-    "discription": "Some chicken meat for good dinner"
+    "discription": "Some chicken meat for good dinner."
   },
   {
     "id": 3,
@@ -35,6 +35,6 @@
     "type": "armor",
     "defence": 2,
     "cost": 5
-    "discription": "Dont use this pants please..."
+    "discription": "Dont use this please..."
   }
 ]
