@@ -35,11 +35,12 @@ class Player:
         USER ACTION
         Add name to player in the end of game (for high score file)
         """
-        while True:
-            self.name = input('Enter your name: ')
-            if len(self.name) > 0:
-                return
-            error('Incorrect input')
+        if not self.name:
+            while True:
+                self.name = input('Enter your name: ')
+                if len(self.name) > 0:
+                    return
+                error('Incorrect input')
 
     def show_player_info(self) -> None:
         """

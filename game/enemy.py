@@ -7,14 +7,19 @@ from quest import get_current_quests
 
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
-TEST = {1: 'test', 2: 'test1', 3: 'test2', 4: 'test3'}
-TEST2 = {1: 'test_', 2: 'test1_', 3: 'test2_', 4: 'test3_'}
+TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4'}
+
+
+class ExitException(Exception):
+    def __init__(self, message: str = ""):
+        self.message = message
+        super().__init__(self.message)
 
 
 class Enemy:
     def __init__(self, player: Player, exclude: list[dict] = None) -> None:
         self.player = player
-        types = [HUMANS, DOGS, TEST, TEST2]
+        types = [HUMANS, DOGS, TEST]
         if exclude:
             for type_ in exclude:
                 types.remove(type_)
@@ -93,7 +98,7 @@ class Enemy:
         with open('high_scores.txt', 'a', encoding='utf-8') as fd:
             fd.write(f'{self.player.name} - {self.player.scores} '
                      f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
-        exit()
+        raise ExitException()
 
 
 class DrunkEnemy1(Enemy):
@@ -163,30 +168,29 @@ def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
     #         enemy = Enemy(player)
 
     # detect an enemy (second version)
-    if player.drunk < 26:
-        enemy = Enemy(player)
-    elif 51 > player.drunk > 25:
-        if random.randint(1, 100) > 90:
-            enemy = Enemy(player)
-        else:
-            enemy = DrunkEnemy1(player)
-    elif 76 > player.drunk > 50:
-        if random.randint(1, 100) > 90:
-            enemy = Enemy(player)
-        elif 91 > random.randint(1, 100) > 80:
-            enemy = DrunkEnemy1(player)
-        else:
-            enemy = DrunkEnemy2(player)
+    drunk_level = player.drunk
+    rand = random.randint(1, 100)
+
+    if drunk_level < 26:
+        return Enemy(player)
+    elif drunk_level < 51:
+        if rand > 90:
+            return Enemy(player)
+        return DrunkEnemy1(player)
+    elif drunk_level < 76:
+        if rand > 90:
+            return Enemy(player)
+        elif rand > 80:
+            return DrunkEnemy1(player)
+        return DrunkEnemy2(player)
     else:
-        if random.randint(1, 100) > 90:
-            enemy = Enemy(player)
-        elif 91 > random.randint(1, 100) > 80:
-            enemy = DrunkEnemy1(player)
-        elif 81 > random.randint(1, 100) > 70:
-            enemy = DrunkEnemy2(player)
-        else:
-            enemy = Boss(player)
-    return enemy
+        if rand > 90:
+            return Enemy(player)
+        elif rand > 80:
+            return DrunkEnemy1(player)
+        elif rand > 70:
+            return DrunkEnemy2(player)
+        return Boss(player)
 
 
 def enemy_for_npc_quest(player: Player, exclude: list[dict] = None) -> DrunkEnemy1 | DrunkEnemy2 | Boss:
@@ -196,7 +200,7 @@ def enemy_for_npc_quest(player: Player, exclude: list[dict] = None) -> DrunkEnem
     :param exclude: used for exclude already taken player's quests targets
     :return: object of enemy depends on its stage
     """
-    if 51 > player.drunk > 25:
+    if 51 > player.drunk > 24:
         enemy = DrunkEnemy1(player, exclude=exclude)
     elif 76 > player.drunk > 50:
         enemy = DrunkEnemy2(player, exclude=exclude)
