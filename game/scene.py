@@ -53,17 +53,17 @@ class Scene:
         elif action == "check a chest":
             self.items.get_chest_item()
             self.location.chest = False
-            self.show_current_scene()
+            return
         elif action == 'inventory':
             self.items.show_inventory()
-            self.show_current_scene()
+            return
         elif action == "get status":
             self.player.show_player_info()
-            self.show_current_scene()
+            return
         elif action == "exit game":
             self.ask_about_exit()
 
-    def show_possible_options(self, npc_quest: bool = True) -> str:
+    def show_possible_options(self, npc_quest: bool = True) -> str | None:
         """
         USER ACTION
         Shows possible actions for each type of scene depends on current status (peaceful, battle, tavern)
@@ -81,7 +81,7 @@ class Scene:
                 if action == "HESOYAM":
                     self.player.health = 10
                     self.player.gold += 250
-                    self.show_current_scene()
+                    return
                 else:
                     action = int(action)
                 if 1 <= action <= options_len:
@@ -111,9 +111,11 @@ class Scene:
         elif self.state == 'merchant':
             options = ['back to tavern', 'buy', 'sell', 'inventory', 'get status', 'exit game']
         elif self.state == 'npc':
-            options = ['go forward', 'talk with Carl', 'inventory', 'get status', 'exit game']
+            options = ['go forward', 'check a chest', 'talk with Carl', 'inventory', 'get status', 'exit game']
             if not npc_quest:
                 options.remove('talk with Carl')
+            if not self.location.chest:
+                options.remove('check a chest')
         return options
 
     def new_scene(self) -> None:
@@ -143,7 +145,8 @@ class Scene:
             return
         self.show_peace_scene()
 
-    def ask_about_exit(self) -> None:
+    @staticmethod
+    def ask_about_exit() -> None:
         """
         Dialog for confirmation if player wants to exit
         """
@@ -152,6 +155,6 @@ class Scene:
             if answer.lower() in ['y', 'yes', '1']:
                 exit()
             elif answer.lower() in ['n', 'no', '2']:
-                self.show_current_scene()
+                return
             else:
                 error('Incorrect input')

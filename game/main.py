@@ -38,7 +38,8 @@ def main() -> None:
     scene = Scene(location=Location(type_='hometown', player=player), player=player, items=items)
     with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
         pickle.dump([], fd)
-    scene.show_peace_scene()
+    while True:
+        scene.show_current_scene()
 
 
 if __name__ == '__main__':

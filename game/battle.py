@@ -27,10 +27,10 @@ class Battle:
             self.try_run_away()
         elif action == "inventory":
             self.items.show_inventory()
-            self.scene.show_current_scene()
+            return
         elif action == "get status":
             self.player.show_player_info()
-            self.scene.show_current_scene()
+            return
         elif action == "exit game":
             self.scene.ask_about_exit()
 
@@ -89,4 +89,4 @@ class Battle:
         elif type_ == 'battle':
             self.player.set_drunk(-3)  # todo: depends on taken damage
         # print(f'Damage taken during battle: {self.damage_taken}')
-        self.scene.show_current_scene()
+        return
