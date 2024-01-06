@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture
-def clear_dir():
+def clear_dir() -> None:
     yield
     directory_path = Path(".")
     files_to_delete = directory_path.glob("*.log")
@@ -15,8 +15,14 @@ def clear_dir():
         pass
 
 
+@pytest.fixture(scope='module')
+def clear_results() -> None:
+    with open("results.txt", 'w') as fd:
+        fd.write("")
+
+
 @pytest.fixture(scope='session')
-def test_counter(request):
+def test_counter(request) -> None:
     count = [0]
 
     def increment_counter():
@@ -26,7 +32,7 @@ def test_counter(request):
     yield increment_counter
 
 
-def pytest_sessionfinish(session, exitstatus):
+def pytest_sessionfinish(session, exitstatus) -> None:
     total_tests = 10
     if session.testscollected >= total_tests:
         average = 0
