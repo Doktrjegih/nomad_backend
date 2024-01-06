@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 import pytest
 
-from battle import Battle
 from enemy import Enemy
 from tests.framework import *
 
@@ -41,13 +40,13 @@ def test_player_battle(mock_input):
 
     # start the battle
     scene.state = 'battle'
-    battle = Battle(scene=scene)
 
     # start test
     gen = turns_generator([4, 3, 0, 2, 1, 3, 1])
     mock_input.side_effect = lambda x: next(gen)
     try:
-        battle.show_battle_scene()
+        while True:
+            scene.show_current_scene()
     except StopIteration:
         etalon_log = read_file_ignoring_rows('etalon_battle.log', ignore=[117])
         actual_log = read_file_ignoring_rows('last_game.log', ignore=[117])
