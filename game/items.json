@@ -1,40 +1,35 @@
 [
   {
     "id": 1,
-    "name": "Bottle of Ale",
+    "name": "Beer bottle",
     "type": "alcohol",
     "cost": 5
-    "discription": "Some beer in bottle. You can drink this everywhere."
   },
   {
     "id": 2,
-    "name": "Chicken legk",
+    "name": "Steak",
     "type": "food",
     "cost": 5
-    "discription": "Some chicken meat for good dinner."
   },
   {
     "id": 3,
-    "name": "Wooden club",
+    "name": "Rust sword",
     "type": "weapon",
     "attack": 2,
     "cost": 5
-    "discription": "Heavy wooden branch. Best for street fight."
   },
   {
     "id": 4,
-    "name": "Rust sword",
+    "name": "Iron sword",
     "type": "weapon",
     "attack": 5,
     "cost": 10
-    "discription": "Old iron weapon. A long time ago it serve for someone kingdom guarderner."
   },
   {
     "id": 5,
-    "name": "Anthoha's wet underpants",
+    "name": "Anthoha's underpants",
     "type": "armor",
-    "defence": 2,
-    "cost": 5
-    "discription": "Dont use this please..."
+    "defence": 5,
+    "cost": 10
   }
 ]
