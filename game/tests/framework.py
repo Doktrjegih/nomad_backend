@@ -32,9 +32,9 @@ def turns_generator(data) -> GeneratorType:
         yield str(item)
 
 
-def open_inventory(scene: Scene) -> int:
+def open_entrypoint(scene: Scene, name: str) -> int:
     options = scene.get_possible_options()
-    return options.index("inventory") + 1
+    return options.index(name) + 1
 
 
 def read_rows_in_range(file_path, start_row: int, finish_row: int) -> str:

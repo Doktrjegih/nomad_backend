@@ -17,6 +17,14 @@ def get_current_quests() -> list:
         return list()
 
 
+def there_are_finished_quests(quests: list) -> bool:
+    for quest in quests:
+        quest: Quest
+        if quest.is_finished:
+            return True
+    return False
+
+
 class Quest:
     def __init__(self, order, amount, reward) -> None:
         self.order = order
@@ -64,4 +72,4 @@ class Quest:
         quests.remove(self)
         with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
             pickle.dump(quests, fd)
-        print(f"\nThanks! Your reward is: {self.reward} coins")
+        print(f"\nThanks! Your reward is: {self.reward} coins and {self.xp_for_quest} XP")

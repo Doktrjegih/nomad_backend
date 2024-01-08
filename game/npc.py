@@ -51,13 +51,13 @@ class Npc:
         if action == "check a chest":
             self.items.get_chest_item()
             self.scene.location.chest = False
-            self.scene.show_current_scene()
+            return
         if action == "inventory":
             self.items.show_inventory()
-            self.scene.show_current_scene()
+            return
         elif action == "get status":
             self.player.show_player_info()
-            self.scene.show_current_scene()
+            return
         elif action == "exit game":
             self.scene.ask_about_exit()
 
@@ -92,7 +92,7 @@ class Npc:
                 self.npc_quest.add_to_list()
                 self.scene.npc = None
                 self.scene.state = 'peace'
-                self.scene.show_current_scene()
+                return
             elif answer.lower() in ['n', 'no', '2']:
                 self.reaction = True
                 self.npc_dialog()

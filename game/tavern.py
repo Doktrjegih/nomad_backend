@@ -28,23 +28,23 @@ class Tavern:
         if action == "go out":
             self.scene.state = 'peace'
             self.scene.tavern = self
-            self.scene.show_current_scene()
+            return
         elif action == "take a beer":
             self.buy_beer(10)
-            self.tavern_menu()
+            return
         elif action == "take a steak":
             self.buy_steak()
-            self.tavern_menu()
+            return
         elif action == "merchant":
             self.merchant_dialog()
         elif action == "check quests":
             self.check_quests()
         elif action == "inventory":
             self.items.show_inventory()
-            self.tavern_menu()
+            return
         elif action == "get status":
             self.player.show_player_info()
-            self.tavern_menu()
+            return
         elif action == "exit game":
             self.scene.ask_about_exit()
 
@@ -82,12 +82,12 @@ class Tavern:
         """
         # check if there are finished quests
         quests = get_current_quests()
-        if quests:
-            for quest in quests[:]:
-                quest: Quest
-                if quest.is_finished:
-                    quest.close_quest(quests, self.player)
-                    db.add_item_to_inventory(1)
+        # if quests:  # todo: check on the finished quest
+        for quest in quests:
+            quest: Quest
+            if quest.is_finished:
+                quest.close_quest(quests, self.player)
+                db.add_item_to_inventory(1)
 
         # check if max value of current quests
         quests = get_current_quests()
@@ -115,17 +115,17 @@ class Tavern:
         print(f'Think {self.tavern_quest.goal_amount} ones will be enough for now')
         print(f'Reward for this is {self.tavern_quest.reward} gold coins')
 
-        while True:
-            answer = input(f'Are you accept? (yes/no) ')
-            if answer.lower() in ['y', 'yes', '1']:
-                print('Quest has been taken')
-                self.active_quests = False
-                self.tavern_quest.add_to_list()
-                self.tavern_menu()
-            elif answer.lower() in ['n', 'no', '2']:
-                self.tavern_menu()
-            else:
-                error('Incorrect input')
+        answer = answer_handler(
+            question=f'Are you accept? (yes/no) ',
+            is_int=False,
+            yes=['y', 'yes', '1'],
+            no=['n', 'no', '2'])
+        if answer[0] == 'no':
+            return
+        print('Quest has been taken')
+        self.active_quests = False
+        self.tavern_quest.add_to_list()
+        return
 
     def merchant_dialog(self) -> None:
         """
@@ -140,17 +140,16 @@ class Tavern:
             self.scene.state = 'tavern'
             self.tavern_menu()
         elif action == "buy":
-            pass  # todo: add mechanics
-            self.scene.show_current_scene()
+            return  # todo: add mechanics
         elif action == "sell":
             self.merchant_sell()
-            self.scene.show_current_scene()
+            return
         elif action == "inventory":
             self.items.show_inventory()
-            self.scene.show_current_scene()
+            return
         elif action == "get status":
             self.player.show_player_info()
-            self.scene.show_current_scene()
+            return
         elif action == "exit game":
             self.scene.ask_about_exit()
 
