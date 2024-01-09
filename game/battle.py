@@ -49,7 +49,9 @@ class Battle:
             attack = int(attack * 1.2)
         if critical_hit:
             attack = int(attack * 1.5)
-        print(f'{lucky_hit}{critical_hit}Your attack is {attack}')
+        print(f'{lucky_hit}{critical_hit}Your default attack is {self.player.attack}')
+        print(f'{lucky_hit}{critical_hit}Enemy defence is {self.enemy.defence}')
+        print(f'{lucky_hit}{critical_hit}Your actual attack is {attack}')
         self.enemy.get_damage(attack)
         if self.enemy.health <= 0:
             self.enemy.died()
