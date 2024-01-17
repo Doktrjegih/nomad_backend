@@ -57,6 +57,7 @@ class Battle:
             self.enemy.died()
             self.finish_battle(type_='battle')
         else:
+            self.enemy.check_specials()
             self.damage_taken += self.enemy.enemy_attack()
             self.show_battle_scene()
 
