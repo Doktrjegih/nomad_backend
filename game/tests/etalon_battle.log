@@ -69,7 +69,10 @@ Enemy health: 5
 2 - inventory
 3 - get status
 4 - exit game
-Your attack is 3
+Your default attack is 4
+Enemy defence is 1
+Your actual attack is 3
+No specials
 Wet dog attacks!
 
 You're in the location "hometown" (peaceful) 
@@ -111,7 +114,9 @@ Enemy health: 2
 2 - inventory
 3 - get status
 4 - exit game
-Your attack is 3
+Your default attack is 4
+Enemy defence is 1
+Your actual attack is 3
 
 [91mWet dog[0m was killed!
 You get 267 XP

@@ -48,8 +48,8 @@ def test_player_battle(mock_input):
         while True:
             scene.show_current_scene()
     except StopIteration:
-        etalon_log = read_file_ignoring_rows('etalon_battle.log', ignore=[117])
-        actual_log = read_file_ignoring_rows('last_game.log', ignore=[117])
+        etalon_log = read_file_ignoring_rows('etalon_battle.log', ignore=[122])
+        actual_log = read_file_ignoring_rows('last_game.log', ignore=[122])
         assert etalon_log == actual_log
-        compare_strings_ignore_numbers(get_row_from_file('etalon_battle.log', 117),
-                                       get_row_from_file('last_game.log', 117))
+        compare_strings_ignore_numbers(get_row_from_file('etalon_battle.log', 122),
+                                       get_row_from_file('last_game.log', 122))

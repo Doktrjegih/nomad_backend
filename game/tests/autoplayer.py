@@ -19,26 +19,47 @@ def make_decision(scene: Scene) -> str:
         except StopIteration:
             pass
 
-    # get food, alcohol and better equipment if possible
-    inventory = db.get_inventory()
-    food_alcohol = ["Beer bottle", "Steak"]
-    for index, item in enumerate(inventory, start=1):
-        if item[1].name in food_alcohol:
-            actions = turns_generator([open_entrypoint(scene, "inventory"), index])
-            return next(actions)
-        if item[1].type_ == "weapon":
-            if not scene.player.weapon or item[1].attack > scene.player.weapon.attack:
-                actions = turns_generator([open_entrypoint(scene, "inventory"), index])
-                return next(actions)
-        if item[1].type_ == "armor":
-            if not scene.player.armor or item[1].defence > scene.player.armor.defence:
-                actions = turns_generator([open_entrypoint(scene, "inventory"), index])
-                return next(actions)
+    # talk with carl
+    if scene.state == 'npc':
+        actions_list = ['1']
+        if scene.location.chest:
+            actions_list.append('2')
+        actions = turns_generator(actions_list)
+        return next(actions)
+
+    # loot chests
+    if scene.location.chest:
+        return '2'
 
     # upgrade skills
     if scene.player.available_stats_point > 0:
         actions = turns_generator([open_entrypoint(scene, "get status"), '1', '1'])
         return next(actions)
+
+    # get food, alcohol and better equipment
+    inventory = db.get_inventory()
+    print(f"inventory = {[x[1].name for x in inventory]}")
+    food_alcohol = ["Beer bottle", "Steak"]
+    for index, item in enumerate(inventory, start=1):
+        print("tak ebat smotrim inventar")
+        if item[1].name in food_alcohol:
+            actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
+            print(f"deistviya food = {emana}")
+            return next(actions)
+        if item[1].type_ == "weapon":
+            if not scene.player.weapon or item[1].attack > scene.player.weapon.attack:
+                actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
+                print(f"deistviya weapon = {emana}")
+                return next(actions)
+        if item[1].type_ == "armor":
+            if not scene.player.armor or item[1].defence > scene.player.armor.defence:
+                actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
+                print(f"deistviya armor = {emana}")
+                return next(actions)
+
+    # enter the tavern
+    if scene.location.tavern and scene.state != "tavern":
+        return '2'
 
     # actions in the tavern
     if scene.state == 'tavern':
@@ -70,22 +91,6 @@ def make_decision(scene: Scene) -> str:
         actions_list.extend(['1', '1'])
         actions = turns_generator(actions_list)
         return next(actions)
-
-    # enter the tavern
-    if scene.location.tavern:
-        return '2'
-
-    # talk with carl
-    if scene.location.npc:
-        actions = ['1']
-        if scene.location.chest:
-            actions.append('2')
-        actions = turns_generator(actions)
-        return next(actions)
-
-    # loot chests
-    if scene.location.chest:
-        return '2'
 
     # just go until death
     if scene.player.health > 0:

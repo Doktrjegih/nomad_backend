@@ -24,30 +24,28 @@ class Npc:
         print(f"""\nYou're in the location "{self.scene.location.name}" ({self.scene.location.type}) """)
         if not self.reaction:
             print(f"""You've met Carl""")
-        elif self.reaction and self.npc_quest:
+            print(color('green', self.phrase))
+        elif self.reaction:
             print('Carl is waiting for you')
         print('Drunk level:', self.player.get_condition())
         quests = get_current_quests()
-        if not self.reaction:
-            print(color('green', self.phrase))
         if len(quests) < 3:
             if not self.reaction:
                 if self.player.drunk > 24 and self.active_quests:
-                    self.check_npc_quests()
+                    self.check_npc_quests(quests)
+                    return
                 elif self.player.drunk < 25 and random.randint(1, 10) > 6:
                     db.add_item_to_inventory(1)
                     print("I see you need a drink, take it")
                     print(f"You've gotten Beer bottle")
-                self.scene.state = 'peace'
-                self.scene.npc = None
-        action = self.scene.show_possible_options(npc_quest=False) if not self.npc_quest \
-            else self.scene.show_possible_options()
+                    self.scene.npc = None
+        action = self.scene.show_possible_options()
         if action == "go forward":
             self.scene.npc = None
             self.scene.state = 'peace'
             self.scene.new_scene()
         if action == "talk with Carl":
-            self.check_npc_quests()
+            self.check_npc_quests(quests)
         if action == "check a chest":
             self.items.get_chest_item()
             self.scene.location.chest = False
@@ -61,12 +59,11 @@ class Npc:
         elif action == "exit game":
             self.scene.ask_about_exit()
 
-    def check_npc_quests(self) -> None:
+    def check_npc_quests(self, quests) -> None:
         """
         USER ACTION
         Generates random new tasks for player with some chance
         """
-        quests = get_current_quests()
         if not self.npc_quest:
             if len(quests) == 0:
                 order = enemy_for_npc_quest(self.player)
@@ -79,22 +76,24 @@ class Npc:
             reward = amount * 5 * self.player.level + (random.randint(2, 10) * self.player.level)
             quest = Quest(order=order, amount=amount, reward=reward)
             self.npc_quest = quest
+            if self.scene.state != 'npc':
+                self.scene.state = 'npc'
 
         print() if self.reaction else None
         print(f'I need to clean this area from {color("red", self.npc_quest.order.name + "s")}')
         print(f'Think {self.npc_quest.goal_amount} ones will be enough for now')
         print(f'Reward for this is {self.npc_quest.reward} gold coins')
 
-        while True:
-            answer = input(f'Are you accept? (yes/no) ')
-            if answer.lower() in ['y', 'yes', '1']:
-                print('Quest has been taken')
-                self.npc_quest.add_to_list()
-                self.scene.npc = None
-                self.scene.state = 'peace'
-                return
-            elif answer.lower() in ['n', 'no', '2']:
-                self.reaction = True
-                self.npc_dialog()
-            else:
-                error('Incorrect input')
+        answer = answer_handler(
+            question=f'Are you accept? (yes/no) ',
+            is_int=False,
+            yes=['y', 'yes', '1'],
+            no=['n', 'no', '2'])
+        if answer[0] == 'no':
+            self.reaction = True
+            return
+        print('Quest has been taken')
+        self.npc_quest.add_to_list()
+        self.scene.npc = None
+        if self.scene.state == 'npc':
+            self.scene.state = 'peace'

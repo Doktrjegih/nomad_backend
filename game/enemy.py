@@ -31,6 +31,20 @@ class Enemy:
         self.attack = 1 * self.level
         self.defence = 1 * self.level
         self.agility = random.randint(0, 2) * self.level
+        self.base_attack = None
+        self.launch_specials = self.dummy_special
+
+    # todo: later need to move all such methods to another class or module
+    def hyena(self):
+        print("I'm Hyena")
+        if self.base_attack:
+            self.attack = self.base_attack
+        if self.health < 5:
+            if random.randint(1, 100) > 50:
+                if not self.base_attack:
+                    self.base_attack = self.attack
+                self.attack *= 2
+                print(f"Special skill has been activated! Enemy attack is {self.attack}")
 
     def get_random_level_of_enemy(self) -> int:
         """
@@ -85,6 +99,19 @@ class Enemy:
         if self.player.health <= 0:
             self.game_over()
         return attack
+
+    def get_specials(self):
+        if self.type == DOGS:
+            if self.name == 'Hyena':
+                self.launch_specials = self.hyena
+
+    @staticmethod
+    def dummy_special():
+        print("No specials")
+
+    def check_specials(self):
+        self.get_specials()
+        self.launch_specials()
 
     def game_over(self) -> None:
         """
