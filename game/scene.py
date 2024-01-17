@@ -25,7 +25,7 @@ class Scene:
         Shows current scene during some actions if needed
         """
         if self.state == 'battle':
-            battle = Battle(scene=self)
+            battle = Battle(scene=self)  # todo: constant recreating of object during battle (try/except?)
             battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
@@ -63,14 +63,14 @@ class Scene:
         elif action == "exit game":
             self.ask_about_exit()
 
-    def show_possible_options(self, npc_quest: bool = True) -> str | None:
+    def show_possible_options(self) -> str | None:
         """
         USER ACTION
         Shows possible actions for each type of scene depends on current status (peaceful, battle, tavern)
         Waits of user choice
         :return: str type of action
         """
-        options = self.get_possible_options(npc_quest)
+        options = self.get_possible_options()
         options_len = len(options)
         highlight_actions = ['enter tavern', 'check a chest']
         while True:
@@ -91,7 +91,7 @@ class Scene:
             except ValueError:
                 error('Incorrect input')
 
-    def get_possible_options(self, npc_quest: bool = True) -> list[str]:
+    def get_possible_options(self) -> list[str]:
         options = []
         if self.state == 'battle':
             options = ['attack', 'run away', 'inventory', 'get status', 'exit game']
@@ -112,7 +112,7 @@ class Scene:
             options = ['back to tavern', 'buy', 'sell', 'inventory', 'get status', 'exit game']
         elif self.state == 'npc':
             options = ['go forward', 'check a chest', 'talk with Carl', 'inventory', 'get status', 'exit game']
-            if not npc_quest:
+            if not self.npc:
                 options.remove('talk with Carl')
             if not self.location.chest:
                 options.remove('check a chest')
@@ -139,7 +139,6 @@ class Scene:
             battle.show_battle_scene()
             return
         if self.location.npc:
-            self.state = "npc"
             self.npc = Npc(scene=self)
             self.npc.npc_dialog()
             return
