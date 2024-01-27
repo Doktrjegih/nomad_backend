@@ -73,7 +73,7 @@ class Scene:
         options = self.get_possible_options()
         options_len = len(options)
         highlight_actions = ['enter tavern', 'check a chest']
-        while True:
+        while True:  # todo: use universal method
             try:
                 for counter, act in enumerate(options, start=1):
                     print(f'{counter} - {act if act not in highlight_actions else color("green", act)}')

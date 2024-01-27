@@ -140,7 +140,8 @@ class Tavern:
             self.scene.state = 'tavern'
             self.tavern_menu()
         elif action == "buy":
-            return  # todo: add mechanics
+            self.merchant_buy()
+            return
         elif action == "sell":
             self.merchant_sell()
             return
@@ -173,7 +174,7 @@ class Tavern:
         # dialog for manipulating with items
         answer_item = answer_handler(question="Which one do you want to sell? ",
                                      is_int=True,
-                                     items=[x for x in range(1, counter + 1)],
+                                     correct_range=[x for x in range(1, counter + 1)],
                                      cancel=[0])
         if answer_item[0] == 'cancel':
             return
@@ -188,7 +189,7 @@ class Tavern:
             if answer_confirm[0] == 'no':
                 return
             db.remove_item(inventory[item_index][0])
-            self.player.gain_scores(inventory[item_index][1].cost)
+            self.player.gain_scores(inventory[item_index][1].cost * 10)
             print(f'Sold 1 {item_name}')
         else:
             answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
@@ -205,7 +206,7 @@ class Tavern:
             if answer_confirm_several[0] == 'no':
                 return
             db.remove_item(inventory[item_index][0], answer_amount[1])
-            self.player.gain_scores(inventory[item_index][1].cost * answer_amount[1])
+            self.player.gain_scores(inventory[item_index][1].cost * 10 * answer_amount[1])
             print(f'Sold {answer_amount[1]} {item_name}')
         self.player.recount_params()
 
@@ -214,9 +215,30 @@ class Tavern:
         USER ACTION
         Shows buying menu
         """
-        # 1. show merchant items
-        # 2. ask which one player wants to buy
-        # 3. if more than one, ask how many
-        # 4. check player's gold is enough
-        # 5. confirmation, writing to DB
-        pass
+        items_for_sell = [x for x in db.GAME_ITEMS if x["type"] == "weapon"]
+        while True:
+            print()
+            for counter, item in enumerate(items_for_sell, start=1):
+                print(f"{counter} - {item['name']} ({item['cost']} gold)")
+            print("0 - cancel")
+            answer_amount = answer_handler(question=f'What do you want to buy? (you have {self.player.gold} gold) ',
+                                           is_int=True,
+                                           correct_range=[x for x in range(1, len(items_for_sell) + 1)],
+                                           cancel=[0])
+            if answer_amount[0] == 'cancel':
+                return
+
+            chosen_item = items_for_sell[answer_amount[1] - 1]
+            if (price := chosen_item["cost"]) > self.player.gold:
+                print("You don't have enough gold for it")
+            else:
+                confirm_buying = answer_handler(question=f'\nYou chose {(item_name := chosen_item["name"])}. '
+                                                         f'Buy it? (yes/no) ',
+                                                is_int=False,
+                                                yes=['y', 'yes', '1'],
+                                                no=['n', 'no', '2'])
+                if confirm_buying[0] == 'no':
+                    return
+                db.add_item_to_inventory(chosen_item["id"])
+                self.player.gold -= price
+                print(f'Bought {item_name}')
