@@ -17,6 +17,7 @@ class Scene:
         self.enemy = None
         self.tavern = None
         self.npc = None
+        self.battle = None
         self.items = items
         self.turn_without_tavern = 0
 
@@ -25,8 +26,7 @@ class Scene:
         Shows current scene during some actions if needed
         """
         if self.state == 'battle':
-            battle = Battle(scene=self)  # todo: constant recreating of object during battle (try/except?)
-            battle.show_battle_scene()
+            self.battle.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
         elif self.state == 'tavern':
@@ -135,8 +135,8 @@ class Scene:
         if self.location.enemies:
             self.state = 'battle'
             self.enemy = generate_enemy(self.player)
-            battle = Battle(scene=self)
-            battle.show_battle_scene()
+            self.battle = Battle(scene=self)
+            self.battle.show_battle_scene()
             return
         if self.location.npc:
             self.npc = Npc(scene=self)
