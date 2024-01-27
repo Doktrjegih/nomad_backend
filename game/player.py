@@ -145,10 +145,10 @@ class Player:
 
         print('Available stats points:', self.available_stats_point)
         while True:
-            answer = input(f'\nDo you want to distribute stats points? (yes/no) ')
+            answer = input('\nDo you want to distribute stats points? (yes/no) ')
             if answer.lower() in ['y', 'yes', '1']:
                 print(f'{STATS}')
-                answer2 = input(f'Which one do you want to increase? ')
+                answer2 = input('Which one do you want to increase? ')
                 if answer2 == '1':
                     apply_changes('endurance')
                 elif answer2 == '2':
@@ -201,4 +201,4 @@ class Player:
             self.scores = to_next_level
             self.next_level = int(self.next_level * 1.2)
             if self.scores > self.next_level:  # todo: for debug
-                error(f'Sanya look! More than 1 level per time')
+                error('Sanya look! More than 1 level per time')
