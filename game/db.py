@@ -53,16 +53,15 @@ def create_database() -> None:
     """
     Creates database if it's needed, clear DB before new game if it exists
     """
-    # base.metadata.create_all(engine)
-    # session.query(Items).delete()
-    # session.query(Inventory).delete()
-
-    inv_items = session.query(Inventory).all()
-    for item in inv_items:
-        session.delete(item)
-    items = session.query(Items).all()
-    for item in items:
-        session.delete(item)
+    if not os.path.exists(db_path):
+        base.metadata.create_all(engine)
+    else:
+        inv_items = session.query(Inventory).all()
+        for item in inv_items:
+            session.delete(item)
+        items = session.query(Items).all()
+        for item in items:
+            session.delete(item)
     session.commit()
     for item in GAME_ITEMS:
         add_item_to_game(item)

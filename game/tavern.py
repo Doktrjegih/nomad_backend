@@ -22,7 +22,7 @@ class Tavern:
         USER ACTION
         Shows tavern menu
         """
-        print(f"""\nYou're in the tavern""")
+        print("""\nYou're in the tavern""")
         print('Drunk level:', self.player.get_condition())
         action = self.scene.show_possible_options()
         if action == "go out":
