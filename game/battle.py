@@ -1,7 +1,6 @@
 import random
 
 from console import *
-from console import color, print
 
 
 class Battle:

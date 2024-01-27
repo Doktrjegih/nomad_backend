@@ -38,23 +38,18 @@ def make_decision(scene: Scene) -> str:
 
     # get food, alcohol and better equipment
     inventory = db.get_inventory()
-    print(f"inventory = {[x[1].name for x in inventory]}")
     food_alcohol = ["Beer bottle", "Steak"]
     for index, item in enumerate(inventory, start=1):
-        print("tak ebat smotrim inventar")
         if item[1].name in food_alcohol:
             actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
-            print(f"deistviya food = {emana}")
             return next(actions)
         if item[1].type_ == "weapon":
             if not scene.player.weapon or item[1].attack > scene.player.weapon.attack:
                 actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
-                print(f"deistviya weapon = {emana}")
                 return next(actions)
         if item[1].type_ == "armor":
             if not scene.player.armor or item[1].defence > scene.player.armor.defence:
                 actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
-                print(f"deistviya armor = {emana}")
                 return next(actions)
 
     # enter the tavern
