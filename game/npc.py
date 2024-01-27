@@ -23,7 +23,7 @@ class Npc:
         """
         print(f"""\nYou're in the location "{self.scene.location.name}" ({self.scene.location.type}) """)
         if not self.reaction:
-            print(f"""You've met Carl""")
+            print("""You've met Carl""")
             print(color('green', self.phrase))
         elif self.reaction:
             print('Carl is waiting for you')
@@ -37,7 +37,7 @@ class Npc:
                 elif self.player.drunk < 25 and random.randint(1, 10) > 6:
                     db.add_item_to_inventory(1)
                     print("I see you need a drink, take it")
-                    print(f"You've gotten Beer bottle")
+                    print("You've gotten Beer bottle")
                     self.scene.npc = None
         action = self.scene.show_possible_options()
         if action == "go forward":

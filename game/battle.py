@@ -1,7 +1,6 @@
 import random
 
 from console import *
-from console import color, print
 
 
 class Battle:
@@ -35,7 +34,10 @@ class Battle:
             self.scene.ask_about_exit()
 
     def player_attack(self):
-        # todo: docstring
+        """
+        Counts player's attack for each turn, then hits enemy.
+        Finishes battle if enemy's been slayed, else hits player in response
+        """
         attack = self.player.attack - self.enemy.defence
         if attack < 1:
             attack = 1
