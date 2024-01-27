@@ -128,7 +128,7 @@ class Scene:
         if self.location.tavern:
             self.tavern = None
             self.turn_without_tavern = 1
-        location = Location(new_location_type, self.player, self.turn_without_tavern)
+        location = Location(new_location_type, self.player.luck, self.turn_without_tavern)
         self.location = location
         if self.player.drunk > 0:
             self.player.set_drunk(-1)

@@ -35,7 +35,7 @@ def main() -> None:
     print('Hello, a big new world!')
     player = Player()
     items = Items(player=player)
-    scene = Scene(location=Location(type_='hometown', player=player), player=player, items=items)
+    scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
     with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
         pickle.dump([], fd)
     while True:
