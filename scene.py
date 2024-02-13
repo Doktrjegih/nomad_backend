@@ -1,11 +1,13 @@
-from battle import Battle
+# from battle import Battle
 from console import *
 from enemy import *
+from quest import Quest, get_current_quests
 from items import Items
 from location import Location
-from npc import Npc
+# from npc import Npc
 from player import Player
 from tavern import Tavern
+import db
 
 
 class Scene:
@@ -17,16 +19,22 @@ class Scene:
         self.enemy = None
         self.tavern = None
         self.npc = None
-        self.battle = None
         self.items = items
         self.turn_without_tavern = 0
+
+        # self.battle = None
+        self.phrase = 'Random welcome phrase'
+        self.active_quests = True if random.randint(1, 10) > 2 else False  # shows if NPC has quest
+        self.npc_quest = None  # keeps object of Quest class
+        self.reaction = False  # shows if it's first meeting with NPC
 
     def show_current_scene(self) -> None:
         """
         Shows current scene during some actions if needed
         """
         if self.state == 'battle':
-            self.battle.show_battle_scene()
+            # self.battle.show_battle_scene()
+            self.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
         elif self.state == 'tavern':
@@ -35,33 +43,6 @@ class Scene:
             self.npc.npc_dialog()
         elif self.state == 'merchant':
             self.tavern.merchant_dialog()
-
-    def show_peace_scene(self) -> None:
-        """
-        Shows actions outside tavern in peaceful time
-        """
-        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type})""")
-        print('Drunk level:', self.player.get_condition())
-        action = self.show_possible_options()
-        if action == "go forward":
-            self.new_scene()
-        elif action == "enter tavern":
-            self.state = "tavern"
-            if not self.tavern:
-                self.tavern = Tavern(scene=self, player=self.player, items=self.items)
-            self.tavern.tavern_menu()
-        elif action == "check a chest":
-            self.items.get_chest_item()
-            self.location.chest = False
-            return
-        elif action == 'inventory':
-            self.items.show_inventory()
-            return
-        elif action == "get status":
-            self.player.show_player_info()
-            return
-        elif action == "exit game":
-            self.ask_about_exit()
 
     def show_possible_options(self) -> str | None:
         """
@@ -118,6 +99,201 @@ class Scene:
                 options.remove('check a chest')
         return options
 
+    def show_peace_scene(self) -> None:
+      """
+      Shows actions outside tavern in peaceful time
+      """
+      print(f"""\nYou're in the location "{self.location.name}" ({self.location.type})""")
+      print('Drunk level:', self.player.get_condition())
+      action = self.show_possible_options()
+      if action == "go forward":
+          self.new_scene()
+      elif action == "enter tavern":
+          self.state = "tavern"
+          if not self.tavern:
+              self.tavern = Tavern(scene=self, player=self.player, items=self.items)
+          self.tavern.tavern_menu()
+      elif action == "check a chest":
+          self.items.get_chest_item()
+          self.location.chest = False
+          return
+      elif action == 'inventory':
+          self.items.show_inventory()
+          return
+      elif action == "get status":
+          self.player.show_player_info()
+          return
+      elif action == "exit game":
+          self.ask_about_exit()
+
+    def show_battle_scene(self) -> None:
+      """
+      Shows process of the battle
+      """
+      print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
+      warning('Battle mode')
+      print('Drunk level:', self.player.get_condition())
+      self.enemy.show_rivals_stats()
+      action = self.show_possible_options()
+      if action == "attack":
+          self.player_attack()
+      elif action == "run away":
+          self.try_run_away()
+      elif action == "inventory":
+          self.items.show_inventory()
+          return
+      elif action == "get status":
+          self.player.show_player_info()
+          return
+      elif action == "exit game":
+          self.ask_about_exit()
+
+    def player_attack(self):
+      """
+      Counts player's attack for each turn, then hits enemy.
+      Finishes battle if enemy's been slayed, else hits player in response
+      """
+      attack = self.player.attack - self.enemy.defence
+      if attack < 1:
+          attack = 1
+      lucky_hit, critical_hit = '', ''
+      if self.player.luck > random.randint(1, 100):
+          lucky_hit = color('green', 'Lucky hit! ')
+      if self.player.luck / 2 + self.player.agility > random.randint(1, 100):
+          critical_hit = color('green', 'CRITICAL HIT! ')
+      lucky_hit = '' if critical_hit else lucky_hit
+      if lucky_hit:
+          attack = int(attack * 1.2)
+      if critical_hit:
+          attack = int(attack * 1.5)
+      print(f'{lucky_hit}{critical_hit}Your default attack is {self.player.attack}')
+      print(f'Enemy defence is {self.enemy.defence}')
+      print(f'Your actual attack is {attack}')
+      self.enemy.get_damage(attack)
+      if self.enemy.health <= 0:
+          self.enemy.died()
+          self.finish_battle(type_='battle')
+      else:
+          self.enemy.check_specials()
+          # self.damage_taken += self.enemy.enemy_attack()
+          self.enemy.enemy_attack()
+          self.show_battle_scene()
+
+    def try_run_away(self) -> None:
+      """
+      USER ACTION
+      Trying to run away from enemy, if attempt is failed, blocks next attempts
+      """
+      if self.player.agility > self.enemy.agility:
+          print('You have ran away')
+          self.finish_battle('run')
+      else:
+          diff = self.enemy.agility - self.player.agility
+          if self.player.luck > diff:
+              print('Your luck let you to run away')
+              self.finish_battle('run')
+          else:
+              print("You couldn't run away")
+              self.enemy.enemy_attack()
+              self.run_able = False
+              self.show_battle_scene()
+
+    def finish_battle(self, type_: str) -> None:
+      """
+      Finishes battle
+      """
+      self.enemy = None
+      self.run_able = True
+      self.state = 'peace'
+      if type_ == 'run':
+          self.player.set_drunk(-1)
+      elif type_ == 'battle':
+          self.player.set_drunk(-3)  # todo: depends on taken damage
+      # print(f'Damage taken during battle: {self.damage_taken}')
+      return
+
+    def npc_dialog(self) -> None:
+      """
+      USER ACTION
+      Shows menu within meeting NPC
+      """
+      print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
+      if not self.reaction:
+          print("""You've met Carl""")
+          print(color('green', self.phrase))
+      elif self.reaction:
+          print('Carl is waiting for you')
+      print('Drunk level:', self.player.get_condition())
+      quests = get_current_quests()
+      if len(quests) < 3:
+          if not self.reaction:
+              if self.player.drunk > 24 and self.active_quests:
+                  self.check_npc_quests(quests)
+                  return
+              elif self.player.drunk < 25 and random.randint(1, 10) > 6:
+                  db.add_item_to_inventory(1)
+                  print("I see you need a drink, take it")
+                  print("You've gotten Beer bottle")
+                  self.npc = None
+      action = self.show_possible_options()
+      if action == "go forward":
+          self.npc = None
+          self.state = 'peace'
+          self.new_scene()
+      if action == "talk with Carl":
+          self.check_npc_quests(quests)
+      if action == "check a chest":
+          self.items.get_chest_item()
+          self.location.chest = False
+          return
+      if action == "inventory":
+          self.items.show_inventory()
+          return
+      elif action == "get status":
+          self.player.show_player_info()
+          return
+      elif action == "exit game":
+          self.ask_about_exit()
+
+    def check_npc_quests(self, quests) -> None:
+      """
+      USER ACTION
+      Generates random new tasks for player with some chance
+      """
+      if not self.npc_quest:
+          if len(quests) == 0:
+              order = enemy_for_npc_quest(self.player)
+          else:
+              current_orders = []
+              for quest in quests:
+                  current_orders.append(quest.order.type)
+              order = enemy_for_npc_quest(self.player, exclude=current_orders)
+          amount = random.randint(2, 5)
+          reward = amount * 5 * self.player.level + (random.randint(2, 10) * self.player.level)
+          quest = Quest(order=order, amount=amount, reward=reward)
+          self.npc_quest = quest
+          if self.state != 'npc':
+              self.state = 'npc'
+
+      print() if self.reaction else None
+      print(f'I need to clean this area from {color("red", self.npc_quest.order.name + "s")}')
+      print(f'Think {self.npc_quest.goal_amount} ones will be enough for now')
+      print(f'Reward for this is {self.npc_quest.reward} gold coins')
+
+      answer = answer_handler(
+          question=f'Are you accept? (yes/no) ',
+          is_int=False,
+          yes=['y', 'yes', '1'],
+          no=['n', 'no', '2'])
+      if answer[0] == 'no':
+          self.reaction = True
+          return
+      print('Quest has been taken')
+      self.npc_quest.add_to_list()
+      self.npc = None
+      if self.state == 'npc':
+          self.state = 'peace'
+
     def new_scene(self) -> None:
         """
         USER ACTION
@@ -135,12 +311,13 @@ class Scene:
         if self.location.enemies:
             self.state = 'battle'
             self.enemy = generate_enemy(self.player)
-            self.battle = Battle(scene=self)
-            self.battle.show_battle_scene()
+            # self.battle = Battle(self)
+            # self.battle.show_battle_scene()
+            self.show_battle_scene()
             return
         if self.location.npc:
-            self.npc = Npc(scene=self)
-            self.npc.npc_dialog()
+            # self.npc = Npc(self)
+            self.npc_dialog()
             return
         self.show_peace_scene()
 

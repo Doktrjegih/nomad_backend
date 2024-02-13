@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from battle import Battle
+# from battle import Battle
 from enemy import Enemy
 from tests.framework import *
 
@@ -41,7 +41,7 @@ def test_player_battle(mock_input):
 
     # start the battle
     scene.state = 'battle'
-    scene.battle = Battle(scene)
+    # scene.battle = Battle(scene)
 
     # start test
     gen = turns_generator([4, 3, 0, 2, 1, 3, 1])
