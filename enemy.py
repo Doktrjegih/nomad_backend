@@ -23,6 +23,7 @@ class Enemy:
         if exclude:
             for type_ in exclude:
                 types.remove(type_)
+        # self.type = globals()[random.choice(types)]  # todo: maybe go away from entire dicts using this method
         self.type = random.choice(types)
         self.name = self.type.get(1)
         self.level = self.get_random_level_of_enemy()
