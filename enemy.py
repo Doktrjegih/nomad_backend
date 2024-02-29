@@ -1,19 +1,13 @@
 import datetime
 import random
 
-from console import color, print
+from console import color, print, ExitException
 from player import Player
 from quest import get_current_quests
 
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
 TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4'}
-
-
-class ExitException(Exception):
-    def __init__(self, message: str = ""):
-        self.message = message
-        super().__init__(self.message)
 
 
 class Enemy:
@@ -37,15 +31,30 @@ class Enemy:
 
     # todo: later need to move all such methods to another class or module
     def hyena(self):
-        print("I'm Hyena")
         if self.base_attack:
             self.attack = self.base_attack
         if self.health < 5:
-            if random.randint(1, 100) > 50:
+            if random.randint(1, 100) > 25:
                 if not self.base_attack:
                     self.base_attack = self.attack
                 self.attack *= 2
                 print(f"Special skill has been activated! Enemy attack is {self.attack}")
+
+    # todo: later need to move all such methods to another class or module
+    def wolf(self):
+        if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
+            if random.randint(1, 100) > 25:
+                self.player_bleeding = 2
+                print(f"Special skill has been activated! Player bleeding is {self.player_bleeding}")
+        else:
+            self.player.health -= 2
+            self.player_bleeding -= 1
+            print(f"You less 2 HP due to {color('red', 'bleeding')}")
+
+    # todo: later need to move all such methods to another class or module
+    def werewolf(self):
+        print("I'm Werewolf")
+
 
     def get_random_level_of_enemy(self) -> int:
         """
@@ -105,6 +114,10 @@ class Enemy:
         if self.type == DOGS:
             if self.name == 'Hyena':
                 self.launch_specials = self.hyena
+            if self.name == 'Wolf':
+                self.launch_specials = self.wolf
+            if self.name == 'Werewolf':
+                self.launch_specials = self.werewolf
 
     @staticmethod
     def dummy_special():
@@ -120,7 +133,7 @@ class Enemy:
         """
         print('Your HP is 0')
         print('GAME OVER!')
-        print('Total score =', self.player.scores)
+        print('Total scores =', self.player.scores)
         self.player.enter_name()
         input('Click Enter to exit...')
         with open('high_scores.txt', 'a', encoding='utf-8') as fd:

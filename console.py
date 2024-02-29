@@ -2,6 +2,9 @@ import os
 import builtins
 
 
+all_log = ""
+
+
 class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -14,6 +17,14 @@ class Colors:
     UNDERLINE = '\033[4m'
 
 
+class ExitException(Exception):
+    def __init__(self, message: str = ""):
+        self.message = message
+        with open('last_game.log', 'a') as fd:
+            fd.write(all_log)
+        super().__init__(self.message)
+
+
 def console(*args):
     os.system('clear')
     for row in args:
@@ -23,8 +34,8 @@ def console(*args):
 def print(*args):
     row = " ".join(f"{value}" for value in args)
     builtins.print(row)
-    with open('last_game.log', 'a') as fd:
-        fd.write(row + '\n')
+    global all_log
+    all_log += row + "\n"
 
 
 def error(text: str) -> None:
