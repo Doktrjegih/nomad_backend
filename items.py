@@ -22,18 +22,17 @@ class Items:
             if self.player.drunk < 1:
                 inventory = [x for x in inventory if x[1].type_ in ALWAYS_SHOWED]
                 if not inventory:
-                    print('[Empty inventory]')
+                    print(color("yellow", '[Empty inventory]'))
                     return
             counter = self.print_inventory(inventory)
 
             # dialog for manipulating with items
             answer = answer_handler('Which one do you want to use? ',
-                                    is_int=True,
-                                    correct_range=[x for x in range(1, counter + 1)],
+                                    correct_range=[str(x) for x in range(1, counter + 1)],
                                     cancel=[0])
             if answer[0] == 'cancel':
                 return
-            item_index = answer[1] - 1
+            item_index = int(answer[1]) - 1
             item_name = inventory[item_index][1].name
             type_of_item = inventory[item_index][1].type_
             if type_of_item == "food":
@@ -59,7 +58,7 @@ class Items:
                 print(f"You can't use {item_name}, but you will be able to sell it sometime")
             self.player.recount_params()
             return
-        print('[Empty inventory]')
+        print(color("yellow", '[Empty inventory]'))
 
     def print_inventory(self, inventory: list) -> int:
         """

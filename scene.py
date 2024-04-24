@@ -1,29 +1,25 @@
-# from battle import Battle
 from console import *
 from enemy import *
 from quest import Quest, get_current_quests
 from items import Items
 from location import Location
-# from npc import Npc
 from player import Player
 from tavern import Tavern
+import random
+
 import db
 
 
 class Scene:
     def __init__(self, location: Location, player: Player, items: Items) -> None:
-        self.run_able = True
         self.location = location
         self.player = player
         self.state = 'peace'
         self.enemy = None
         self.tavern = None
         self.items = items
-        self.turn_without_tavern = 0
-
-        # self.battle = None
-        self.phrase = 'Random welcome phrase'
-        self.active_quests = True if random.randint(1, 10) > 2 else False  # shows if NPC has quest
+        self.turns_without_tavern = 0
+      
         self.npc_quest = None  # keeps object of Quest class
         self.reaction = False  # shows if it's first meeting with NPC
 
@@ -53,29 +49,24 @@ class Scene:
         options = self.get_possible_options()
         options_len = len(options)
         highlight_actions = ['enter tavern', 'check a chest']
-        while True:  # todo: use universal method
-            try:
-                for counter, act in enumerate(options, start=1):
-                    print(f'{counter} - {act if act not in highlight_actions else color("green", act)}')
-                action = input(f'What do you want to do? ')
-                if action == "HESOYAM":
-                    self.player.health = 10
-                    self.player.gold += 250
-                    return
-                else:
-                    action = int(action)
-                if 1 <= action <= options_len:
-                    return options[action - 1]
-                else:
-                    error(f'You must choose options only from 1-{options_len} range')
-            except ValueError:
-                error('Incorrect input')
-
+        for counter, act in enumerate(options, start=1):
+            print(f'{counter} - {act if act not in highlight_actions else color("green", act)}')
+        answer = answer_handler(
+            question='What do you want to do? ',
+            correct_range=[str(x) for x in range(1, options_len + 1)],
+            cheats=["hesoyam"])
+        if answer[0] == "cheats":
+            self.player.health = 10
+            self.player.gold += 250
+            return
+        action = int(answer[1])
+        return options[action - 1]
+    
     def get_possible_options(self) -> list[str]:
         options = []
         if self.state == 'battle':
             options = ['attack', 'run away', 'inventory', 'get status', 'exit game']
-            if not self.run_able:
+            if not self.enemy.run_away_able:
                 options.remove('run away')
         elif self.state == 'peace':
             options = ['go forward', 'enter tavern', 'check a chest', 'inventory', 'get status', 'exit game']
@@ -111,7 +102,7 @@ class Scene:
             self.state = "tavern"
             if not self.tavern:
                 self.tavern = Tavern(scene=self, player=self.player, items=self.items)
-            self.tavern.tavern_menu()
+            return
         elif action == "check a chest":
             self.items.get_chest_item()
             self.location.chest = False
@@ -194,7 +185,7 @@ class Scene:
             else:
                 print("You couldn't run away")
                 self.enemy.enemy_attack()
-                self.run_able = False
+                self.enemy.run_away_able = False
                 self.show_battle_scene()
 
     def finish_battle(self, type_: str) -> None:
@@ -202,7 +193,6 @@ class Scene:
         Finishes battle
         """
         self.enemy = None
-        self.run_able = True
         self.state = 'peace'
         if type_ == 'run':
             self.player.set_drunk(-1)
@@ -218,15 +208,15 @@ class Scene:
         """
         print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
         if not self.reaction:
-            print("""You've met Carl""")
-            print(color('green', self.phrase))
+            print("You've met Carl")
+            print(color('green', 'Random welcome phrase'))
         elif self.reaction:
             print('Carl is waiting for you')
         print('Drunk level:', self.player.get_condition())
         quests = get_current_quests()
         if len(quests) < 3:
             if not self.reaction:
-                if self.player.drunk > 24 and self.active_quests:
+                if self.player.drunk > 24 and random.randint(1, 10) > 2:
                     self.check_npc_quests(quests)
                     return
                 elif self.player.drunk < 25 and random.randint(1, 10) > 6:
@@ -280,7 +270,6 @@ class Scene:
 
         answer = answer_handler(
             question=f'Are you accept? (yes/no) ',
-            is_int=False,
             yes=['y', 'yes', '1'],
             no=['n', 'no', '2'])
         if answer[0] == 'no':
@@ -297,14 +286,12 @@ class Scene:
         Leads player through new random locations, checks either there are enemies or not
         """
         new_location_type = random.choice(['peaceful', 'hostile'])
-        self.turn_without_tavern += 1
+        self.turns_without_tavern += 1
         if self.location.tavern:
             self.tavern = None
-            self.turn_without_tavern = 1
-        location = Location(new_location_type, self.player.luck, self.turn_without_tavern)
+            self.turns_without_tavern = 1
+        location = Location(new_location_type, self.player.luck, self.turns_without_tavern)
         self.location = location
-        if self.player.drunk > 0:
-            self.player.set_drunk(-1)
         if self.location.enemies:
             self.state = 'battle'
             self.enemy = generate_enemy(self.player)
@@ -312,6 +299,8 @@ class Scene:
             # self.battle.show_battle_scene()
             self.show_battle_scene()
             return
+        if self.player.drunk > 0:
+            self.player.set_drunk(-1)
         if self.location.npc:
             # self.npc = Npc(self)
             self.npc_dialog()

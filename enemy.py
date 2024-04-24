@@ -5,9 +5,9 @@ from console import color, print, ExitException
 from player import Player
 from quest import get_current_quests
 
-HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
-DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
-TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4'}
+HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'}
+DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
+TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
 
 
 class Enemy:
@@ -28,13 +28,14 @@ class Enemy:
         self.agility = random.randint(0, 2) * self.level
         self.base_attack = None
         self.launch_specials = self.dummy_special
+        self.run_away_able = True
 
     # todo: later need to move all such methods to another class or module
     def hyena(self):
         if self.base_attack:
             self.attack = self.base_attack
         if self.health < 5:
-            if random.randint(1, 100) > 25:
+            if random.randint(1, 100) > 25:  # todo: change value
                 if not self.base_attack:
                     self.base_attack = self.attack
                 self.attack *= 2
@@ -43,7 +44,7 @@ class Enemy:
     # todo: later need to move all such methods to another class or module
     def wolf(self):
         if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
-            if random.randint(1, 100) > 25:
+            if random.randint(1, 100) > 25:  # todo: change value
                 self.player_bleeding = 2
                 print(f"Special skill has been activated! Player bleeding is {self.player_bleeding}")
         else:
@@ -53,9 +54,21 @@ class Enemy:
 
     # todo: later need to move all such methods to another class or module
     def werewolf(self):
-        print("I'm Werewolf")
+        if self.health < 5:
+            if not hasattr(self, "healing_activatings"):
+                self.healing_activatings = 2
+            if self.healing_activatings <= 0:
+                return
+            self.health += 5
+            self.healing_activatings -= 1
+            print(f"Special skill has been activated! Enemy health is {self.health}")        
 
-
+    # todo: later need to move all such methods to another class or module
+    def van_helsing(self):
+        self.hyena()
+        self.wolf()
+        self.werewolf()
+    
     def get_random_level_of_enemy(self) -> int:
         """
         Generates random level close to player, but not less than 1
@@ -118,6 +131,8 @@ class Enemy:
                 self.launch_specials = self.wolf
             if self.name == 'Werewolf':
                 self.launch_specials = self.werewolf
+            if self.name == 'Van Helsing':
+                self.launch_specials = self.van_helsing
 
     @staticmethod
     def dummy_special():
@@ -164,51 +179,34 @@ class DrunkEnemy2(Enemy):
         self.attack = self.strength + random.randint(1, 4)
 
 
-class Boss(Enemy):
+class DrunkEnemy3(Enemy):
     def __init__(self, player: Player, exclude: list[dict] = None) -> None:
         super().__init__(player, exclude)
 
         self.name = self.type.get(4)
+        self.health = int(self.health * 4)
+        self.strength = self.level * 2 + 5
+        self.defence = self.strength + random.randint(1, 5)
+        self.attack = self.strength + random.randint(1, 5)
+
+
+class Boss(Enemy):
+    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
+        super().__init__(player, exclude)
+
+        self.name = self.type.get(5)
         self.health = int(self.health * 5)
         self.strength = self.level * 3
-        self.defence = self.strength + random.randint(2, 5)
-        self.attack = self.strength + random.randint(2, 5)
+        self.defence = self.strength + random.randint(2, 6)
+        self.attack = self.strength + random.randint(2, 6)
 
 
-# todo: shitcode
 def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
     """
     Generates enemy according to current player drunk state
     :param player: object of Player class
     :return: object of Enemy class
     """
-    # detect an enemy (first version)
-    # if player.drunk < 26:
-    #     enemy = Enemy(player)
-    # elif 51 > player.drunk > 25:
-    #     if random.randint(1, 100) > 80:
-    #         enemy = DrunkEnemy1(player)
-    #     else:
-    #         enemy = Enemy(player)
-    # elif 76 > player.drunk > 50:
-    #     if random.randint(1, 100) > 90:
-    #         enemy = DrunkEnemy2(player)
-    #     elif 91 > random.randint(1, 100) > 60:
-    #         enemy = DrunkEnemy1(player)
-    #     else:
-    #         enemy = Enemy(player)
-    # else:
-    #     if random.randint(1, 100) > 95:
-    #         print('Prepare your anus, puppy')
-    #         enemy = Boss(player)
-    #     elif 96 > random.randint(1, 100) > 80:
-    #         enemy = DrunkEnemy2(player)
-    #     elif 81 > random.randint(1, 100) > 55:
-    #         enemy = DrunkEnemy1(player)
-    #     else:
-    #         enemy = Enemy(player)
-
-    # detect an enemy (second version)
     drunk_level = player.drunk
     rand = random.randint(1, 100)
 
@@ -224,6 +222,14 @@ def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
         elif rand > 80:
             return DrunkEnemy1(player)
         return DrunkEnemy2(player)
+    elif drunk_level < 100:
+        if rand > 90:
+            return Enemy(player)
+        elif rand > 80:
+            return DrunkEnemy1(player)
+        elif rand > 70:
+            return DrunkEnemy2(player)
+        return DrunkEnemy3(player)
     else:
         if rand > 90:
             return Enemy(player)
@@ -231,6 +237,8 @@ def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
             return DrunkEnemy1(player)
         elif rand > 70:
             return DrunkEnemy2(player)
+        elif rand > 5:
+            return DrunkEnemy3(player)
         return Boss(player)
 
 
