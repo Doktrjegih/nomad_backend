@@ -285,24 +285,38 @@ class Scene:
         USER ACTION
         Leads player through new random locations, checks either there are enemies or not
         """
-        new_location_type = random.choice(['peaceful', 'hostile'])
+        # choosing of next location
+        if not hasattr(self, "first_location"):
+            self.first_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+            self.second_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+        next_location = answer_handler(
+            question=f'\n1 - {self.first_location.name} ({self.first_location.type})\n'
+            f'2 - {self.second_location.name} ({self.second_location.type})\n\n'
+            'Where do you want to go? (0 for cancel) ',
+            path=['1', '2'],
+            cancel=['0'])
+        if next_location[0] == 'cancel':
+            return
+        if next_location[1] == '1':
+            self.location = self.first_location
+        if next_location[1] == '2':
+            self.location = self.second_location
+        del self.first_location
+        del self.second_location
+
+        # actions after location has been selected
         self.turns_without_tavern += 1
         if self.location.tavern:
             self.tavern = None
             self.turns_without_tavern = 1
-        location = Location(new_location_type, self.player.luck, self.turns_without_tavern)
-        self.location = location
         if self.location.enemies:
             self.state = 'battle'
             self.enemy = generate_enemy(self.player)
-            # self.battle = Battle(self)
-            # self.battle.show_battle_scene()
             self.show_battle_scene()
             return
         if self.player.drunk > 0:
             self.player.set_drunk(-1)
         if self.location.npc:
-            # self.npc = Npc(self)
             self.npc_dialog()
             return
         self.show_peace_scene()

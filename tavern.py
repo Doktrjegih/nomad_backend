@@ -173,7 +173,7 @@ class Tavern:
         # dialog for manipulating with items
         answer_item = answer_handler(question="Which one do you want to sell? ",
                                      correct_range=[str(x) for x in range(1, counter + 1)],
-                                     cancel=[0])
+                                     cancel=['0'])
         if answer_item[0] == 'cancel':
             return
         item_index = int(answer_item[1]) - 1
@@ -192,7 +192,7 @@ class Tavern:
             answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
                                                     f'How many item would you want to sell? (0 for cancel) ',
                                            correct_range=[str(x) for x in range(1, amount + 1)],
-                                           cancel=[0])
+                                           cancel=['0'])
             if answer_amount[0] == 'cancel':
                 return
             answer_confirm_several = answer_handler(question=f'Sell {answer_amount[1]} ones? (yes/no) ',
@@ -218,7 +218,7 @@ class Tavern:
             print("0 - cancel")
             answer_amount = answer_handler(question=f'What do you want to buy? (you have {self.player.gold} gold) ',
                                            correct_range=[str(x) for x in range(1, len(items_for_sell) + 1)],
-                                           cancel=[0])
+                                           cancel=['0'])
             if answer_amount[0] == 'cancel':
                 return
 

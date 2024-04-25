@@ -29,7 +29,7 @@ class Items:
             # dialog for manipulating with items
             answer = answer_handler('Which one do you want to use? ',
                                     correct_range=[str(x) for x in range(1, counter + 1)],
-                                    cancel=[0])
+                                    cancel=['0'])
             if answer[0] == 'cancel':
                 return
             item_index = int(answer[1]) - 1
