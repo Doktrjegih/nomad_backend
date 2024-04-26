@@ -288,7 +288,12 @@ class Scene:
         # choosing of next location
         if not hasattr(self, "first_location"):
             self.first_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
-            self.second_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+            while True:
+                self.second_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+                if self.second_location.name == self.first_location.name:
+                    continue
+                else:
+                    break
         next_location = answer_handler(
             question=f'\n1 - {self.first_location.name} ({self.first_location.type})\n'
             f'2 - {self.second_location.name} ({self.second_location.type})\n\n'
