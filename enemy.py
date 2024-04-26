@@ -1,7 +1,7 @@
 import datetime
 import random
 
-from console import color, print, ExitException
+from console import color, print
 from player import Player
 from quest import get_current_quests
 
@@ -154,7 +154,6 @@ class Enemy:
         with open('high_scores.txt', 'a', encoding='utf-8') as fd:
             fd.write(f'{self.player.name} - {self.player.scores} '
                      f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
-        raise ExitException()
 
 
 class DrunkEnemy1(Enemy):

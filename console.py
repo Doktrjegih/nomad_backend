@@ -1,7 +1,9 @@
-import os
 import builtins
+import logging
+from pathlib import Path
 
-all_log = ""
+main_folder = Path(__file__).parent
+logging.basicConfig(filename=f'{main_folder}/last_game.log', filemode='a', level=logging.INFO, format='%(message)s')
 
 
 class Colors:
@@ -16,25 +18,10 @@ class Colors:
     UNDERLINE = '\033[4m'
 
 
-class ExitException(Exception):
-    def __init__(self, message: str = ""):
-        self.message = message
-        with open('last_game.log', 'a') as fd:
-            fd.write(all_log)
-        super().__init__(self.message)
-
-
-def console(*args):
-    os.system('clear')
-    for row in args:
-        print(row)
-
-
 def print(*args):
     row = " ".join(f"{value}" for value in args)
     builtins.print(row)
-    global all_log
-    all_log += row + "\n"
+    logging.info(row)
 
 
 def error(text: str) -> None:

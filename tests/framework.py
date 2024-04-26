@@ -14,7 +14,8 @@ from scene import Scene
 
 def world_creation() -> Scene:
     try:
-        os.remove('last_game.log')
+        with open("last_game.log", "w") as fd:
+            fd.write("")
     except FileNotFoundError:
         pass
     db.create_database()
