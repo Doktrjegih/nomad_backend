@@ -5,6 +5,7 @@ from console import color, print
 from player import Player
 from quest import get_current_quests
 
+# todo: try to change to enums
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
 TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
@@ -124,6 +125,7 @@ class Enemy:
         return attack
 
     def get_specials(self):
+        # todo: doc
         if self.type == DOGS:
             if self.name == 'Hyena':
                 self.launch_specials = self.hyena
@@ -136,9 +138,11 @@ class Enemy:
 
     @staticmethod
     def dummy_special():
+        # todo: doc
         print("No specials")
 
     def check_specials(self):
+        # todo: doc
         self.get_specials()
         self.launch_specials()
 

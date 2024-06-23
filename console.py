@@ -1,12 +1,13 @@
 import builtins
 import logging
 from pathlib import Path
+from enum import Enum
 
 main_folder = Path(__file__).parent
 logging.basicConfig(filename=f'{main_folder}/last_game.log', filemode='a', level=logging.INFO, format='%(message)s')
 
 
-class Colors:
+class Colors(Enum):
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
@@ -19,25 +20,12 @@ class Colors:
 
 
 def print(*args):
+    """
+    A wrapper for logging the game during printing messages
+    """
     row = " ".join(f"{value}" for value in args)
     builtins.print(row)
     logging.info(row)
-
-
-def error(text: str) -> None:
-    """
-    Colors text to red and print warning
-    :param text: error message
-    """
-    print(f'\n{Colors.RED}ERROR! {text}{Colors.ENDC}')
-
-
-def warning(text: str) -> None:
-    """
-    Colors text to yellow and print warning
-    :param text: warning message
-    """
-    print(f'{Colors.YELLOW}WARNING! {text}{Colors.ENDC}')
 
 
 def color(color: str, text: str) -> str:
@@ -46,12 +34,8 @@ def color(color: str, text: str) -> str:
     :param color: color of message
     :param text: message text
     """
-    if color == 'red':
-        return Colors.RED + text + Colors.ENDC
-    elif color == 'yellow':
-        return Colors.YELLOW + text + Colors.ENDC
-    elif color == 'green':
-        return Colors.GREEN + text + Colors.ENDC
+    color_enum = Colors[color.upper()]
+    return color_enum.value + text + Colors.ENDC.value
 
 
 def answer_handler(question: str, **kwargs) -> (str, str | int):
@@ -69,6 +53,6 @@ def answer_handler(question: str, **kwargs) -> (str, str | int):
             for group, conditional in kwargs.items():
                 if answer in conditional:
                     return group, answer
-            error('Incorrect input')
+            print(color('red', 'Incorrect input'))
         except ValueError:
-            error('Incorrect input (value error)')
+            print(color('red', 'Incorrect input (value error)'))

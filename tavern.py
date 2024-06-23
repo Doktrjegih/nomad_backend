@@ -3,7 +3,7 @@ import random
 from enemy import Enemy
 from quest import Quest, get_current_quests
 from player import Player
-from console import *
+from console import print, color, answer_handler
 from items import Items, ALWAYS_SHOWED
 import db
 
@@ -190,7 +190,7 @@ class Tavern:
             print(f'Sold 1 {item_name}')
         else:
             answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
-                                                    f'How many item would you want to sell? (0 for cancel) ',
+                                                    'How many item would you want to sell? (0 for cancel) ',
                                            correct_range=[str(x) for x in range(1, amount + 1)],
                                            cancel=['0'])
             if answer_amount[0] == 'cancel':
@@ -227,7 +227,7 @@ class Tavern:
                 print("You don't have enough gold for it")
             else:
                 confirm_buying = answer_handler(question=f'\nYou chose {(item_name := chosen_item["name"])}. '
-                                                         f'Buy it? (yes/no) ',
+                                                         'Buy it? (yes/no) ',
                                                 yes=['y', 'yes', '1'],
                                                 no=['n', 'no', '2'])
                 if confirm_buying[0] == 'no':

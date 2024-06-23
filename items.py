@@ -1,6 +1,6 @@
 import random
 
-from console import *
+from console import print, answer_handler, color
 import db
 from player import Player
 

@@ -1,5 +1,5 @@
-from console import *
-from enemy import *
+from console import print, color, answer_handler
+from enemy import Enemy, generate_enemy, enemy_for_npc_quest, HUMANS, DOGS, TEST
 from quest import Quest, get_current_quests
 from items import Items
 from location import Location
@@ -8,6 +8,8 @@ from tavern import Tavern
 import random
 
 import db
+
+ENEMY_TO_LOCATION = {"mountains": [HUMANS, TEST], "forest": [DOGS], "cave": [HUMANS, DOGS]}
 
 
 class Scene:
@@ -28,7 +30,6 @@ class Scene:
         Shows current scene during some actions if needed
         """
         if self.state == 'battle':
-            # self.battle.show_battle_scene()
             self.show_battle_scene()
         elif self.state == 'peace':
             self.show_peace_scene()
@@ -102,17 +103,13 @@ class Scene:
             self.state = "tavern"
             if not self.tavern:
                 self.tavern = Tavern(scene=self, player=self.player, items=self.items)
-            return
         elif action == "check a chest":
             self.items.get_chest_item()
             self.location.chest = False
-            return
         elif action == 'inventory':
             self.items.show_inventory()
-            return
         elif action == "get status":
             self.player.show_player_info()
-            return
         elif action == "exit game":
             self.ask_about_exit()
 
@@ -121,7 +118,7 @@ class Scene:
         Shows process of the battle
         """
         print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
-        warning('Battle mode')
+        print(color('yellow', 'Battle mode'))
         print('Drunk level:', self.player.get_condition())
         self.enemy.show_rivals_stats()
         action = self.show_possible_options()
@@ -131,12 +128,62 @@ class Scene:
             self.try_run_away()
         elif action == "inventory":
             self.items.show_inventory()
-            return
         elif action == "get status":
             self.player.show_player_info()
-            return
         elif action == "exit game":
             self.ask_about_exit()
+
+    def new_scene(self) -> None:
+        """
+        USER ACTION
+        Leads player through new random locations, checks either there are enemies or not
+        """
+        # choosing of next location
+        if not hasattr(self, "first_location"):
+            first_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+            while True:
+                second_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+                if second_location.name == first_location.name:
+                    continue
+                else:
+                    break
+        next_location = answer_handler(
+            question=f'\n1 - {first_location.name} ({first_location.type})\n'
+            f'2 - {second_location.name} ({second_location.type})\n\n'
+            'Where do you want to go? (0 for cancel) ',
+            path=['1', '2'],
+            cancel=['0'])
+        if next_location[0] == 'cancel':
+            return
+        if next_location[1] == '1':
+            self.location = first_location
+        if next_location[1] == '2':
+            self.location = second_location
+        del first_location
+        del second_location
+
+        # mandatory actions after location has been selected
+        if self.player.drunk > 0:
+            self.player.set_drunk(-1)
+        if self.location.tavern:
+            self.tavern = None
+            self.turns_without_tavern = 1
+        else:
+            self.turns_without_tavern += 1
+
+        # switching the scene
+        if self.location.enemies:
+            self.state = 'battle'
+            while True:
+                self.enemy = generate_enemy(self.player)
+                if self.enemy.type not in ENEMY_TO_LOCATION[self.location.name]:
+                    continue
+                else:
+                    break
+        elif self.location.npc:
+            self.state = 'npc'
+        else:
+            self.show_peace_scene()
 
     def player_attack(self):
         """
@@ -167,7 +214,6 @@ class Scene:
             self.enemy.check_specials()
             # self.damage_taken += self.enemy.enemy_attack()
             self.enemy.enemy_attack()
-            self.show_battle_scene()
 
     def try_run_away(self) -> None:
         """
@@ -186,7 +232,6 @@ class Scene:
                 print("You couldn't run away")
                 self.enemy.enemy_attack()
                 self.enemy.run_away_able = False
-                self.show_battle_scene()
 
     def finish_battle(self, type_: str) -> None:
         """
@@ -210,8 +255,8 @@ class Scene:
         if not self.reaction:
             print("You've met Carl")
             print(color('green', 'Random welcome phrase'))
-        elif self.reaction:
-            print('Carl is waiting for you')
+        else:
+            print('Carl is waiting for you')  # todo: only if there is quest from him
         print('Drunk level:', self.player.get_condition())
         quests = get_current_quests()
         if len(quests) < 3:
@@ -269,7 +314,7 @@ class Scene:
         print(f'Reward for this is {self.npc_quest.reward} gold coins')
 
         answer = answer_handler(
-            question=f'Are you accept? (yes/no) ',
+            question='Are you accept? (yes/no) ',
             yes=['y', 'yes', '1'],
             no=['n', 'no', '2'])
         if answer[0] == 'no':
@@ -280,62 +325,15 @@ class Scene:
         self.npc_quest = None
         self.state = 'peace'
 
-    def new_scene(self) -> None:
-        """
-        USER ACTION
-        Leads player through new random locations, checks either there are enemies or not
-        """
-        # choosing of next location
-        if not hasattr(self, "first_location"):
-            self.first_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
-            while True:
-                self.second_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
-                if self.second_location.name == self.first_location.name:
-                    continue
-                else:
-                    break
-        next_location = answer_handler(
-            question=f'\n1 - {self.first_location.name} ({self.first_location.type})\n'
-            f'2 - {self.second_location.name} ({self.second_location.type})\n\n'
-            'Where do you want to go? (0 for cancel) ',
-            path=['1', '2'],
-            cancel=['0'])
-        if next_location[0] == 'cancel':
-            return
-        if next_location[1] == '1':
-            self.location = self.first_location
-        if next_location[1] == '2':
-            self.location = self.second_location
-        del self.first_location
-        del self.second_location
-
-        # actions after location has been selected
-        self.turns_without_tavern += 1
-        if self.location.tavern:
-            self.tavern = None
-            self.turns_without_tavern = 1
-        if self.location.enemies:
-            self.state = 'battle'
-            self.enemy = generate_enemy(self.player)
-            self.show_battle_scene()
-            return
-        if self.player.drunk > 0:
-            self.player.set_drunk(-1)
-        if self.location.npc:
-            self.npc_dialog()
-            return
-        self.show_peace_scene()
-
     @staticmethod
     def ask_about_exit() -> None:
         """
         Dialog for confirmation if player wants to exit
         """
-        while True:
-            answer = input('\nDo you want to exit? (yes/no) ')
-            if answer.lower() in ['y', 'yes', '1']:
-                exit()
-            elif answer.lower() in ['n', 'no', '2']:
-                return
-            else:
-                error('Incorrect input')
+        answer = answer_handler(
+            question='\nDo you want to exit? (yes/no) ',
+            yes=['y', 'yes', '1'],
+            no=['n', 'no', '2'])
+        if answer[0] == 'no':
+            return
+        exit()
