@@ -1,5 +1,7 @@
 import datetime
 import random
+import sys
+import db
 
 from console import color, print
 from player import Player
@@ -28,8 +30,9 @@ class Enemy:
         self.defence = 1 * self.level
         self.agility = random.randint(0, 2) * self.level
         self.base_attack = None
-        self.launch_specials = self.dummy_special
+        self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
+        self.boss = False
 
     # todo: later need to move all such methods to another class or module
     def hyena(self):
@@ -95,12 +98,25 @@ class Enemy:
         """
         self.health -= attack
 
+    def reward_for_enemy(self) -> None:
+        """
+        Gives reward for killed enemy
+        :param enemy: object of Enemy class
+        """
+        if self.player.drunk > 0:
+            reward = round((total := 50 * self.level) + total * random.uniform(0.03, 0.1))
+            print(f'You get {reward} XP')
+            self.player.gain_scores(reward)
+        if self.boss:
+            db.add_item_to_inventory((unique_item := db.get_item_by_name(self.name)).item_id)
+            print(f"You get {color('yellow', unique_item.name)}!")
+    
     def died(self) -> None:
         """
         Kills enemy, gets XP, checks if enemy was a quest goal
         """
         print(f'\n{color("red", self.name)} was killed!')
-        self.player.reward_for_enemy(self)
+        self.reward_for_enemy()
         quests = get_current_quests()
         if not quests:
             return
@@ -109,6 +125,15 @@ class Enemy:
                 xp = 100 * self.level if self.player.drunk > 0 else 0
                 quest.update_quest(quests, xp)
 
+    @staticmethod
+    def check_specials(func):
+        def wrapper(self, *args, **kwargs):
+            self.get_specials()
+            self.launch_specials()
+            func(self, *args, **kwargs)
+        return wrapper
+
+    @check_specials
     def enemy_attack(self) -> int:
         """
         Enemy's part of turn, damages the player, finishes the game if player's HP is 0
@@ -135,17 +160,7 @@ class Enemy:
                 self.launch_specials = self.werewolf
             if self.name == 'Van Helsing':
                 self.launch_specials = self.van_helsing
-
-    @staticmethod
-    def dummy_special():
-        # todo: doc
-        print("No specials")
-
-    def check_specials(self):
-        # todo: doc
-        self.get_specials()
-        self.launch_specials()
-
+    
     def game_over(self) -> None:
         """
         Finishes the game and writes Player.total_scores to file with datetime
@@ -158,6 +173,7 @@ class Enemy:
         with open('high_scores.txt', 'a', encoding='utf-8') as fd:
             fd.write(f'{self.player.name} - {self.player.scores} '
                      f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
+        sys.exit(0)
 
 
 class DrunkEnemy1(Enemy):
@@ -165,7 +181,7 @@ class DrunkEnemy1(Enemy):
         super().__init__(player, exclude)
 
         self.name = self.type.get(2)
-        self.health = int(self.health * 1.5)
+        self.health = int(self.health * 2)
         self.strength = self.level + 3
         self.defence = self.strength + random.randint(0, 3)
         self.attack = self.strength + random.randint(0, 3)
@@ -202,6 +218,7 @@ class Boss(Enemy):
         self.strength = self.level * 3
         self.defence = self.strength + random.randint(2, 6)
         self.attack = self.strength + random.randint(2, 6)
+        self.boss = True
 
 
 def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:

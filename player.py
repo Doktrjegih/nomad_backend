@@ -93,16 +93,6 @@ class Player:
         drunk = '▇' * (self.drunk // 10) + ' ' * ((100 - self.drunk) // 10)
         return f'[{drunk}] ({self.drunk})'
 
-    def reward_for_enemy(self, enemy) -> None:
-        """
-        Gives reward for killed enemy
-        # :param enemy: object of Enemy class
-        """
-        if self.drunk > 0:
-            reward = round((total := 50 * enemy.level) + total * random.uniform(0.03, 0.1))
-            print(f'You get {reward} XP')
-            self.gain_scores(reward)
-
     def gain_scores(self, scores: int) -> None:
         """
         Gives scores to player and counts current player's level.

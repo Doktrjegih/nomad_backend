@@ -186,7 +186,7 @@ class Tavern:
             if answer_confirm[0] == 'no':
                 return
             db.remove_item(inventory[item_index][0])
-            self.player.gain_scores(inventory[item_index][1].cost * 10)
+            self.player.gold += round(inventory[item_index][1].cost / 2)
             print(f'Sold 1 {item_name}')
         else:
             answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
@@ -201,7 +201,7 @@ class Tavern:
             if answer_confirm_several[0] == 'no':
                 return
             db.remove_item(inventory[item_index][0], int(answer_amount[1]))
-            self.player.gain_scores(inventory[item_index][1].cost * 10 * int(answer_amount[1]))
+            self.player.gold += round(inventory[item_index][1].cost / 2)
             print(f'Sold {answer_amount[1]} {item_name}')
         self.player.recount_params()
 

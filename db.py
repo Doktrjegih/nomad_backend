@@ -25,15 +25,17 @@ class Items(base):
     type_ = Column(String)
     attack = Column(Integer)
     defence = Column(Integer)
+    boss = Column(String)
     cost = Column(Integer)
 
-    def __init__(self, item_id, name, type_, cost, attack, defence):
+    def __init__(self, item_id, name, type_, cost, attack, defence, boss):
         self.item_id = item_id
         self.name = name
         self.type_ = type_
         self.attack = attack
         self.defence = defence
         self.cost = cost
+        self.boss = boss
 
 
 class Inventory(base):
@@ -77,9 +79,10 @@ def add_item_to_game(data: dict) -> None:
     type_ = data["type"]
     attack = data.get("attack")
     defence = data.get("defence")
+    boss = data.get("boss")
     cost = data["cost"]
 
-    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence, cost=cost)
+    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence, boss=boss, cost=cost)
     session.add(tr)
     session.commit()
 
@@ -107,15 +110,15 @@ def get_all_items() -> list:
     return session.query(Items).all()
 
 
-def get_item(item_id: int) -> type(Items):
+def get_item_by_name(name: str) -> type(Items):
     """
     Returns specified game item
     :return: one item
     """
-    return session.query(Items).filter(Items.item_id == item_id).first()
+    return session.query(Items).filter(Items.boss == name).first()
 
 
-def get_inventory() -> list:
+def get_inventory() -> list[tuple[Inventory, Items]]:
     """
     Returns inventory items
     :return: list of items in player inventory
@@ -139,11 +142,11 @@ def remove_item(item: Inventory, amount: int = 1) -> None:
     session.commit()
 
 
-def put_on_off_item(item: Inventory, on: bool) -> None:
+def put_on_off_item(item: Inventory, state: bool) -> None:
     """
     :param item: Inventory object to removing
     :param on: if True, puts on the item, otherwise puts off
     """
     item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
-    item.used = bool(on)
+    item.used = state
     session.commit()

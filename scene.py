@@ -21,6 +21,7 @@ class Scene:
         self.tavern = None
         self.items = items
         self.turns_without_tavern = 0
+        self.turns_in_biome_left = 1
       
         self.npc_quest = None  # keeps object of Quest class
         self.reaction = False  # shows if it's first meeting with NPC
@@ -98,6 +99,7 @@ class Scene:
         print('Drunk level:', self.player.get_condition())
         action = self.show_possible_options()
         if action == "go forward":
+            self.turns_in_biome_left -= 1
             self.new_scene()
         elif action == "enter tavern":
             self.state = "tavern"
@@ -138,29 +140,33 @@ class Scene:
         USER ACTION
         Leads player through new random locations, checks either there are enemies or not
         """
-        # choosing of next location
-        if not hasattr(self, "first_location"):
-            first_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
-            while True:
-                second_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
-                if second_location.name == first_location.name:
-                    continue
-                else:
-                    break
-        next_location = answer_handler(
-            question=f'\n1 - {first_location.name} ({first_location.type})\n'
-            f'2 - {second_location.name} ({second_location.type})\n\n'
-            'Where do you want to go? (0 for cancel) ',
-            path=['1', '2'],
-            cancel=['0'])
-        if next_location[0] == 'cancel':
-            return
-        if next_location[1] == '1':
-            self.location = first_location
-        if next_location[1] == '2':
-            self.location = second_location
-        del first_location
-        del second_location
+        if self.turns_in_biome_left > 0:
+            self.location = Location(self.location.type, self.player.luck, self.turns_without_tavern, name=self.location.name)
+        else:
+            # choosing of next location
+            if not hasattr(self, "first_location"):
+                first_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+                while True:
+                    second_location = Location(random.choice(['peaceful', 'hostile']), self.player.luck, self.turns_without_tavern)
+                    if second_location.name == first_location.name:
+                        continue
+                    else:
+                        break
+            next_location = answer_handler(
+                question=f'\n1 - {first_location.name} ({first_location.type})\n'
+                f'2 - {second_location.name} ({second_location.type})\n\n'
+                'Where do you want to go? (0 for cancel) ',
+                path=['1', '2'],
+                cancel=['0'])
+            if next_location[0] == 'cancel':
+                return
+            if next_location[1] == '1':
+                self.location = first_location
+            if next_location[1] == '2':
+                self.location = second_location
+            del first_location
+            del second_location
+            self.turns_in_biome_left = random.randint(1, 3)
 
         # mandatory actions after location has been selected
         if self.player.drunk > 0:
@@ -211,7 +217,6 @@ class Scene:
             self.enemy.died()
             self.finish_battle(type_='battle')
         else:
-            self.enemy.check_specials()
             # self.damage_taken += self.enemy.enemy_attack()
             self.enemy.enemy_attack()
 
