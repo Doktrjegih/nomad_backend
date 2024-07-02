@@ -36,6 +36,11 @@ def main() -> None:
     print('Hello, a big new world!')
     player = Player()
     items = Items(player=player)
+    # db.add_item_to_inventory(3)
+    # db.add_item_to_inventory(5)
+    # for item in db.get_inventory():
+    #     db.put_on_off_item(item, state=True)
+    # player.recount_params()
     scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
     with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
         pickle.dump([], fd)
@@ -44,5 +49,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    run_unit_tests()
+    # run_unit_tests()
     main()

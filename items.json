@@ -30,13 +30,23 @@
     "name": "Anthoha's underpants",
     "type": "armor",
     "defence": 5,
+    "effect": {
+        "cold": {
+            "vulnerability": 5
+          }
+      },
     "cost": 10
   },
   {
     "id": 6,
-    "name": "Gun from boss",
+    "name": "Helsing's Crossbow",
     "type": "weapon",
-    "attack": 10,
+    "attack": 7,
+    "effect": {
+        "fire": {
+          "damage": 3
+        }
+      },
     "cost": 100,
     "boss": "Van Helsing"
   }

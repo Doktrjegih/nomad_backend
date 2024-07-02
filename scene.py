@@ -196,6 +196,7 @@ class Scene:
         Counts player's attack for each turn, then hits enemy.
         Finishes battle if enemy's been slayed, else hits player in response
         """
+        # phisical damage + critical hits
         attack = self.player.attack - self.enemy.defence
         if attack < 1:
             attack = 1
@@ -209,9 +210,20 @@ class Scene:
             attack = int(attack * 1.2)
         if critical_hit:
             attack = int(attack * 1.5)
+
+        # effects damage
+        if getattr(self.player.weapon, "effect_damage"):
+            # моб без уязвимостей
+            if not getattr(self.enemy, "effect_vulnerability"):
+                pass
+            # моб с уязвимостью
+            # моб с резистом
+        
+        # todo: debug info, remove from release version
         print(f'{lucky_hit}{critical_hit}Your default attack is {self.player.attack}')
         print(f'Enemy defence is {self.enemy.defence}')
         print(f'Your actual attack is {attack}')
+        
         self.enemy.get_damage(attack)
         if self.enemy.health <= 0:
             self.enemy.died()

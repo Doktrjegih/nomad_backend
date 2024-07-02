@@ -3,7 +3,8 @@ import random
 from console import print, answer_handler, color
 import db
 from player import Player
-
+from json import loads
+from pathlib import Path
 ALWAYS_SHOWED = ['food', 'alcohol', 'garbage']
 
 
@@ -16,6 +17,8 @@ class Items:
         Shows inventory and lets to manage it
         """
         inventory = db.get_inventory()
+        items = loads(Path((__file__).parent, "items.json"))
+        print(items)
         if inventory:
 
             # showing of items

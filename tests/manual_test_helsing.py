@@ -2,14 +2,13 @@ from unittest.mock import patch
 
 import pytest
 
-# from battle import Battle
-from enemy import Enemy
+from enemy import Boss
 from tests.framework import *
 
 
-@patch("builtins.input")
+# @patch("builtins.input")
 @pytest.mark.usefixtures("clear_dir")
-def test_player_battle(mock_input):
+def test_player_battle():
     scene = world_creation()
 
     # set player's stats
@@ -31,9 +30,9 @@ def test_player_battle(mock_input):
     scene.player.recount_params()
 
     # create the enemy
-    scene.enemy = Enemy(player=scene.player)
-    scene.enemy.name = "Wet dog"
-    scene.enemy.level = 5
+    scene.enemy = Boss(player=scene.player)
+    scene.enemy.name = "Van Helsing"
+    scene.enemy.level = 1
     scene.enemy.health = 5
     scene.enemy.attack = 1
     scene.enemy.defence = 1
@@ -44,8 +43,8 @@ def test_player_battle(mock_input):
     # scene.battle = Battle(scene)
 
     # start test
-    gen = turns_generator([4, 3, 0, 2, 1, 3, 1])
-    mock_input.side_effect = lambda x: next(gen)
+    # gen = turns_generator([4, 3, 0, 2, 1, 3, 1])
+    # mock_input.side_effect = lambda x: next(gen)
     try:
         while True:
             scene.show_current_scene()

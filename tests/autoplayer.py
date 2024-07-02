@@ -2,12 +2,13 @@ import builtins
 from unittest.mock import patch
 
 import pytest
-
+from pathlib import Path
 from quest import there_are_finished_quests, get_current_quests
 from tests.framework import *
 from console import ExitException
 
 actions = None
+test_folder = Path(__file__).parent
 
 
 def make_decision(scene: Scene) -> str:
@@ -94,7 +95,7 @@ def make_decision(scene: Scene) -> str:
 
 
 @patch("builtins.input")
-# @pytest.mark.usefixtures("clear_dir")
+@pytest.mark.usefixtures("clear_dir")
 @pytest.mark.usefixtures("clear_results")
 @pytest.mark.usefixtures("test_counter")
 @pytest.mark.parametrize('run', range(100))
@@ -105,8 +106,8 @@ def test_autoplayer(mock_input, run) -> None:
     try:
         while True:
             scene.show_current_scene()
-    except ExitException:
-        # with open("last_game.log") as fd:
-        #     assert "GAME OVER!" in fd.read()
-        with open("results.txt", "a") as fd:
+    except Exception:
+        with open(f"{test_folder.parent}/last_game.log") as fd:
+            assert "GAME OVER!" in fd.read()
+        with open(f"{test_folder}/results.txt", "a") as fd:
             fd.write(f"total scores = {scene.player.scores}\n")

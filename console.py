@@ -5,7 +5,8 @@ from enum import Enum
 
 main_folder = Path(__file__).parent
 logging.basicConfig(filename=f'{main_folder}/last_game.log', filemode='a', level=logging.INFO, format='%(message)s')
-
+# todo: 1. print logs without printing (stupid I know, but let's try if it works)
+# todo: 2. launch logging only after game start
 
 class Colors(Enum):
     HEADER = '\033[95m'
