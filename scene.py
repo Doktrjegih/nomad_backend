@@ -273,6 +273,7 @@ class Scene:
                     db.add_item_to_inventory(1)
                     print("I see you need a drink, take it")
                     print("You've gotten Beer bottle")
+                    self.state = 'peace'
         action = self.show_possible_options()
         if action == "go forward":
             self.npc_quest = None

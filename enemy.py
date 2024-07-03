@@ -11,28 +11,33 @@ from quest import get_current_quests
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
 TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
+DEFAULT_PARAMS = {"stage": 1, "hp_factor": 1, "attack" : 1, "defence": 1}
+STAGE_2 = {"stage": 2, "hp_factor": 2, "attack" : 2, "defence": 2}
+STAGE_3 = {"stage": 3, "hp_factor": 3, "attack" : 3, "defence": 3}
+STAGE_4 = {"stage": 4, "hp_factor": 4, "attack" : 4, "defence": 4}
 
 
 class Enemy:
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
+    def __init__(self, player: Player, exclude: list[dict] | None = None, params: dict = DEFAULT_PARAMS) -> None:
         self.player = player
         types = [HUMANS, DOGS, TEST]
         if exclude:
             for type_ in exclude:
                 types.remove(type_)
-        # self.type = globals()[random.choice(types)]  # todo: maybe go away from entire dicts using this method
         self.type = random.choice(types)
-        self.name = self.type.get(1)
+        self.name = self.type.get(params.get("stage"))
         self.level = self.get_random_level_of_enemy()
-        self.health = 2 * self.level
+        self.health = 2 * params.get("hp_factor") * self.level
         # self.strength = 2
-        self.attack = 1 * self.level
-        self.defence = 1 * self.level
+        self.attack = params.get("attack") * self.level
+        self.defence = params.get("defence") * self.level
         self.agility = random.randint(0, 2) * self.level
         self.base_attack = None
         self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
         self.boss = False
+        self.effect_damage = None
+        self.effect_vulnerability = None
 
     # todo: later need to move all such methods to another class or module
     def hyena(self):
@@ -72,7 +77,7 @@ class Enemy:
         self.hyena()
         self.wolf()
         self.werewolf()
-    
+
     def get_random_level_of_enemy(self) -> int:
         """
         Generates random level close to player, but not less than 1
@@ -110,7 +115,7 @@ class Enemy:
         if self.boss:
             db.add_item_to_inventory((unique_item := db.get_item_by_name(self.name)).item_id)
             print(f"You get {color('yellow', unique_item.name)}!")
-    
+
     def died(self) -> None:
         """
         Kills enemy, gets XP, checks if enemy was a quest goal
@@ -160,7 +165,7 @@ class Enemy:
                 self.launch_specials = self.werewolf
             if self.name == 'Van Helsing':
                 self.launch_specials = self.van_helsing
-    
+
     def game_over(self) -> None:
         """
         Finishes the game and writes Player.total_scores to file with datetime
@@ -176,41 +181,8 @@ class Enemy:
         sys.exit(0)
 
 
-class DrunkEnemy1(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
-        super().__init__(player, exclude)
-
-        self.name = self.type.get(2)
-        self.health = int(self.health * 2)
-        self.strength = self.level + 3
-        self.defence = self.strength + random.randint(0, 3)
-        self.attack = self.strength + random.randint(0, 3)
-
-
-class DrunkEnemy2(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
-        super().__init__(player, exclude)
-
-        self.name = self.type.get(3)
-        self.health = int(self.health * 3)
-        self.strength = self.level * 2
-        self.defence = self.strength + random.randint(1, 4)
-        self.attack = self.strength + random.randint(1, 4)
-
-
-class DrunkEnemy3(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
-        super().__init__(player, exclude)
-
-        self.name = self.type.get(4)
-        self.health = int(self.health * 4)
-        self.strength = self.level * 2 + 5
-        self.defence = self.strength + random.randint(1, 5)
-        self.attack = self.strength + random.randint(1, 5)
-
-
 class Boss(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
+    def __init__(self, player: Player, exclude: list[dict] | None = None) -> None:
         super().__init__(player, exclude)
 
         self.name = self.type.get(5)
@@ -221,48 +193,36 @@ class Boss(Enemy):
         self.boss = True
 
 
-def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
+def generate_enemy(player: Player) -> Enemy:
     """
     Generates enemy according to current player drunk state
     :param player: object of Player class
     :return: object of Enemy class
     """
-    drunk_level = player.drunk
     rand = random.randint(1, 100)
-
-    if drunk_level < 26:
+    if player.drunk < 26:
         return Enemy(player)
-    elif drunk_level < 51:
+    elif player.drunk < 51:
         if rand > 90:
             return Enemy(player)
-        return DrunkEnemy1(player)
-    elif drunk_level < 76:
-        if rand > 90:
-            return Enemy(player)
-        elif rand > 80:
-            return DrunkEnemy1(player)
-        return DrunkEnemy2(player)
-    elif drunk_level < 100:
+        return Enemy(player, params=STAGE_2)
+    elif player.drunk < 76:
         if rand > 90:
             return Enemy(player)
         elif rand > 80:
-            return DrunkEnemy1(player)
-        elif rand > 70:
-            return DrunkEnemy2(player)
-        return DrunkEnemy3(player)
+            return Enemy(player, params=STAGE_2)
+        return Enemy(player, params=STAGE_3)
     else:
         if rand > 90:
             return Enemy(player)
         elif rand > 80:
-            return DrunkEnemy1(player)
+            return Enemy(player, params=STAGE_2)
         elif rand > 70:
-            return DrunkEnemy2(player)
-        elif rand > 5:
-            return DrunkEnemy3(player)
-        return Boss(player)
+            return Enemy(player, params=STAGE_3)
+        return Enemy(player, params=STAGE_4)
 
 
-def enemy_for_npc_quest(player: Player, exclude: list[dict] = None) -> DrunkEnemy1 | DrunkEnemy2 | Boss:
+def enemy_for_npc_quest(player: Player, exclude: list[dict] | None = None) -> Enemy:
     """
     Generates enemy for NPC quest according to current player drunk state
     :param player: object of Player class
@@ -270,9 +230,10 @@ def enemy_for_npc_quest(player: Player, exclude: list[dict] = None) -> DrunkEnem
     :return: object of enemy depends on its stage
     """
     if 51 > player.drunk > 24:
-        enemy = DrunkEnemy1(player, exclude=exclude)
+        return Enemy(player, params=STAGE_2, exclude=exclude)
     elif 76 > player.drunk > 50:
-        enemy = DrunkEnemy2(player, exclude=exclude)
+        return Enemy(player, params=STAGE_3, exclude=exclude)
     elif player.drunk > 75:
-        enemy = Boss(player, exclude=exclude)
-    return enemy
+        return Enemy(player, params=STAGE_4, exclude=exclude)
+    else:
+        raise ValueError("Can't generate enemies with low drunk level")

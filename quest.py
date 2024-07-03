@@ -1,5 +1,5 @@
 from pathlib import Path
-import pickle
+import dill as pickle
 
 from console import print
 
