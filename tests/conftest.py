@@ -6,7 +6,7 @@ import pytest
 @pytest.fixture
 def clear_dir() -> None:
     yield
-    directory_path = Path(".")
+    directory_path = Path(Path(__file__).parent)
     files_to_delete = directory_path.glob("*.log")
     try:
         for file in files_to_delete:

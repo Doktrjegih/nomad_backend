@@ -1,29 +1,28 @@
 import linecache
-import os
 import pickle
 import re
 from types import GeneratorType
+import difflib
+from pathlib import Path
 
 import db
-from console import print
+from console import print, start_logger
 from items import Items
 from location import Location
 from player import Player
 from scene import Scene
 
+tests_folder = Path(__file__).parent
+
 
 def world_creation() -> Scene:
-    try:
-        with open("last_game.log", "w") as fd:
-            fd.write("")
-    except FileNotFoundError:
-        pass
+    start_logger()
     db.create_database()
     print('Hello, a big new world!')
     player = Player()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
-    with open(os.path.join(os.getcwd(), "quests.pkl"), 'wb') as fd:
+    with open(Path(tests_folder.parent, "quests.pkl"), 'wb') as fd:
         pickle.dump([], fd)
     return scene
 
@@ -70,3 +69,28 @@ def compare_strings_ignore_numbers(str1: str, str2: str) -> None:
 
 def get_row_from_file(file_path, row: int) -> str:
     return linecache.getline(file_path, row)
+
+
+def read_file_by_lines(file_path):
+    with open(file_path, 'r') as file:
+        return file.readlines()
+
+def get_discrepancies(file1_content, file2_content, ignore=None):
+    if ignore is None:
+        ignore = []
+
+    filtered_file1_content = [line for idx, line in enumerate(file1_content) if idx not in ignore]
+    filtered_file2_content = [line for idx, line in enumerate(file2_content) if idx not in ignore]
+
+    diff = difflib.ndiff(filtered_file1_content, filtered_file2_content)
+    discrepancies = [line for line in diff if line.startswith('+ ') or line.startswith('- ')]
+    return discrepancies
+
+def assert_files_equal(file1_path, file2_path, ignore=None):
+    file1_content = read_file_by_lines(file1_path)
+    file2_content = read_file_by_lines(file2_path)
+
+    discrepancies = get_discrepancies(file1_content, file2_content, ignore)
+    if discrepancies:
+        diff = '\n'.join(discrepancies)
+        raise AssertionError(f"Files have discrepancies:\n{diff}")
