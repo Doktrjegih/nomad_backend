@@ -1,4 +1,4 @@
-from console import print, color, answer_handler
+from console import print, color, answer_handler, get_effect_color
 from enemy import Enemy, generate_enemy, enemy_for_npc_quest, HUMANS, DOGS, TEST
 from quest import Quest, get_current_quests
 from items import Items
@@ -6,7 +6,7 @@ from location import Location
 from player import Player
 from tavern import Tavern
 import random
-
+from json import loads
 import db
 
 ENEMY_TO_LOCATION = {"mountains": [HUMANS, TEST], "forest": [DOGS], "cave": [HUMANS, DOGS]}
@@ -211,6 +211,7 @@ class Scene:
             attack = int(attack * 1.5)
         print(f'{lucky_hit}{critical_hit}Your default attack is {self.player.attack}')
         print(f'Enemy defence is {self.enemy.defence}')
+        attack += self.check_effects(self.enemy)
         print(f'Your actual attack is {attack}')
         self.enemy.get_damage(attack)
         if self.enemy.health <= 0:
@@ -220,6 +221,18 @@ class Scene:
             # self.damage_taken += self.enemy.enemy_attack()
             self.enemy.enemy_attack()
 
+    def check_effects(self, enemy: Enemy) -> int:
+        if not (self.player.weapon and self.player.weapon.effects != "null"):
+            return 0
+        total_value = 0
+        for effect in loads(self.player.weapon.effects):
+            if value := effect.get('damage'):
+                if enemy.effects_vulnerability == effect.get('name'):
+                    value *= 2
+                print(f"Your weapon also make {value} damage from {get_effect_color(effect.get('name'))}")
+                total_value += value
+        return total_value
+    
     def try_run_away(self) -> None:
         """
         USER ACTION

@@ -36,9 +36,13 @@ class Enemy:
         self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
         self.boss = False
-        self.effect_damage = None
-        self.effect_vulnerability = None
+        self.effects_damage = None
+        self.effects_vulnerability = self.get_vulnerability(self.name)
 
+    def get_vulnerability(self, name):
+        if name == "Wet dog":
+            return "fire"
+    
     # todo: later need to move all such methods to another class or module
     def hyena(self):
         if self.base_attack:

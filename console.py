@@ -4,7 +4,6 @@ from pathlib import Path
 from enum import Enum
 
 main_folder = Path(__file__).parent
-logging.basicConfig(filename=f'{main_folder}/last_game.log', filemode='a', level=logging.INFO, format='%(message)s')
 
 
 class Colors(Enum):
@@ -17,6 +16,15 @@ class Colors(Enum):
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+def start_logger():
+    try:
+        with open(Path(main_folder, "last_game.log"), "w") as fd:
+            fd.write("")
+    except FileNotFoundError:
+        pass
+    logging.basicConfig(filename=f'{main_folder}/last_game.log', filemode='a', level=logging.INFO, format='%(message)s')
 
 
 def print(*args):
@@ -37,6 +45,16 @@ def color(color: str, text: str) -> str:
     color_enum = Colors[color.upper()]
     return color_enum.value + text + Colors.ENDC.value
 
+
+def get_effect_color(effect: str) -> str:
+    if effect == "fire":
+        return Colors.RED.value + "fire" + Colors.ENDC.value
+    if effect == "cold":
+        return Colors.OKBLUE.value + "cold" + Colors.ENDC.value
+    if effect == "poison":
+        return Colors.GREEN.value + "poison" + Colors.ENDC.value
+    else:
+        raise ValueError("Unknown effect")
 
 def answer_handler(question: str, **kwargs) -> (str, str | int):
     """
