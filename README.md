@@ -2,53 +2,32 @@
 Only CLI version of game
 
 # gameplay
-* This is turn-driven game
-* Each turn player can:
-- move to next area
+This is turn-driven game
+
+Each turn player can:
+- move to the next area (if not in battle)
 - check current status
 - change equipment
-- save and stop game
-* When player get into hostile area, game checks either it has enemies or not
-* If player meet an enemy, he can try to run away or fight with it
-* Battle mode:
+
+Player can meet:
+- emenies in hostile areas
+- tavern with shops and new quests
+- chests with treasures
+- NPCs with special quests
+
+When player get into hostile area, game checks either it has enemies or not
+If player meet an enemy, he can try to run away or fight with it
+Battle mode:
 - player can attack an enemy or try to run away
-- player can change equipment
+- player can change equipment and take supplies
 - if player health is 0, game is over
-- if player killed the enemy, he gets an award
-* Player can meet a merchant in peaceful zone and buy/sell goods/equipment
+- if player killed the enemy, there is an award
 
-# technical details
-Objects - scene, player, enemies, places, weapons
+Drinking is the most important part of gameplay
+If you're drunk you can:
+- get XP for killing enemies
+- see and use weapon and armor
+- see merchants in taverns
+- meet more powerful enemies
 
-scene_obj:
-- location
-- player
-- state
-- enemies
-
-player_obj:
-- name
-- health
-- attack
-- defence
-- scores (level)
-- gold
-
-enemy_obj:
-- name
-- health
-- attack
-- defence
-- level
-
-location_obj:
-- name
-- type (peaceful/hostile)
-- enemies (if hostile)
-- chests (if hostile)
-
-weapon_obj:
-- name
-- type (melee/range)
-- damage
-- condition
+Getting XP lets you get stat point each new level and improve your skills
