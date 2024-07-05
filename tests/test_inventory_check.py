@@ -1,8 +1,10 @@
 from unittest.mock import patch
-
 import pytest
+from tests.framework import world_creation, turns_generator, assert_files_equal
+from pathlib import Path
+import db
 
-from tests.framework import *
+tests_folder = Path(__file__).parent
 
 
 @patch("builtins.input")
@@ -19,6 +21,4 @@ def test_inventory_check(mock_input):
         while True:
             scene.show_current_scene()
     except StopIteration:
-        with open('etalon_inventory_checks.log', 'r') as fd:
-            with open('last_game.log', 'r') as fd2:
-                assert fd2.read() == fd.read()
+        assert_files_equal(Path(tests_folder, 'etalon_inventory_checks.log'), Path(tests_folder.parent, 'last_game.log'))

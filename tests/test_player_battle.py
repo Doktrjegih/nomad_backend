@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
 import pytest
-
-from battle import Battle
+from pathlib import Path
 from enemy import Enemy
-from tests.framework import *
+from tests.framework import world_creation, turns_generator, assert_files_equal, compare_strings_ignore_numbers, get_row_from_file
+import db
+
+tests_folder = Path(__file__).parent
 
 
 @patch("builtins.input")
@@ -27,7 +29,7 @@ def test_player_battle(mock_input):
     db.add_item_to_game({'id': 666, 'name': 'any gun', 'type': 'weapon', 'attack': 0, 'cost': 1})  # set gun stats here
     db.add_item_to_inventory(666)
     inventory = db.get_inventory()
-    db.put_on_off_item(inventory[0][0], on=True)
+    db.put_on_off_item(inventory[0][0], state=True)
     scene.player.recount_params()
 
     # create the enemy
@@ -41,7 +43,7 @@ def test_player_battle(mock_input):
 
     # start the battle
     scene.state = 'battle'
-    scene.battle = Battle(scene)
+    # scene.battle = Battle(scene)
 
     # start test
     gen = turns_generator([4, 3, 0, 2, 1, 3, 1])
@@ -50,8 +52,6 @@ def test_player_battle(mock_input):
         while True:
             scene.show_current_scene()
     except StopIteration:
-        etalon_log = read_file_ignoring_rows('etalon_battle.log', ignore=[122])
-        actual_log = read_file_ignoring_rows('last_game.log', ignore=[122])
-        assert etalon_log == actual_log
+        assert_files_equal(Path(tests_folder, 'etalon_battle.log'), Path(tests_folder.parent, 'last_game.log'), ignore=[122])
         compare_strings_ignore_numbers(get_row_from_file('etalon_battle.log', 122),
                                        get_row_from_file('last_game.log', 122))

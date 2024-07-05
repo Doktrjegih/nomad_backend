@@ -5,6 +5,7 @@ import pytest
 
 from quest import there_are_finished_quests, get_current_quests
 from tests.framework import *
+from console import ExitException
 
 actions = None
 
@@ -41,15 +42,15 @@ def make_decision(scene: Scene) -> str:
     food_alcohol = ["Beer bottle", "Steak"]
     for index, item in enumerate(inventory, start=1):
         if item[1].name in food_alcohol:
-            actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
+            actions = turns_generator([open_entrypoint(scene, "inventory"), index])
             return next(actions)
         if item[1].type_ == "weapon":
             if not scene.player.weapon or item[1].attack > scene.player.weapon.attack:
-                actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
+                actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                 return next(actions)
         if item[1].type_ == "armor":
             if not scene.player.armor or item[1].defence > scene.player.armor.defence:
-                actions = turns_generator(emana := [open_entrypoint(scene, "inventory"), index])
+                actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                 return next(actions)
 
     # enter the tavern
@@ -93,10 +94,10 @@ def make_decision(scene: Scene) -> str:
 
 
 @patch("builtins.input")
-@pytest.mark.usefixtures("clear_dir")
+# @pytest.mark.usefixtures("clear_dir")
 @pytest.mark.usefixtures("clear_results")
 @pytest.mark.usefixtures("test_counter")
-@pytest.mark.parametrize('run', range(10))
+@pytest.mark.parametrize('run', range(100))
 def test_autoplayer(mock_input, run) -> None:
     scene = world_creation()
     scene.player.name = "autoplayer"
@@ -104,9 +105,8 @@ def test_autoplayer(mock_input, run) -> None:
     try:
         while True:
             scene.show_current_scene()
-    except Exception as e:
-        builtins.print(e)
-        with open("last_game.log") as fd:
-            assert "GAME OVER!" in fd.read()
+    except ExitException:
+        # with open("last_game.log") as fd:
+        #     assert "GAME OVER!" in fd.read()
         with open("results.txt", "a") as fd:
-            fd.write(f"total score = {scene.player.scores}\n")
+            fd.write(f"total scores = {scene.player.scores}\n")

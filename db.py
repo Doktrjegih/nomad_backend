@@ -1,20 +1,17 @@
-import json
+from json import dumps, loads
 import os
 
-from sqlalchemy import create_engine, Column, String, Integer, Boolean
+from sqlalchemy import create_engine, Column, String, Integer, Boolean, Text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 base_path = os.path.dirname(__file__)
 db_path = os.path.join(base_path, "sqalch.sqlite")
 items_path = os.path.join(base_path, "items.json")
 
-engine = create_engine(f'sqlite:///{db_path}', echo=False)
 base = declarative_base()
-Session = sessionmaker(bind=engine)
-session = Session()
 
 with open(items_path, 'r', encoding='utf-8') as fd:
-    GAME_ITEMS = json.load(fd)
+    GAME_ITEMS = loads(fd.read())
 
 
 class Items(base):
@@ -25,15 +22,19 @@ class Items(base):
     type_ = Column(String)
     attack = Column(Integer)
     defence = Column(Integer)
+    boss = Column(String)
     cost = Column(Integer)
+    effects = Column(Text)
 
-    def __init__(self, item_id, name, type_, cost, attack, defence):
+    def __init__(self, item_id, name, type_, cost, attack, defence, boss, effects):
         self.item_id = item_id
         self.name = name
         self.type_ = type_
         self.attack = attack
         self.defence = defence
         self.cost = cost
+        self.boss = boss
+        self.effects = effects
 
 
 class Inventory(base):
@@ -53,16 +54,16 @@ def create_database() -> None:
     """
     Creates database if it's needed, clear DB before new game if it exists
     """
-    if not os.path.exists(db_path):
-        base.metadata.create_all(engine)
-    else:
-        inv_items = session.query(Inventory).all()
-        for item in inv_items:
-            session.delete(item)
-        items = session.query(Items).all()
-        for item in items:
-            session.delete(item)
+    if os.path.exists(db_path):
+        os.remove(db_path)
+    
+    global engine, session
+    engine = create_engine(f'sqlite:///{db_path}', echo=False)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    base.metadata.create_all(engine)
     session.commit()
+    
     for item in GAME_ITEMS:
         add_item_to_game(item)
 
@@ -77,9 +78,11 @@ def add_item_to_game(data: dict) -> None:
     type_ = data["type"]
     attack = data.get("attack")
     defence = data.get("defence")
+    boss = data.get("boss")
     cost = data["cost"]
+    effects = dumps(data.get("effects"))
 
-    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence, cost=cost)
+    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence, boss=boss, cost=cost, effects=effects)
     session.add(tr)
     session.commit()
 
@@ -107,15 +110,15 @@ def get_all_items() -> list:
     return session.query(Items).all()
 
 
-def get_item(item_id: int) -> type(Items):
+def get_item_by_name(name: str) -> type(Items):
     """
     Returns specified game item
     :return: one item
     """
-    return session.query(Items).filter(Items.item_id == item_id).first()
+    return session.query(Items).filter(Items.boss == name).first()
 
 
-def get_inventory() -> list:
+def get_inventory() -> list[tuple[Inventory, Items]]:
     """
     Returns inventory items
     :return: list of items in player inventory
@@ -139,11 +142,11 @@ def remove_item(item: Inventory, amount: int = 1) -> None:
     session.commit()
 
 
-def put_on_off_item(item: Inventory, on: bool) -> None:
+def put_on_off_item(item: Inventory, state: bool) -> None:
     """
     :param item: Inventory object to removing
     :param on: if True, puts on the item, otherwise puts off
     """
     item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
-    item.used = bool(on)
+    item.used = state
     session.commit()

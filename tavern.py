@@ -3,7 +3,7 @@ import random
 from enemy import Enemy
 from quest import Quest, get_current_quests
 from player import Player
-from console import *
+from console import print, color, answer_handler
 from items import Items, ALWAYS_SHOWED
 import db
 
@@ -22,7 +22,7 @@ class Tavern:
         USER ACTION
         Shows tavern menu
         """
-        print("""\nYou're in the tavern""")
+        print("\nYou're in the tavern")
         print('Drunk level:', self.player.get_condition())
         action = self.scene.show_possible_options()
         if action == "go out":
@@ -117,7 +117,6 @@ class Tavern:
 
         answer = answer_handler(
             question=f'Are you accept? (yes/no) ',
-            is_int=False,
             yes=['y', 'yes', '1'],
             no=['n', 'no', '2'])
         if answer[0] == 'no':
@@ -161,7 +160,7 @@ class Tavern:
         """
         inventory = db.get_inventory()
         if not inventory:
-            print('[Empty inventory]')
+            print(color("yellow", '[Empty inventory]'))
             return
 
         # showing of items
@@ -173,40 +172,36 @@ class Tavern:
 
         # dialog for manipulating with items
         answer_item = answer_handler(question="Which one do you want to sell? ",
-                                     is_int=True,
-                                     correct_range=[x for x in range(1, counter + 1)],
-                                     cancel=[0])
+                                     correct_range=[str(x) for x in range(1, counter + 1)],
+                                     cancel=['0'])
         if answer_item[0] == 'cancel':
             return
-        item_index = answer_item[1] - 1
+        item_index = int(answer_item[1]) - 1
         item_name = inventory[item_index][1].name
         amount = inventory[item_index][0].amount
         if amount == 1:
             answer_confirm = answer_handler(question=f'You chose {item_name}. Sell it? (yes/no) ',
-                                            is_int=False,
                                             yes=['y', 'yes', '1'],
                                             no=['n', 'no', '2'])
             if answer_confirm[0] == 'no':
                 return
             db.remove_item(inventory[item_index][0])
-            self.player.gain_scores(inventory[item_index][1].cost * 10)
+            self.player.gold += round(inventory[item_index][1].cost / 2)
             print(f'Sold 1 {item_name}')
         else:
             answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
-                                                    f'How many item would you want to sell? (0 for cancel) ',
-                                           is_int=True,
-                                           correct_range=[x for x in range(1, amount + 1)],
-                                           cancel=[0])
+                                                    'How many item would you want to sell? (0 for cancel) ',
+                                           correct_range=[str(x) for x in range(1, amount + 1)],
+                                           cancel=['0'])
             if answer_amount[0] == 'cancel':
                 return
             answer_confirm_several = answer_handler(question=f'Sell {answer_amount[1]} ones? (yes/no) ',
-                                                    is_int=False,
                                                     yes=['y', 'yes', '1'],
                                                     no=['n', 'no', '2'])
             if answer_confirm_several[0] == 'no':
                 return
-            db.remove_item(inventory[item_index][0], answer_amount[1])
-            self.player.gain_scores(inventory[item_index][1].cost * 10 * answer_amount[1])
+            db.remove_item(inventory[item_index][0], int(answer_amount[1]))
+            self.player.gold += round(inventory[item_index][1].cost / 2)
             print(f'Sold {answer_amount[1]} {item_name}')
         self.player.recount_params()
 
@@ -222,19 +217,17 @@ class Tavern:
                 print(f"{counter} - {item['name']} ({item['cost']} gold)")
             print("0 - cancel")
             answer_amount = answer_handler(question=f'What do you want to buy? (you have {self.player.gold} gold) ',
-                                           is_int=True,
-                                           correct_range=[x for x in range(1, len(items_for_sell) + 1)],
-                                           cancel=[0])
+                                           correct_range=[str(x) for x in range(1, len(items_for_sell) + 1)],
+                                           cancel=['0'])
             if answer_amount[0] == 'cancel':
                 return
 
-            chosen_item = items_for_sell[answer_amount[1] - 1]
+            chosen_item = items_for_sell[int(answer_amount[1]) - 1]
             if (price := chosen_item["cost"]) > self.player.gold:
                 print("You don't have enough gold for it")
             else:
                 confirm_buying = answer_handler(question=f'\nYou chose {(item_name := chosen_item["name"])}. '
-                                                         f'Buy it? (yes/no) ',
-                                                is_int=False,
+                                                         'Buy it? (yes/no) ',
                                                 yes=['y', 'yes', '1'],
                                                 no=['n', 'no', '2'])
                 if confirm_buying[0] == 'no':

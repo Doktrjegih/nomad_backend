@@ -31,5 +31,23 @@
     "type": "armor",
     "defence": 5,
     "cost": 10
+  },
+  {
+    "id": 6,
+    "name": "Gun from boss",
+    "type": "weapon",
+    "attack": 1,
+    "cost": 100,
+    "boss": "Van Helsing",
+    "effects": [
+      {
+        "name": "fire",
+        "damage": 2
+      },
+      {
+        "name": "cold",
+        "damage": 1
+      }
+    ]
   }
 ]

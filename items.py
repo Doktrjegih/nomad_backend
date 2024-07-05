@@ -1,6 +1,6 @@
 import random
 
-from console import *
+from console import print, answer_handler, color
 import db
 from player import Player
 
@@ -22,18 +22,17 @@ class Items:
             if self.player.drunk < 1:
                 inventory = [x for x in inventory if x[1].type_ in ALWAYS_SHOWED]
                 if not inventory:
-                    print('[Empty inventory]')
+                    print(color("yellow", '[Empty inventory]'))
                     return
             counter = self.print_inventory(inventory)
 
             # dialog for manipulating with items
             answer = answer_handler('Which one do you want to use? ',
-                                    is_int=True,
-                                    correct_range=[x for x in range(1, counter + 1)],
-                                    cancel=[0])
+                                    correct_range=[str(x) for x in range(1, counter + 1)],
+                                    cancel=['0'])
             if answer[0] == 'cancel':
                 return
-            item_index = answer[1] - 1
+            item_index = int(answer[1]) - 1
             item_name = inventory[item_index][1].name
             type_of_item = inventory[item_index][1].type_
             if type_of_item == "food":
@@ -47,19 +46,24 @@ class Items:
                 print(f"You've drunk {item_name}")
             elif type_of_item == "weapon":
                 if self.player.weapon:
-                    db.put_on_off_item(self.player.weapon, on=False)
-                db.put_on_off_item(inventory[item_index][0], on=True)
+                    if self.player.weapon.name == item_name:
+                        db.put_on_off_item(self.player.weapon, state=False)
+                        self.player.recount_params()
+                        return
+                    else:
+                        db.put_on_off_item(self.player.weapon, state=False)
+                db.put_on_off_item(inventory[item_index][0], state=True)
                 print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
             elif type_of_item == "armor":
                 if self.player.armor:
-                    db.put_on_off_item(self.player.armor, on=False)
-                db.put_on_off_item(inventory[item_index][0], on=True)
+                    db.put_on_off_item(self.player.armor, state=False)
+                db.put_on_off_item(inventory[item_index][0], state=True)
                 print(f"Current armor: {item_name} (defence {inventory[item_index][1].defence})")
             elif type_of_item == "garbage":
                 print(f"You can't use {item_name}, but you will be able to sell it sometime")
             self.player.recount_params()
             return
-        print('[Empty inventory]')
+        print(color("yellow", '[Empty inventory]'))
 
     def print_inventory(self, inventory: list) -> int:
         """
@@ -94,7 +98,7 @@ class Items:
         """
         Gives random item from chest to player
         """
-        item = random.choice(db.get_all_items())
+        item = random.choice([x for x in db.get_all_items() if not x.boss])
         if item.type_ in ALWAYS_SHOWED:
             print(f"You've found {item.name}")
             db.add_item_to_inventory(item.item_id)

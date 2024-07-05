@@ -1,50 +1,86 @@
 import datetime
 import random
+import sys
+import db
 
 from console import color, print
 from player import Player
 from quest import get_current_quests
 
-HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk'}
-DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf'}
-TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4'}
-
-
-class ExitException(Exception):
-    def __init__(self, message: str = ""):
-        self.message = message
-        super().__init__(self.message)
+# todo: try to change to enums
+HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'}
+DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
+TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
+DEFAULT_PARAMS = {"stage": 1, "hp_factor": 1, "attack" : 1, "defence": 1}
+STAGE_2 = {"stage": 2, "hp_factor": 2, "attack" : 2, "defence": 2}
+STAGE_3 = {"stage": 3, "hp_factor": 3, "attack" : 3, "defence": 3}
+STAGE_4 = {"stage": 4, "hp_factor": 4, "attack" : 4, "defence": 4}
 
 
 class Enemy:
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
+    def __init__(self, player: Player, exclude: list[dict] | None = None, params: dict = DEFAULT_PARAMS) -> None:
         self.player = player
         types = [HUMANS, DOGS, TEST]
         if exclude:
             for type_ in exclude:
                 types.remove(type_)
         self.type = random.choice(types)
-        self.name = self.type.get(1)
+        self.name = self.type.get(params.get("stage"))
         self.level = self.get_random_level_of_enemy()
-        self.health = 2 * self.level
+        self.health = 2 * params.get("hp_factor") * self.level
         # self.strength = 2
-        self.attack = 1 * self.level
-        self.defence = 1 * self.level
+        self.attack = params.get("attack") * self.level
+        self.defence = params.get("defence") * self.level
         self.agility = random.randint(0, 2) * self.level
         self.base_attack = None
-        self.launch_specials = self.dummy_special
+        self.launch_specials = lambda: print("No specials")
+        self.run_away_able = True
+        self.boss = False
+        self.effects_damage = None
+        self.effects_vulnerability = self.get_vulnerability(self.name)
 
+    def get_vulnerability(self, name):
+        if name == "Wet dog":
+            return "fire"
+    
     # todo: later need to move all such methods to another class or module
     def hyena(self):
-        print("I'm Hyena")
         if self.base_attack:
             self.attack = self.base_attack
         if self.health < 5:
-            if random.randint(1, 100) > 50:
+            if random.randint(1, 100) > 25:  # todo: change value
                 if not self.base_attack:
                     self.base_attack = self.attack
                 self.attack *= 2
                 print(f"Special skill has been activated! Enemy attack is {self.attack}")
+
+    # todo: later need to move all such methods to another class or module
+    def wolf(self):
+        if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
+            if random.randint(1, 100) > 25:  # todo: change value
+                self.player_bleeding = 2
+                print(f"Special skill has been activated! Player bleeding is {self.player_bleeding}")
+        else:
+            self.player.health -= 2
+            self.player_bleeding -= 1
+            print(f"You less 2 HP due to {color('red', 'bleeding')}")
+
+    # todo: later need to move all such methods to another class or module
+    def werewolf(self):
+        if self.health < 5:
+            if not hasattr(self, "healing_activatings"):
+                self.healing_activatings = 2
+            if self.healing_activatings <= 0:
+                return
+            self.health += 5
+            self.healing_activatings -= 1
+            print(f"Special skill has been activated! Enemy health is {self.health}")        
+
+    # todo: later need to move all such methods to another class or module
+    def van_helsing(self):
+        self.hyena()
+        self.wolf()
+        self.werewolf()
 
     def get_random_level_of_enemy(self) -> int:
         """
@@ -71,12 +107,25 @@ class Enemy:
         """
         self.health -= attack
 
+    def reward_for_enemy(self) -> None:
+        """
+        Gives reward for killed enemy
+        :param enemy: object of Enemy class
+        """
+        if self.player.drunk > 0:
+            reward = round((total := 50 * self.level) + total * random.uniform(0.03, 0.1))
+            print(f'You get {reward} XP')
+            self.player.gain_scores(reward)
+        if self.boss:
+            db.add_item_to_inventory((unique_item := db.get_item_by_name(self.name)).item_id)
+            print(f"You get {color('yellow', unique_item.name)}!")
+
     def died(self) -> None:
         """
         Kills enemy, gets XP, checks if enemy was a quest goal
         """
         print(f'\n{color("red", self.name)} was killed!')
-        self.player.reward_for_enemy(self)
+        self.reward_for_enemy()
         quests = get_current_quests()
         if not quests:
             return
@@ -85,6 +134,15 @@ class Enemy:
                 xp = 100 * self.level if self.player.drunk > 0 else 0
                 quest.update_quest(quests, xp)
 
+    @staticmethod
+    def check_specials(func):
+        def wrapper(self, *args, **kwargs):
+            self.get_specials()
+            self.launch_specials()
+            func(self, *args, **kwargs)
+        return wrapper
+
+    @check_specials
     def enemy_attack(self) -> int:
         """
         Enemy's part of turn, damages the player, finishes the game if player's HP is 0
@@ -101,17 +159,16 @@ class Enemy:
         return attack
 
     def get_specials(self):
+        # todo: doc
         if self.type == DOGS:
             if self.name == 'Hyena':
                 self.launch_specials = self.hyena
-
-    @staticmethod
-    def dummy_special():
-        print("No specials")
-
-    def check_specials(self):
-        self.get_specials()
-        self.launch_specials()
+            if self.name == 'Wolf':
+                self.launch_specials = self.wolf
+            if self.name == 'Werewolf':
+                self.launch_specials = self.werewolf
+            if self.name == 'Van Helsing':
+                self.launch_specials = self.van_helsing
 
     def game_over(self) -> None:
         """
@@ -119,108 +176,57 @@ class Enemy:
         """
         print('Your HP is 0')
         print('GAME OVER!')
-        print('Total score =', self.player.scores)
+        print('Total scores =', self.player.scores)
         self.player.enter_name()
         input('Click Enter to exit...')
         with open('high_scores.txt', 'a', encoding='utf-8') as fd:
             fd.write(f'{self.player.name} - {self.player.scores} '
                      f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
-        raise ExitException()
-
-
-class DrunkEnemy1(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
-        super().__init__(player, exclude)
-
-        self.name = self.type.get(2)
-        self.health = int(self.health * 1.5)
-        self.strength = self.level + 3
-        self.defence = self.strength + random.randint(0, 3)
-        self.attack = self.strength + random.randint(0, 3)
-
-
-class DrunkEnemy2(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
-        super().__init__(player, exclude)
-
-        self.name = self.type.get(3)
-        self.health = int(self.health * 3)
-        self.strength = self.level * 2
-        self.defence = self.strength + random.randint(1, 4)
-        self.attack = self.strength + random.randint(1, 4)
+        sys.exit(0)
 
 
 class Boss(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] = None) -> None:
+    def __init__(self, player: Player, exclude: list[dict] | None = None) -> None:
         super().__init__(player, exclude)
 
-        self.name = self.type.get(4)
+        self.name = self.type.get(5)
         self.health = int(self.health * 5)
         self.strength = self.level * 3
-        self.defence = self.strength + random.randint(2, 5)
-        self.attack = self.strength + random.randint(2, 5)
+        self.defence = self.strength + random.randint(2, 6)
+        self.attack = self.strength + random.randint(2, 6)
+        self.boss = True
 
 
-# todo: shitcode
-def generate_enemy(player: Player) -> Enemy | DrunkEnemy1 | DrunkEnemy2 | Boss:
+def generate_enemy(player: Player) -> Enemy:
     """
     Generates enemy according to current player drunk state
     :param player: object of Player class
     :return: object of Enemy class
     """
-    # detect an enemy (first version)
-    # if player.drunk < 26:
-    #     enemy = Enemy(player)
-    # elif 51 > player.drunk > 25:
-    #     if random.randint(1, 100) > 80:
-    #         enemy = DrunkEnemy1(player)
-    #     else:
-    #         enemy = Enemy(player)
-    # elif 76 > player.drunk > 50:
-    #     if random.randint(1, 100) > 90:
-    #         enemy = DrunkEnemy2(player)
-    #     elif 91 > random.randint(1, 100) > 60:
-    #         enemy = DrunkEnemy1(player)
-    #     else:
-    #         enemy = Enemy(player)
-    # else:
-    #     if random.randint(1, 100) > 95:
-    #         print('Prepare your anus, puppy')
-    #         enemy = Boss(player)
-    #     elif 96 > random.randint(1, 100) > 80:
-    #         enemy = DrunkEnemy2(player)
-    #     elif 81 > random.randint(1, 100) > 55:
-    #         enemy = DrunkEnemy1(player)
-    #     else:
-    #         enemy = Enemy(player)
-
-    # detect an enemy (second version)
-    drunk_level = player.drunk
     rand = random.randint(1, 100)
-
-    if drunk_level < 26:
+    if player.drunk < 26:
         return Enemy(player)
-    elif drunk_level < 51:
+    elif player.drunk < 51:
         if rand > 90:
             return Enemy(player)
-        return DrunkEnemy1(player)
-    elif drunk_level < 76:
+        return Enemy(player, params=STAGE_2)
+    elif player.drunk < 76:
         if rand > 90:
             return Enemy(player)
         elif rand > 80:
-            return DrunkEnemy1(player)
-        return DrunkEnemy2(player)
+            return Enemy(player, params=STAGE_2)
+        return Enemy(player, params=STAGE_3)
     else:
         if rand > 90:
             return Enemy(player)
         elif rand > 80:
-            return DrunkEnemy1(player)
+            return Enemy(player, params=STAGE_2)
         elif rand > 70:
-            return DrunkEnemy2(player)
-        return Boss(player)
+            return Enemy(player, params=STAGE_3)
+        return Enemy(player, params=STAGE_4)
 
 
-def enemy_for_npc_quest(player: Player, exclude: list[dict] = None) -> DrunkEnemy1 | DrunkEnemy2 | Boss:
+def enemy_for_npc_quest(player: Player, exclude: list[dict] | None = None) -> Enemy:
     """
     Generates enemy for NPC quest according to current player drunk state
     :param player: object of Player class
@@ -228,9 +234,10 @@ def enemy_for_npc_quest(player: Player, exclude: list[dict] = None) -> DrunkEnem
     :return: object of enemy depends on its stage
     """
     if 51 > player.drunk > 24:
-        enemy = DrunkEnemy1(player, exclude=exclude)
+        return Enemy(player, params=STAGE_2, exclude=exclude)
     elif 76 > player.drunk > 50:
-        enemy = DrunkEnemy2(player, exclude=exclude)
+        return Enemy(player, params=STAGE_3, exclude=exclude)
     elif player.drunk > 75:
-        enemy = Boss(player, exclude=exclude)
-    return enemy
+        return Enemy(player, params=STAGE_4, exclude=exclude)
+    else:
+        raise ValueError("Can't generate enemies with low drunk level")

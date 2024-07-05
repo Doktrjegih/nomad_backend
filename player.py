@@ -1,11 +1,13 @@
 import os
 import pickle
 import random
-
+from pathlib import Path
 import db
-from console import error, color, print
+from console import color, print
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
+
+main_folder = Path(__file__).parent
 
 
 class Player:
@@ -40,7 +42,7 @@ class Player:
                 self.name = input('Enter your name: ')
                 if len(self.name) > 0:
                     return
-                error('Incorrect input')
+                print(color('red', 'Incorrect input'))
 
     def show_player_info(self) -> None:
         """
@@ -76,7 +78,7 @@ class Player:
         print('Gold:', self.gold)
 
         print('Active quests:')
-        with open(os.path.join(os.getcwd(), "quests.pkl"), 'rb') as fd:
+        with open(Path(main_folder, "quests.pkl"), 'rb') as fd:
             data = pickle.load(fd)
         if not data:
             print('[Empty list]')
@@ -92,16 +94,6 @@ class Player:
         """
         drunk = '▇' * (self.drunk // 10) + ' ' * ((100 - self.drunk) // 10)
         return f'[{drunk}] ({self.drunk})'
-
-    def reward_for_enemy(self, enemy) -> None:
-        """
-        Gives reward for killed enemy
-        # :param enemy: object of Enemy class
-        """
-        if self.drunk > 0:
-            reward = round((total := 50 * enemy.level) + total * random.uniform(0.03, 0.1))
-            print(f'You get {reward} XP')
-            self.gain_scores(reward)
 
     def gain_scores(self, scores: int) -> None:
         """
@@ -145,24 +137,26 @@ class Player:
 
         print('Available stats points:', self.available_stats_point)
         while True:
-            answer = input('\nDo you want to distribute stats points? (yes/no) ')
-            if answer.lower() in ['y', 'yes', '1']:
-                print(f'{STATS}')
-                answer2 = input('Which one do you want to increase? ')
-                if answer2 == '1':
-                    apply_changes('endurance')
-                elif answer2 == '2':
-                    apply_changes('strength')
-                elif answer2 == '3':
-                    apply_changes('agility')
-                elif answer2 == '4':
-                    apply_changes('luck')
-                if answer2 in ['1', '2', '3', '4', '0']:
-                    return
-                error('Incorrect input')
-            elif answer.lower() in ['n', 'no', '2']:
+            answer = answer_handler(
+                question='\nDo you want to distribute stats points? (yes/no) ',
+                yes=['y', 'yes', '1'],
+                no=['n', 'no', '2'])
+            if answer[0] == 'no':
                 return
-            error('Incorrect input')
+            answer2 = answer_handler(
+                question='Which one do you want to increase? ',
+                yes=['y', 'yes', '1'],
+                cancel=['0'])
+            if answer[0] == 'cancel':
+                return
+            if answer2 == '1':
+                apply_changes('endurance')
+            elif answer2 == '2':
+                apply_changes('strength')
+            elif answer2 == '3':
+                apply_changes('agility')
+            elif answer2 == '4':
+                apply_changes('luck')
 
     def recount_params(self) -> None:
         """
@@ -201,4 +195,4 @@ class Player:
             self.scores = to_next_level
             self.next_level = int(self.next_level * 1.2)
             if self.scores > self.next_level:  # todo: for debug
-                error('Sanya look! More than 1 level per time')
+                print(color('red', 'Sanya, look! More than 1 level per time'))

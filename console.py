@@ -1,8 +1,12 @@
-import os
 import builtins
+import logging
+from pathlib import Path
+from enum import Enum
+
+main_folder = Path(__file__).parent
 
 
-class Colors:
+class Colors(Enum):
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
@@ -14,33 +18,22 @@ class Colors:
     UNDERLINE = '\033[4m'
 
 
-def console(*args):
-    os.system('clear')
-    for row in args:
-        print(row)
+def start_logger():
+    try:
+        with open(Path(main_folder, "last_game.log"), "w") as fd:
+            fd.write("")
+    except FileNotFoundError:
+        pass
+    logging.basicConfig(filename=f'{main_folder}/last_game.log', filemode='a', level=logging.INFO, format='%(message)s')
 
 
 def print(*args):
+    """
+    A wrapper for logging the game during printing messages
+    """
     row = " ".join(f"{value}" for value in args)
     builtins.print(row)
-    with open('last_game.log', 'a') as fd:
-        fd.write(row + '\n')
-
-
-def error(text: str) -> None:
-    """
-    Colors text to red and print warning
-    :param text: error message
-    """
-    print(f'\n{Colors.RED}ERROR! {text}{Colors.ENDC}')
-
-
-def warning(text: str) -> None:
-    """
-    Colors text to yellow and print warning
-    :param text: warning message
-    """
-    print(f'{Colors.YELLOW}WARNING! {text}{Colors.ENDC}')
+    logging.info(row)
 
 
 def color(color: str, text: str) -> str:
@@ -49,34 +42,35 @@ def color(color: str, text: str) -> str:
     :param color: color of message
     :param text: message text
     """
-    if color == 'red':
-        return Colors.RED + text + Colors.ENDC
-    elif color == 'yellow':
-        return Colors.YELLOW + text + Colors.ENDC
-    elif color == 'green':
-        return Colors.GREEN + text + Colors.ENDC
+    color_enum = Colors[color.upper()]
+    return color_enum.value + text + Colors.ENDC.value
 
 
-def answer_handler(question: str, is_int: bool, **kwargs) -> (str, str | int):
+def get_effect_color(effect: str) -> str:
+    if effect == "fire":
+        return Colors.RED.value + "fire" + Colors.ENDC.value
+    if effect == "cold":
+        return Colors.OKBLUE.value + "cold" + Colors.ENDC.value
+    if effect == "poison":
+        return Colors.GREEN.value + "poison" + Colors.ENDC.value
+    else:
+        raise ValueError("Unknown effect")
+
+def answer_handler(question: str, **kwargs) -> (str, str | int):
     """
     USER ACTION
     Global answer handler. Works with any question-answer dialogs
     :param question: text showing during question
-    :param is_int: checks either answer is int or str type
     :param kwargs: gets string with group name as key and list with conditional as value
-    For example: items=[x for x in range(1, counter + 1)] - it will check if answer in list
+    For example: items=[x for x in range(1, counter + 1)] - it will check if answer is in list
     :return: tuple with group name and user answer if answer in one of the groups
     """
     while True:
         try:
-            if is_int:
-                answer = int(input(question))
-            else:
-                answer = input(question).lower()
-
+            answer = input(question).lower()
             for group, conditional in kwargs.items():
                 if answer in conditional:
                     return group, answer
-            error('Incorrect input')
+            print(color('red', 'Incorrect input'))
         except ValueError:
-            error('Incorrect input (value error)')
+            print(color('red', 'Incorrect input (value error)'))
