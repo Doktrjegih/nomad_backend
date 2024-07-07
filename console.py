@@ -20,7 +20,7 @@ class Colors(Enum):
 
 def start_logger():
     try:
-        with open(Path(main_folder, "last_game.log"), "w") as fd:
+        with open(Path(main_folder, "last_game.log"), "w", encoding="utf-8") as fd:
             fd.write("")
     except FileNotFoundError:
         pass
@@ -53,8 +53,7 @@ def get_effect_color(effect: str) -> str:
         return Colors.OKBLUE.value + "cold" + Colors.ENDC.value
     if effect == "poison":
         return Colors.GREEN.value + "poison" + Colors.ENDC.value
-    else:
-        raise ValueError("Unknown effect")
+    raise ValueError("Unknown effect")
 
 
 def answer_handler(question: str, **kwargs) -> (str, str | int):

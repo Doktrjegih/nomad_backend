@@ -56,14 +56,14 @@ def create_database() -> None:
     """
     if os.path.exists(db_path):
         os.remove(db_path)
-    
+
     global engine, session
     engine = create_engine(f'sqlite:///{db_path}', echo=False)
     Session = sessionmaker(bind=engine)
     session = Session()
     base.metadata.create_all(engine)
     session.commit()
-    
+
     for item in GAME_ITEMS:
         add_item_to_game(item)
 
