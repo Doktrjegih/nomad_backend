@@ -1,7 +1,7 @@
 import builtins
 import logging
-from pathlib import Path
 from enum import Enum
+from pathlib import Path
 
 main_folder = Path(__file__).parent
 
@@ -55,6 +55,7 @@ def get_effect_color(effect: str) -> str:
         return Colors.GREEN.value + "poison" + Colors.ENDC.value
     else:
         raise ValueError("Unknown effect")
+
 
 def answer_handler(question: str, **kwargs) -> (str, str | int):
     """

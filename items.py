@@ -1,7 +1,7 @@
 import random
 
-from console import print, answer_handler, color
 import db
+from console import print, answer_handler, color
 from player import Player
 
 ALWAYS_SHOWED = ['food', 'alcohol', 'garbage']

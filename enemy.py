@@ -1,8 +1,10 @@
 import datetime
 import random
 import sys
-import db
+from json import loads
+from pathlib import Path
 
+import db
 from console import color, print
 from player import Player
 from quest import get_current_quests
@@ -11,10 +13,12 @@ from quest import get_current_quests
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
 TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
-DEFAULT_PARAMS = {"stage": 1, "hp_factor": 1, "attack" : 1, "defence": 1}
-STAGE_2 = {"stage": 2, "hp_factor": 2, "attack" : 2, "defence": 2}
-STAGE_3 = {"stage": 3, "hp_factor": 3, "attack" : 3, "defence": 3}
-STAGE_4 = {"stage": 4, "hp_factor": 4, "attack" : 4, "defence": 4}
+DEFAULT_PARAMS = {"stage": 1, "hp_factor": 1, "attack": 1, "defence": 1}
+STAGE_2 = {"stage": 2, "hp_factor": 2, "attack": 2, "defence": 2}
+STAGE_3 = {"stage": 3, "hp_factor": 3, "attack": 3, "defence": 3}
+STAGE_4 = {"stage": 4, "hp_factor": 4, "attack": 4, "defence": 4}
+
+main_folder = Path(__file__).parent
 
 
 class Enemy:
@@ -39,9 +43,13 @@ class Enemy:
         self.effects_damage = None
         self.effects_vulnerability = self.get_vulnerability(self.name)
 
-    def get_vulnerability(self, name):
-        if name == "Wet dog":
-            return "fire"
+    @staticmethod
+    def get_vulnerability(name) -> list:
+        with open(Path(main_folder, "enemies.json"), "r", encoding="utf-8") as fd:
+            enemies = loads(fd.read())
+        for enemy in enemies:
+            if enemy.get("name") == name:
+                return enemy.get("vulnerability")
     
     # todo: later need to move all such methods to another class or module
     def hyena(self):

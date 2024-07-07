@@ -1,13 +1,14 @@
+import random
+from json import loads
+
+import db
 from console import print, color, answer_handler, get_effect_color
 from enemy import Enemy, generate_enemy, enemy_for_npc_quest, HUMANS, DOGS, TEST
-from quest import Quest, get_current_quests
 from items import Items
 from location import Location
 from player import Player
+from quest import Quest, get_current_quests
 from tavern import Tavern
-import random
-from json import loads
-import db
 
 ENEMY_TO_LOCATION = {"mountains": [HUMANS, TEST], "forest": [DOGS], "cave": [HUMANS, DOGS]}
 
@@ -227,7 +228,7 @@ class Scene:
         total_value = 0
         for effect in loads(self.player.weapon.effects):
             if value := effect.get('damage'):
-                if enemy.effects_vulnerability == effect.get('name'):
+                if effect.get('name') in enemy.effects_vulnerability:
                     value *= 2
                 print(f"Your weapon also make {value} damage from {get_effect_color(effect.get('name'))}")
                 total_value += value

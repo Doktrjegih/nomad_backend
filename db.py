@@ -1,5 +1,5 @@
-from json import dumps, loads
 import os
+from json import dumps, loads
 
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Text
 from sqlalchemy.orm import sessionmaker, declarative_base

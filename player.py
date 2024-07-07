@@ -1,7 +1,6 @@
-import os
 import pickle
-import random
 from pathlib import Path
+
 import db
 from console import color, print
 

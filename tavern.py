@@ -1,11 +1,11 @@
 import random
 
-from enemy import Enemy
-from quest import Quest, get_current_quests
-from player import Player
-from console import print, color, answer_handler
-from items import Items, ALWAYS_SHOWED
 import db
+from console import print, color, answer_handler
+from enemy import Enemy
+from items import Items, ALWAYS_SHOWED
+from player import Player
+from quest import Quest, get_current_quests
 
 
 class Tavern:

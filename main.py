@@ -1,9 +1,10 @@
 import os
 import pickle
 import sys
+from pathlib import Path
 
 import pytest
-from pathlib import Path
+
 import db
 from console import print, start_logger
 from items import Items
