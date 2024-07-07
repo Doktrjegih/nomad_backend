@@ -33,8 +33,11 @@ def test_player_battle(mock_input):
     scene.player.recount_params()
 
     # create the enemy
-    scene.enemy = Enemy(player=scene.player)
-    scene.enemy.name = "Wet dog"
+    while True:
+        scene.enemy = Enemy(player=scene.player)
+        if scene.enemy.name != "Wet dog":
+            continue
+        break
     scene.enemy.level = 5
     scene.enemy.health = 5
     scene.enemy.attack = 1

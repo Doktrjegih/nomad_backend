@@ -30,7 +30,13 @@
     "name": "Anthoha's underpants",
     "type": "armor",
     "defence": 5,
-    "cost": 10
+    "cost": 10,
+    "effects": [
+      {
+        "name": "poison",
+        "resist": 2
+      }
+    ]
   },
   {
     "id": 6,

@@ -212,7 +212,7 @@ class Scene:
             attack = int(attack * 1.5)
         print(f'{lucky_hit}{critical_hit}Your default attack is {self.player.attack}')
         print(f'Enemy defence is {self.enemy.defence}')
-        attack += self.check_effects(self.enemy)
+        attack += self.check_damage_effects(self.enemy)
         print(f'Your actual attack is {attack}')
         self.enemy.get_damage(attack)
         if self.enemy.health <= 0:
@@ -222,14 +222,17 @@ class Scene:
             # self.damage_taken += self.enemy.enemy_attack()
             self.enemy.enemy_attack()
 
-    def check_effects(self, enemy: Enemy) -> int:
+    def check_damage_effects(self, enemy: Enemy) -> int:
         if not (self.player.weapon and self.player.weapon.effects != "null"):
             return 0
         total_value = 0
         for effect in loads(self.player.weapon.effects):
             if value := effect.get('damage'):
-                if effect.get('name') in enemy.effects_vulnerability:
+                if effect.get('name') in enemy.effects_vulnerabilities:
                     value *= 2
+                if effect.get('name') in enemy.effects_resist:
+                    value *= 0.5
+                    value = round(value)
                 print(f"Your weapon also make {value} damage from {get_effect_color(effect.get('name'))}")
                 total_value += value
         return total_value

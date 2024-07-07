@@ -2,7 +2,7 @@ import pickle
 from pathlib import Path
 
 import db
-from console import color, print
+from console import color, print, answer_handler
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
 

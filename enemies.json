@@ -1,6 +1,20 @@
 [
   {
     "name": "Wet dog",
-    "vulnerability": ["fire"]
+    "vulnerabilities": [
+      "fire"
+    ],
+    "resist": [
+      "cold"
+    ]
+  },
+  {
+    "name": "Homeless guy",
+    "effects_damage": [
+      {
+        "name": "poison",
+        "value": 3
+      }
+    ]
   }
 ]

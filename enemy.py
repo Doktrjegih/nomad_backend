@@ -5,7 +5,7 @@ from json import loads
 from pathlib import Path
 
 import db
-from console import color, print
+from console import color, print, get_effect_color
 from player import Player
 from quest import get_current_quests
 
@@ -40,17 +40,18 @@ class Enemy:
         self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
         self.boss = False
-        self.effects_damage = None
-        self.effects_vulnerability = self.get_vulnerability(self.name)
+        self.effects_damage = self.get_effects_param(self.name, "effects_damage")
+        self.effects_vulnerabilities = self.get_effects_param(self.name, "vulnerabilities")
+        self.effects_resist = self.get_effects_param(self.name, "resist")
 
     @staticmethod
-    def get_vulnerability(name) -> list:
+    def get_effects_param(name: str, param: str) -> list:
         with open(Path(main_folder, "enemies.json"), "r", encoding="utf-8") as fd:
             enemies = loads(fd.read())
         for enemy in enemies:
             if enemy.get("name") == name:
-                return enemy.get("vulnerability")
-    
+                return enemy.get(param)
+
     # todo: later need to move all such methods to another class or module
     def hyena(self):
         if self.base_attack:
@@ -158,6 +159,7 @@ class Enemy:
         """
         print(f'{self.name} attacks!')
         attack = self.attack - self.player.defence
+        attack += self.count_effect_damage()
         if attack < 1:
             attack = 0
         self.player.health -= attack
@@ -165,6 +167,31 @@ class Enemy:
         if self.player.health <= 0:
             self.game_over()
         return attack
+
+    def count_effect_damage(self) -> int:
+        if not self.effects_damage:
+            return 0
+        total_value = 0
+        for effect_damage in self.effects_damage:
+            value = effect_damage.get('value')
+            effect_name = effect_damage.get('name')
+
+            if not self.player.armor or self.player.armor.effects == "null":
+                pass
+            else:
+                for armor_effect in loads(self.player.armor.effects):
+                    if armor_effect.get('name') == effect_name:
+                        if not (resist := armor_effect.get('resist')):
+                            continue
+                        diff = value if resist > value else resist
+                        value -= resist
+                        print(f"{self.player.armor.name} absorb {diff} damage from {get_effect_color(effect_name)}")
+
+            if value <= 0:
+                continue
+            total_value += value
+            print(f"You get {value} damage from {get_effect_color(effect_name)}")
+        return total_value
 
     def get_specials(self):
         # todo: doc
