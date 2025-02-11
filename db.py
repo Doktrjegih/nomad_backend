@@ -3,14 +3,11 @@ from json import dumps, loads
 
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Text
 from sqlalchemy.orm import sessionmaker, declarative_base
-
-base_path = os.path.dirname(__file__)
-db_path = os.path.join(base_path, "sqalch.sqlite")
-items_path = os.path.join(base_path, "jsons/items.json")
+from paths import DB, ITEMS
 
 base = declarative_base()
 
-with open(items_path, 'r', encoding='utf-8') as fd:
+with open(ITEMS, 'r', encoding='utf-8') as fd:
     GAME_ITEMS = loads(fd.read())
 
 
@@ -54,11 +51,11 @@ def create_database() -> None:
     """
     Creates database if it's needed, clear DB before new game if it exists
     """
-    if os.path.exists(db_path):
-        os.remove(db_path)
+    if os.path.exists(DB):
+        os.remove(DB)
 
     global engine, session
-    engine = create_engine(f'sqlite:///{db_path}', echo=False)
+    engine = create_engine(f'sqlite:///{DB}', echo=False)
     Session = sessionmaker(bind=engine)
     session = Session()
     base.metadata.create_all(engine)

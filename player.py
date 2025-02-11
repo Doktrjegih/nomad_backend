@@ -1,12 +1,10 @@
 import pickle
-from pathlib import Path
 
 import db
 from console import color, print, answer_handler
+from paths import QUESTS
 
 STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
-
-main_folder = Path(__file__).parent
 
 
 class Player:
@@ -78,7 +76,7 @@ class Player:
         print('Gold:', self.gold)
 
         print('Active quests:')
-        with open(Path(main_folder, "quests.pkl"), 'rb') as fd:
+        with open(QUESTS, 'rb') as fd:
             data = pickle.load(fd)
         if not data:
             print('[Empty list]')

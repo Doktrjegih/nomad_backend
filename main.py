@@ -1,7 +1,6 @@
 import os
 import pickle
 import sys
-from pathlib import Path
 
 import pytest
 
@@ -9,10 +8,9 @@ import db
 from console import print, start_logger
 from items import Items
 from location import Location
+from paths import MAIN_FOLDER, TESTS, QUESTS
 from player import Player
 from scene import Scene
-
-main_folder = Path(__file__).parent
 
 
 def run_unit_tests():
@@ -20,11 +18,11 @@ def run_unit_tests():
     Runs all tests
     """
     start_logger()
-    os.chdir('tests')
+    os.chdir(TESTS)
     result = pytest.main(['-x', '.'])
     if result != pytest.ExitCode.OK:
         sys.exit(1)
-    os.chdir(os.path.dirname(__file__))
+    os.chdir(MAIN_FOLDER)
 
 
 def main() -> None:
@@ -37,12 +35,12 @@ def main() -> None:
     player = Player()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
-    with open(Path(main_folder, "quests.pkl"), 'wb') as fd:
+    with open(QUESTS, 'wb') as fd:
         pickle.dump([], fd)
     while True:
         scene.show_current_scene()
 
 
 if __name__ == '__main__':
-    # run_unit_tests()
+    run_unit_tests()
     main()

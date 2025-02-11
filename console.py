@@ -1,9 +1,8 @@
 import builtins
 import logging
 from enum import Enum
-from pathlib import Path
 
-main_folder = Path(__file__).parent
+from paths import LAST_GAME_LOG
 
 
 class Colors(Enum):
@@ -20,11 +19,11 @@ class Colors(Enum):
 
 def start_logger():
     try:
-        with open(Path(main_folder, "last_game.log"), "w", encoding="utf-8") as fd:
+        with open(LAST_GAME_LOG, "w", encoding="utf-8") as fd:
             fd.write("")
     except FileNotFoundError:
         pass
-    logging.basicConfig(filename=f'{main_folder}/last_game.log', filemode='a', level=logging.INFO, format='%(message)s')
+    logging.basicConfig(filename=LAST_GAME_LOG, filemode='a', level=logging.INFO, format='%(message)s')
 
 
 def print(*args):

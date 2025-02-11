@@ -2,7 +2,7 @@ import datetime
 import random
 import sys
 from json import loads
-from pathlib import Path
+from paths import ENEMIES, HIGH_SCORES
 
 import db
 from console import color, print, get_effect_color
@@ -17,8 +17,6 @@ DEFAULT_PARAMS = {"stage": 1, "hp_factor": 1, "attack": 1, "defence": 1}
 STAGE_2 = {"stage": 2, "hp_factor": 2, "attack": 2, "defence": 2}
 STAGE_3 = {"stage": 3, "hp_factor": 3, "attack": 3, "defence": 3}
 STAGE_4 = {"stage": 4, "hp_factor": 4, "attack": 4, "defence": 4}
-
-main_folder = Path(__file__).parent
 
 
 class Enemy:
@@ -49,13 +47,14 @@ class Enemy:
 
     @staticmethod
     def get_effects_param(name: str, param: str) -> list:
-        with open(Path(main_folder, "jsons/enemies.json"), "r", encoding="utf-8") as fd:
+        with open(ENEMIES, "r", encoding="utf-8") as fd:
             enemies = loads(fd.read())
         for enemy in enemies:
             if enemy.get("name") == name:
                 return enemy.get(param)
 
     # todo: later need to move all such methods to another class or module
+    # ========== enemies' special methods start here ==========
     def hyena(self):
         if self.base_attack:
             self.attack = self.base_attack
@@ -66,7 +65,6 @@ class Enemy:
                 self.attack *= 2
                 print(f"Special skill has been activated! Enemy attack is {self.attack}")
 
-    # todo: later need to move all such methods to another class or module
     def wolf(self):
         if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
             if random.randint(1, 100) > 25:  # todo: change value
@@ -77,7 +75,6 @@ class Enemy:
             self.player_bleeding -= 1
             print(f"You less 2 HP due to {color('red', 'bleeding')}")
 
-    # todo: later need to move all such methods to another class or module
     def werewolf(self):
         if self.health < 5:
             if not hasattr(self, "healing_activatings"):
@@ -88,11 +85,11 @@ class Enemy:
             self.healing_activatings -= 1
             print(f"Special skill has been activated! Enemy health is {self.health}")        
 
-    # todo: later need to move all such methods to another class or module
     def van_helsing(self):
         self.hyena()
         self.wolf()
         self.werewolf()
+    # ========== enemies' special methods end here ==========
 
     def get_random_level_of_enemy(self) -> int:
         """
@@ -217,7 +214,7 @@ class Enemy:
         print('Total scores =', self.player.scores)
         self.player.enter_name()
         input('Click Enter to exit...')
-        with open('high_scores.txt', 'a', encoding='utf-8') as fd:
+        with open(HIGH_SCORES, 'a', encoding='utf-8') as fd:
             fd.write(f'{self.player.name} - {self.player.scores} '
                      f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
         sys.exit(0)

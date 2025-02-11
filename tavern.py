@@ -1,15 +1,13 @@
 import json
 import random
-from pathlib import Path
 
 import db
 from console import print, color, answer_handler
 from enemy import Enemy
 from items import Items, ALWAYS_SHOWED
+from paths import PLOT_QUESTS
 from player import Player
 from quest import Quest, get_current_quests, there_is_plot_quest
-
-main_folder = Path(__file__).parent
 
 
 class Tavern:
@@ -21,6 +19,7 @@ class Tavern:
         self.items = items
         self.merchant = random.choice([True, False])
         self.aleg = self.spawn_aleg()
+        self.reaction = False
 
     def tavern_menu(self) -> None:
         """
@@ -249,13 +248,14 @@ class Tavern:
         Shows menu within meeting NPC
         """
         if not self.reaction:
-            print(color('green', 'Random welcome phrase'))
+            print(color('green', '\nHello there!'))
+            self.reaction = True
         else:
             print("\nYou're sitting across from Aleg")
         print('Drunk level:', self.player.get_condition())
         if not there_is_plot_quest():
-            print("\nHello there! I have a quest for you")
-            with open(Path(main_folder, "jsons/plot_quests.json"), "r", encoding="utf-8") as fd:
+            print("I have a quest for you:")
+            with open(PLOT_QUESTS, "r", encoding="utf-8") as fd:
                 json_quests = json.loads(fd.read())
                 for json_quest in json_quests:
                     if json_quest["id"] == self.player.plot_stage:
