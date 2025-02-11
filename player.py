@@ -30,6 +30,7 @@ class Player:
         self.inventory = []
         self.weapon = None
         self.armor = None
+        self.plot_stage = 1
 
     def enter_name(self) -> None:
         """
@@ -81,8 +82,11 @@ class Player:
             data = pickle.load(fd)
         if not data:
             print('[Empty list]')
+        is_plot = ""
         for quest in data:
-            print('*', quest.order.name, '-', quest.goal_amount, f'({quest.goal_amount - quest.current_amount} left)')
+            if quest.plot_quest:
+                is_plot = " [Plot quest]"
+            print('*', quest.order.name, '-', quest.goal_amount, f'({quest.goal_amount - quest.current_amount} left){is_plot}')
         if self.available_stats_point:
             self.improve_stats()
 

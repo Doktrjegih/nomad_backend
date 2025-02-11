@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "quest name",
+    "description": "plot details",
+    "target": "Wet dog",
+    "amount": 1
+  },
+  {
+    "id": 2,
+    "name": "quest name 2",
+    "description": "plot details 2",
+    "target": "Hyena",
+    "amount": 3
+  }
+]

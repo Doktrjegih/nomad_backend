@@ -7,7 +7,7 @@ from console import print
 main_folder = Path(__file__).parent
 
 
-def get_current_quests() -> list:
+def get_current_quests(ignore_plot: bool = False) -> list:
     """
     Reads active quests from pickle file as list of objects
     :return: list of Enemy objects or None
@@ -15,7 +15,7 @@ def get_current_quests() -> list:
     try:
         with open(f"{main_folder}/quests.pkl", 'rb') as fd:
             data = pickle.load(fd)
-        return data
+        return data if not ignore_plot else [quest for quest in data if not quest.plot_quest]
     except EOFError:
         return list()
 
@@ -28,14 +28,24 @@ def there_are_finished_quests(quests: list) -> bool:
     return False
 
 
+def there_is_plot_quest():
+    quests = get_current_quests()
+    for quest in quests:
+        quest: Quest
+        if quest.plot_quest:
+            return quest
+    return None
+
+
 class Quest:
-    def __init__(self, order, amount, reward) -> None:
+    def __init__(self, order, amount, reward=0, is_plot=False) -> None:
         self.order = order
         self.goal_amount = amount
         self.current_amount = 0
         self.reward = reward
         self.is_finished = False
         self.xp_for_quest = 0
+        self.plot_quest = is_plot
 
     def add_to_list(self) -> None:
         """

@@ -22,14 +22,17 @@ main_folder = Path(__file__).parent
 
 
 class Enemy:
-    def __init__(self, player: Player, exclude: list[dict] | None = None, params: dict = DEFAULT_PARAMS) -> None:
+    def __init__(self, player: Player, random_enemy: bool = True, name: str = "", exclude: list[dict] | None = None, params: dict = DEFAULT_PARAMS) -> None:
         self.player = player
-        types = [HUMANS, DOGS, TEST]
-        if exclude:
-            for type_ in exclude:
-                types.remove(type_)
-        self.type = random.choice(types)
-        self.name = self.type.get(params.get("stage"))
+        if random_enemy:
+            types = [HUMANS, DOGS, TEST]
+            if exclude:
+                for type_ in exclude:
+                    types.remove(type_)
+            self.type = random.choice(types)
+            self.name = self.type.get(params.get("stage"))
+        else:
+            self.name = name
         self.level = self.get_random_level_of_enemy()
         self.health = 2 * params.get("hp_factor") * self.level
         # self.strength = 2
@@ -46,7 +49,7 @@ class Enemy:
 
     @staticmethod
     def get_effects_param(name: str, param: str) -> list:
-        with open(Path(main_folder, "enemies.json"), "r", encoding="utf-8") as fd:
+        with open(Path(main_folder, "jsons/enemies.json"), "r", encoding="utf-8") as fd:
             enemies = loads(fd.read())
         for enemy in enemies:
             if enemy.get("name") == name:

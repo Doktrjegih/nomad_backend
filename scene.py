@@ -25,7 +25,7 @@ class Scene:
         self.turns_in_biome_left = 1
       
         self.npc_quest = None  # keeps object of Quest class
-        self.reaction = False  # shows if it's first meeting with NPC
+        self.reaction = False  # shows if it's first meeting with NPC  # todo: make a runtime variable
 
     def show_current_scene(self) -> None:
         """
@@ -78,10 +78,12 @@ class Scene:
             if not self.location.chest:
                 options.remove('check a chest')
         elif self.state == 'tavern':
-            options = ['go out', 'take a beer', 'take a steak', 'merchant', 'check quests', 'inventory', 'get status',
+            options = ['go out', 'take a beer', 'take a steak', 'talk with Aleg', 'merchant', 'check quests', 'inventory', 'get status',
                        'exit game']
             if not self.tavern.merchant or self.player.drunk < 25:
                 options.remove('merchant')
+            if not self.tavern.aleg:
+                options.remove('talk with Aleg')
         elif self.state == 'merchant':
             options = ['back to tavern', 'buy', 'sell', 'inventory', 'get status', 'exit game']
         elif self.state == 'npc':
@@ -280,7 +282,7 @@ class Scene:
         else:
             print('Carl is waiting for you')  # todo: only if there is quest from him
         print('Drunk level:', self.player.get_condition())
-        quests = get_current_quests()
+        quests = get_current_quests(ignore_plot=True)
         if len(quests) < 3:
             if not self.reaction:
                 if self.player.drunk > 24 and random.randint(1, 10) > 2:

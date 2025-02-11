@@ -1,11 +1,15 @@
+import json
 import random
+from pathlib import Path
 
 import db
 from console import print, color, answer_handler
 from enemy import Enemy
 from items import Items, ALWAYS_SHOWED
 from player import Player
-from quest import Quest, get_current_quests
+from quest import Quest, get_current_quests, there_is_plot_quest
+
+main_folder = Path(__file__).parent
 
 
 class Tavern:
@@ -16,6 +20,7 @@ class Tavern:
         self.active_quests = True if self.scene.location.name == 'hometown' else random.choice([True, False])
         self.items = items
         self.merchant = random.choice([True, False])
+        self.aleg = self.spawn_aleg()
 
     def tavern_menu(self) -> None:
         """
@@ -37,6 +42,8 @@ class Tavern:
             return
         elif action == "merchant":
             self.merchant_dialog()
+        elif action == "talk with Aleg":
+            self.aleg_dialog()
         elif action == "check quests":
             self.check_quests()
         elif action == "inventory":
@@ -85,12 +92,12 @@ class Tavern:
         # if quests:  # todo: check on the finished quest
         for quest in quests:
             quest: Quest
-            if quest.is_finished:
+            if not quest.plot_quest and quest.is_finished:
                 quest.close_quest(quests, self.player)
                 db.add_item_to_inventory(1)
 
         # check if max value of current quests
-        quests = get_current_quests()
+        quests = get_current_quests(ignore_plot=True)
         if len(quests) > 2 or not self.active_quests:
             print("Sorry, I don't have quests for you now")
             self.tavern_menu()
@@ -235,3 +242,45 @@ class Tavern:
                 db.add_item_to_inventory(chosen_item["id"])
                 self.player.gold -= price
                 print(f'Bought {item_name}')
+
+    def aleg_dialog(self) -> None:
+        """
+        USER ACTION
+        Shows menu within meeting NPC
+        """
+        if not self.reaction:
+            print(color('green', 'Random welcome phrase'))
+        else:
+            print("\nYou're sitting across from Aleg")
+        print('Drunk level:', self.player.get_condition())
+        if not there_is_plot_quest():
+            print("\nHello there! I have a quest for you")
+            with open(Path(main_folder, "jsons/plot_quests.json"), "r", encoding="utf-8") as fd:
+                json_quests = json.loads(fd.read())
+                for json_quest in json_quests:
+                    if json_quest["id"] == self.player.plot_stage:
+                        order = Enemy(self.player, random_enemy=False, name=json_quest["target"])
+                        quest = Quest(order=order, amount=json_quest["amount"], is_plot=True)
+                        print(json_quest["description"])
+                        print(f"You need kill {color('red', order.name)} {json_quest['amount']} times")
+                        break
+        answer = answer_handler(
+            question=f'Are you accept? (yes/no) ',
+            yes=['y', 'yes', '1'],
+            no=['n', 'no', '2'])
+        if answer[0] == 'no':
+            return
+        print('Quest has been taken')
+        quest.add_to_list()
+        return
+
+    def spawn_aleg(self) -> bool:
+        if (quest := there_is_plot_quest()):
+            quest: Quest
+            if quest.is_finished:
+                return True
+        if self.scene.location.name == 'hometown':
+            return True
+        if random.randint(1, 3) == 3:
+            return True
+        return False

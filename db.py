@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 base_path = os.path.dirname(__file__)
 db_path = os.path.join(base_path, "sqalch.sqlite")
-items_path = os.path.join(base_path, "items.json")
+items_path = os.path.join(base_path, "jsons/items.json")
 
 base = declarative_base()
 
