@@ -25,18 +25,6 @@ class Player:
         self.armor = None
         self.plot_stage = 1
 
-    def enter_name(self) -> None:
-        """
-        USER ACTION
-        Add name to player in the end of game (for high score file)
-        """
-        if not self.name:
-            while True:
-                self.name = input('Enter your name: ')
-                if len(self.name) > 0:
-                    return
-                print(color('red', 'Incorrect input'))
-
     def show_player_info(self) -> None:
         """
         USER ACTION
