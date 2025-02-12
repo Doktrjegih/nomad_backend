@@ -166,6 +166,5 @@ poetry.lock
 pyproject.toml
 
 # game files
-tests/high_scores.txt
 tests/results.txt
 temp_files/*
