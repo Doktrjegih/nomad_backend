@@ -15,9 +15,9 @@ class Tavern:
         self.tavern_quest = None
         self.scene = scene
         self.player = player
-        self.active_quests = True if self.scene.location.name == 'hometown' else random.choice([True, False])
+        self.active_quests = True if self.scene.location.name == "hometown" else random.choice([True, False])
         self.items = items
-        self.merchant = random.choice([True, False])
+        self.merchant = True if self.scene.location.name == "hometown" else random.choice([True, False])
         self.aleg = self.spawn_aleg()
         self.reaction = False
 
@@ -127,7 +127,7 @@ class Tavern:
             no=['n', 'no', '2'])
         if answer[0] == 'no':
             return
-        print('Quest has been taken')
+        print("Quest has been taken")
         self.active_quests = False
         self.tavern_quest.add_to_list()
         return
@@ -216,7 +216,7 @@ class Tavern:
         USER ACTION
         Shows buying menu
         """
-        items_for_sell = [x for x in db.GAME_ITEMS if x["type"] == "weapon"]
+        items_for_sell = [x for x in db.GAME_ITEMS if x["type"] in ["weapon", "armor"] and not x.get("boss")]
         while True:
             print()
             for counter, item in enumerate(items_for_sell, start=1):

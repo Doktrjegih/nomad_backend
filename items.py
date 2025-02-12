@@ -45,18 +45,17 @@ class Items:
                 db.remove_item(inventory[item_index][0])
                 print(f"You've drunk {item_name}")
             elif type_of_item == "weapon":
-                if self.player.weapon:
-                    if self.player.weapon.name == item_name:
-                        db.put_on_off_item(self.player.weapon, state=False)
-                        self.player.recount_params()
-                        return
-                    else:
-                        db.put_on_off_item(self.player.weapon, state=False)
+                if self.player.weapon and self.player.weapon.name == item_name:
+                    db.put_on_off_item(self.player.weapon, state=False)
+                    self.player.recount_params()
+                    return
                 db.put_on_off_item(inventory[item_index][0], state=True)
                 print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
             elif type_of_item == "armor":
-                if self.player.armor:
+                if self.player.armor and self.player.armor.name == item_name:
                     db.put_on_off_item(self.player.armor, state=False)
+                    self.player.recount_params()
+                    return
                 db.put_on_off_item(inventory[item_index][0], state=True)
                 print(f"Current armor: {item_name} (defence {inventory[item_index][1].defence})")
             elif type_of_item == "garbage":
