@@ -155,10 +155,10 @@ class Scene:
                         continue
                     else:
                         break
+            print(f'\n1 - {first_location.name} ({first_location.type})\n'
+                  f'2 - {second_location.name} ({second_location.type})')
             next_location = answer_handler(
-                question=f'\n1 - {first_location.name} ({first_location.type})\n'
-                f'2 - {second_location.name} ({second_location.type})\n\n'
-                'Where do you want to go? (0 for cancel) ',
+                question='Where do you want to go? (0 for cancel) ',
                 path=['1', '2'],
                 cancel=['0'])
             if next_location[0] == 'cancel':
@@ -169,11 +169,10 @@ class Scene:
                 self.location = second_location
             del first_location
             del second_location
-            self.turns_in_biome_left = random.randint(1, 3)
+            self.player.set_drunk(-1)
+            self.turns_in_biome_left = random.randint(2, 5)
 
         # mandatory actions after location has been selected
-        if self.player.drunk > 0:
-            self.player.set_drunk(-1)
         if self.location.tavern:
             self.tavern = None
             self.turns_without_tavern = 1
