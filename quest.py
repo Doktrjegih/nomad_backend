@@ -7,7 +7,7 @@ from paths import QUESTS
 def get_current_quests(ignore_plot: bool = False) -> list:
     """
     Reads active quests from pickle file as list of objects
-    :return: list of Enemy objects or None
+    :return: list of Quest objects or None
     """
     try:
         with open(QUESTS, 'rb') as fd:
@@ -18,6 +18,11 @@ def get_current_quests(ignore_plot: bool = False) -> list:
 
 
 def there_are_finished_quests(quests: list) -> bool:
+    """
+    Check if there are any finished quests in the list
+    :param quests: list of Quest objects to be checked
+    :return: True if any quest in the list is finished, False otherwise
+    """
     for quest in quests:
         quest: Quest
         if quest.is_finished:
@@ -26,6 +31,10 @@ def there_are_finished_quests(quests: list) -> bool:
 
 
 def there_is_plot_quest():
+    """
+    Checks if there is a plot-related quest in the current quests list
+    :return: The plot quest if one is found; otherwise, None
+    """
     quests = get_current_quests()
     for quest in quests:
         quest: Quest
@@ -72,7 +81,6 @@ class Quest:
         """
         Removes quest from player's activities, gives reward for mission
         :param quests: list of active player's quests
-        # :param quest: target quest for closing
         :param player: object of Player class
         """
         player.gold += self.reward

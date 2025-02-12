@@ -275,6 +275,10 @@ class Tavern:
         return
 
     def spawn_aleg(self) -> bool:
+        """
+        Spawns Aleg when necessary
+        :return: True if Aleg should be spawned, otherwise False
+        """
         if (quest := there_is_plot_quest()):
             quest: Quest
             if quest.is_finished:

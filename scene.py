@@ -66,6 +66,10 @@ class Scene:
         return options[action - 1]
     
     def get_possible_options(self) -> list[str]:
+        """
+        Generates a list of possible actions based on the current game state
+        :return: list of strings representing possible actions of the player
+        """
         options = []
         if self.state == 'battle':
             options = ['attack', 'run away', 'inventory', 'get status', 'exit game']
@@ -258,7 +262,7 @@ class Scene:
 
     def finish_battle(self, type_: str) -> None:
         """
-        Finishes battle
+        Finishes battle and reduces drunk level after that
         """
         self.enemy = None
         self.state = 'peace'

@@ -18,7 +18,10 @@ class Colors(Enum):
     UNDERLINE = '\033[4m'
 
 
-def start_logger():
+def start_logger() -> None:
+    """
+    Creates a clean file for logger and assign it for the logger
+    """
     try:
         with open(LAST_GAME_LOG, "w", encoding="utf-8") as fd:
             fd.write("")
@@ -27,7 +30,7 @@ def start_logger():
     logging.basicConfig(filename=LAST_GAME_LOG, filemode='a', level=logging.INFO, format='%(message)s')
 
 
-def print(*args):
+def print(*args) -> None:
     """
     A wrapper for logging the game during printing messages
     """
@@ -41,12 +44,18 @@ def color(color: str, text: str) -> str:
     Colors text to entered color and print it
     :param color: color of message
     :param text: message text
+    :return: str painted with specified color
     """
     color_enum = Colors[color.upper()]
     return color_enum.value + text + Colors.ENDC.value
 
 
 def get_effect_color(effect: str) -> str:
+    """
+    Paints effects in console with corresponding colors
+    :param effect: str with effect name
+    :return: str with colored effect
+    """
     if effect == "fire":
         return Colors.RED.value + "fire" + Colors.ENDC.value
     if effect == "cold":

@@ -45,6 +45,12 @@ class Enemy:
 
     @staticmethod
     def get_effects_param(name: str, param: str) -> list:
+        """
+        Retrieves specified effect-related data for a given enemy name
+        :param name: name of the enemy to look up.
+        :param param: parameter (e.g., effects_damage, vulnerabilities) to fetch
+        :return: list of the specified parameter values for the enemy
+        """
         with open(ENEMIES, "r", encoding="utf-8") as fd:
             enemies = loads(fd.read())
         for enemy in enemies:
@@ -53,7 +59,10 @@ class Enemy:
 
     # todo: later need to move all such methods to another class or module
     # ========== enemies' special methods start here ==========
-    def hyena(self):
+    def hyena(self) -> None:
+        """
+        Doubles the attack power when the health is below specific value
+        """
         if self.base_attack:
             self.attack = self.base_attack
         if self.health < 5:
@@ -63,7 +72,10 @@ class Enemy:
                 self.attack *= 2
                 print(f"Special skill has been activated! Enemy attack is {self.attack}")
 
-    def wolf(self):
+    def wolf(self) -> None:
+        """
+        Causes bleeding effect to the player
+        """
         if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
             if random.randint(1, 100) > 25:  # todo: change value
                 self.player_bleeding = 2
@@ -73,7 +85,10 @@ class Enemy:
             self.player_bleeding -= 1
             print(f"You less 2 HP due to {color('red', 'bleeding')}")
 
-    def werewolf(self):
+    def werewolf(self) -> None:
+        """
+        Heals the enemy's health by when it drops below specific value
+        """
         if self.health < 5:
             if not hasattr(self, "healing_activatings"):
                 self.healing_activatings = 2
@@ -81,9 +96,12 @@ class Enemy:
                 return
             self.health += 5
             self.healing_activatings -= 1
-            print(f"Special skill has been activated! Enemy health is {self.health}")        
+            print(f"Special skill has been activated! Enemy health is {self.health}")
 
-    def van_helsing(self):
+    def van_helsing(self) -> None:
+        """
+        Activates a combination of 'Hyena', 'Wolf', and 'Werewolf' abilities
+        """
         self.hyena()
         self.wolf()
         self.werewolf()
@@ -130,8 +148,13 @@ class Enemy:
                 quest.update_quest(quests)
 
     @staticmethod
-    def check_specials(func):
-        def wrapper(self, *args, **kwargs):
+    def check_specials(func: callable) -> callable:
+        """
+        A decorator for applying specials before enemy's attack
+        :param: the function to be decorated
+        :return: The wrapped function after applying pre-execution of specials
+        """
+        def wrapper(self: Enemy, *args: tuple, **kwargs: dict) -> None:
             self.get_specials()
             self.launch_specials()
             func(self, *args, **kwargs)
@@ -179,8 +202,10 @@ class Enemy:
             print(f"You get {value} damage from {get_effect_color(effect_name)}")
         return total_value
 
-    def get_specials(self):
-        # todo: doc
+    def get_specials(self) -> None:
+        """
+        Assigns special abilities to enemies based on their name
+        """
         if self.type == DOGS:
             if self.name == 'Hyena':
                 self.launch_specials = self.hyena
