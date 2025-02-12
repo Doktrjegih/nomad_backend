@@ -11,5 +11,4 @@ ITEMS = Path(JSONS, "items.json")
 
 DB = Path(TEMP_FILES, "sqalch.sqlite")
 QUESTS = Path(TEMP_FILES, "quests.pkl")
-HIGH_SCORES = Path(TEMP_FILES, "high_scores.txt")
 LAST_GAME_LOG = Path(TEMP_FILES, "last_game.log")

@@ -112,7 +112,7 @@ class Tavern:
                     current_orders.append(quest.order.type)
                 order = Enemy(self.player, exclude=current_orders)
             amount = random.randint(2, 5)
-            reward = amount * 5 * self.player.level + (random.randint(2, 10) * self.player.level)
+            reward = amount * 5 + (random.randint(2, 10))  # todo: use smth instead of lvl
             quest = Quest(order=order, amount=amount, reward=reward)
             self.tavern_quest = quest
 
@@ -220,9 +220,9 @@ class Tavern:
         while True:
             print()
             for counter, item in enumerate(items_for_sell, start=1):
-                print(f"{counter} - {item['name']} ({item['cost']} gold)")
+                print(f"{counter} - {item['name']} ({item['cost']} gold coins)")
             print("0 - cancel")
-            answer_amount = answer_handler(question=f'What do you want to buy? (you have {self.player.gold} gold) ',
+            answer_amount = answer_handler(question=f'What do you want to buy? (you have {self.player.gold} gold coins) ',
                                            correct_range=[str(x) for x in range(1, len(items_for_sell) + 1)],
                                            cancel=['0'])
             if answer_amount[0] == 'cancel':
@@ -230,7 +230,7 @@ class Tavern:
 
             chosen_item = items_for_sell[int(answer_amount[1]) - 1]
             if (price := chosen_item["cost"]) > self.player.gold:
-                print("You don't have enough gold for it")
+                print("You don't have enough gold coins for that")
             else:
                 confirm_buying = answer_handler(question=f'\nYou chose {(item_name := chosen_item["name"])}. '
                                                          'Buy it? (yes/no) ',

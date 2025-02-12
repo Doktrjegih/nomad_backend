@@ -1,5 +1,6 @@
 import builtins
 import logging
+import sys
 from enum import Enum
 
 from paths import LAST_GAME_LOG
@@ -73,3 +74,5 @@ def answer_handler(question: str, **kwargs) -> (str, str | int):
             print(color('red', 'Incorrect input'))
         except ValueError:
             print(color('red', 'Incorrect input (value error)'))
+        except KeyboardInterrupt:
+            sys.exit(0)

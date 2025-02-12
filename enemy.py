@@ -1,8 +1,7 @@
-import datetime
 import random
 import sys
 from json import loads
-from paths import ENEMIES, HIGH_SCORES
+from paths import ENEMIES
 
 import db
 from console import color, print, get_effect_color
@@ -13,6 +12,7 @@ from quest import get_current_quests
 HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'}
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
 TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
+
 DEFAULT_PARAMS = {"stage": 1, "hp_factor": 1, "attack": 1, "defence": 1}
 STAGE_2 = {"stage": 2, "hp_factor": 2, "attack": 2, "defence": 2}
 STAGE_3 = {"stage": 3, "hp_factor": 3, "attack": 3, "defence": 3}
@@ -31,12 +31,10 @@ class Enemy:
             self.name = self.type.get(params.get("stage"))
         else:
             self.name = name
-        self.level = self.get_random_level_of_enemy()
-        self.health = 2 * params.get("hp_factor") * self.level
-        # self.strength = 2
-        self.attack = params.get("attack") * self.level
-        self.defence = params.get("defence") * self.level
-        self.agility = random.randint(0, 2) * self.level
+        self.health = 2 * params.get("hp_factor")  # todo: use smth instead of lvl
+        self.attack = params.get("attack")  # todo: use smth instead of lvl
+        self.defence = params.get("defence")  # todo: use smth instead of lvl
+        self.agility = random.randint(0, 2)  # todo: use smth instead of lvl
         self.base_attack = None
         self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
@@ -91,21 +89,11 @@ class Enemy:
         self.werewolf()
     # ========== enemies' special methods end here ==========
 
-    def get_random_level_of_enemy(self) -> int:
-        """
-        Generates random level close to player, but not less than 1
-        :return: int level of enemy
-        """
-        level = self.player.level + random.randint(-2, 1)
-        if level < 1:
-            return 1
-        return level
-
     def show_rivals_stats(self) -> None:
         """
         Shows status of enemy and player
         """
-        print(f'Your enemy is: {color("red", self.name)} ({self.level} level)')
+        print(f'Your enemy is: {color("red", self.name)}')
         print(f'Your health: {self.player.health}')
         print(f'Enemy health: {self.health}')
 
@@ -122,16 +110,15 @@ class Enemy:
         :param enemy: object of Enemy class
         """
         if self.player.drunk > 0:
-            reward = round((total := 50 * self.level) + total * random.uniform(0.03, 0.1))
-            print(f'You get {reward} XP')
-            self.player.gain_scores(reward)
+            reward = random.randint(3, 10)
+            print(f'You get {reward} gold coins')
         if self.boss:
             db.add_item_to_inventory((unique_item := db.get_item_by_name(self.name)).item_id)
             print(f"You get {color('yellow', unique_item.name)}!")
 
     def died(self) -> None:
         """
-        Kills enemy, gets XP, checks if enemy was a quest goal
+        Kills enemy, checks if enemy was a quest goal
         """
         print(f'\n{color("red", self.name)} was killed!')
         self.reward_for_enemy()
@@ -140,8 +127,7 @@ class Enemy:
             return
         for quest in quests:
             if quest.order.name == self.name and quest.current_amount < quest.goal_amount:
-                xp = 100 * self.level if self.player.drunk > 0 else 0
-                quest.update_quest(quests, xp)
+                quest.update_quest(quests)
 
     @staticmethod
     def check_specials(func):
@@ -155,7 +141,7 @@ class Enemy:
     def enemy_attack(self) -> int:
         """
         Enemy's part of turn, damages the player, finishes the game if player's HP is 0
-        :return: int level of damage to player
+        :return: int damage to player
         """
         print(f'{self.name} attacks!')
         attack = self.attack - self.player.defence
@@ -207,16 +193,9 @@ class Enemy:
 
     def game_over(self) -> None:
         """
-        Finishes the game and writes Player.total_scores to file with datetime
+        Finishes the game
         """
-        print('Your HP is 0')
-        print('GAME OVER!')
-        print('Total scores =', self.player.scores)
-        self.player.enter_name()
-        input('Click Enter to exit...')
-        with open(HIGH_SCORES, 'a', encoding='utf-8') as fd:
-            fd.write(f'{self.player.name} - {self.player.scores} '
-                     f'({datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})\n')
+        print('Your HP is 0\nGAME OVER!')
         sys.exit(0)
 
 
@@ -226,9 +205,8 @@ class Boss(Enemy):
 
         self.name = self.type.get(5)
         self.health = int(self.health * 5)
-        self.strength = self.level * 3
-        self.defence = self.strength + random.randint(2, 6)
-        self.attack = self.strength + random.randint(2, 6)
+        self.defence = random.randint(2, 6) * 3
+        self.attack = random.randint(2, 6) * 3
         self.boss = True
 
 

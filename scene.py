@@ -327,7 +327,7 @@ class Scene:
                     current_orders.append(quest.order.type)
                 order = enemy_for_npc_quest(self.player, exclude=current_orders)
             amount = random.randint(2, 5)
-            reward = amount * 5 * self.player.level + (random.randint(2, 10) * self.player.level)
+            reward = amount * 5 + random.randint(2, 10)  # todo: use smth instead of lvl
             quest = Quest(order=order, amount=amount, reward=reward)
             self.npc_quest = quest
             if self.state != 'npc':

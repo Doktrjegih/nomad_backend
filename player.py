@@ -18,13 +18,8 @@ class Player:
         self.strength = 1  # influences attack
         self.agility = 1  # influences attack + side-roll
         self.luck = 1  # increases rewards and chances to get good loot
-        self.level = 1
-        self.scores = 0
-        self.total_scores = 0
         self.gold = 0
         self.drunk = 0
-        self.available_stats_point = 0
-        self.next_level = 1000
         self.inventory = []
         self.weapon = None
         self.armor = None
@@ -70,10 +65,7 @@ class Player:
         print('Strength:', self.strength)
         print('Agility:', self.agility)
         print('Luck:', self.luck)
-        print('Level:', self.level)
-        print('Scores:', self.scores, f'(next level {self.next_level})')
-        print('Total scores:', self.total_scores)
-        print('Gold:', self.gold)
+        print('Gold coins:', self.gold)
 
         print('Active quests:')
         with open(QUESTS, 'rb') as fd:
@@ -96,21 +88,6 @@ class Player:
         drunk = '▇' * (self.drunk // 10) + ' ' * ((100 - self.drunk) // 10)
         return f'[{drunk}] ({self.drunk})'
 
-    def gain_scores(self, scores: int) -> None:
-        """
-        Gives scores to player and counts current player's level.
-        Adds stats points each new level
-        """
-        old_level = self.level
-
-        self.scores += scores
-        self.total_scores += scores
-        self.recount_params()
-        new_level = self.level
-        if difference := new_level - old_level == 1:
-            print(color('green', 'NEW LEVEL!'))
-            self.available_stats_point += difference
-
     def set_drunk(self, drunk: int) -> None:
         """
         Set drunk level, counts current player attack and defence
@@ -123,7 +100,7 @@ class Player:
             self.drunk = 0
         self.recount_params()
 
-    def improve_stats(self) -> None:
+    def improve_stats(self) -> None:  # todo: add to dialog w/ Aleg
         """
         USER ACTION
         Lets to spend available stats points
@@ -133,31 +110,29 @@ class Player:
             attr = getattr(self, param)  # also there is a dirty hack: exec(f'self.{param} += 1')
             setattr(self, param, attr + 1)
             print(f'{param.capitalize()} has been increased! Current value: {getattr(self, param)}')
-            self.available_stats_point -= 1
             self.recount_params()
 
-        print('Available stats points:', self.available_stats_point)
-        while True:
-            answer = answer_handler(
-                question='\nDo you want to distribute stats points? (yes/no) ',
-                yes=['y', 'yes', '1'],
-                no=['n', 'no', '2'])
-            if answer[0] == 'no':
-                return
-            answer2 = answer_handler(
-                question='Which one do you want to increase? ',
-                yes=['y', 'yes', '1'],
-                cancel=['0'])
-            if answer[0] == 'cancel':
-                return
-            if answer2 == '1':
-                apply_changes('endurance')
-            elif answer2 == '2':
-                apply_changes('strength')
-            elif answer2 == '3':
-                apply_changes('agility')
-            elif answer2 == '4':
-                apply_changes('luck')
+        answer = answer_handler(
+            question='Do you want to distribute stats points? (yes/no) ',
+            yes=['y', 'yes', '1'],
+            no=['n', 'no', '2'])
+        if answer[0] == 'no':
+            return
+        print(STATS)
+        answer2 = answer_handler(
+            question=f'Which one do you want to increase? ',
+            skills=['1', '2', '3', '4'],
+            cancel=['0'])
+        if answer2[0] == 'cancel':
+            return
+        if answer2[1] == '1':
+            apply_changes('endurance')
+        elif answer2[1] == '2':
+            apply_changes('strength')
+        elif answer2[1] == '3':
+            apply_changes('agility')
+        elif answer2[1] == '4':
+            apply_changes('luck')
 
     def recount_params(self) -> None:
         """
@@ -189,11 +164,3 @@ class Player:
             (self.weapon.attack if self.weapon else 0) if self.drunk > 0 else 0)
         self.defence = self.strength + (self.drunk // 10) + (
             (self.armor.defence if self.armor else 0) if self.drunk > 0 else 0)
-
-        if self.scores >= self.next_level:
-            to_next_level = self.scores - self.next_level
-            self.level += 1
-            self.scores = to_next_level
-            self.next_level = int(self.next_level * 1.2)
-            if self.scores > self.next_level:  # todo: for debug
-                print(color('red', 'Sanya, look! More than 1 level per time'))
