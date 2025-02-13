@@ -1,5 +1,6 @@
 import json
 import random
+import sys
 
 import db
 from console import print, color, answer_handler
@@ -245,25 +246,41 @@ class Tavern:
     def aleg_dialog(self) -> None:
         """
         USER ACTION
-        Shows menu within meeting NPC
+        Shows menu within meeting Aleg (plot quests)
         """
-        if not self.reaction:
-            print(color('green', '\nHello there!'))
-            self.reaction = True
-        else:
-            print("\nYou're sitting across from Aleg")
+        print("\nYou're sitting across from Aleg")
         print('Drunk level:', self.player.get_condition())
-        if not there_is_plot_quest():
-            print("I have a quest for you:")
-            with open(PLOT_QUESTS, "r", encoding="utf-8") as fd:
-                json_quests = json.loads(fd.read())
-                for json_quest in json_quests:
-                    if json_quest["id"] == self.player.plot_stage:
-                        order = Enemy(self.player, random_enemy=False, name=json_quest["target"])
-                        quest = Quest(order=order, amount=json_quest["amount"], is_plot=True)
-                        print(json_quest["description"])
-                        print(f"You need kill {color('red', order.name)} {json_quest['amount']} times")
-                        break
+
+        if not self.reaction:
+            print(color('green', 'Hello there!'))
+            self.reaction = True
+
+        # checking quest's state if there is one
+        if there_is_plot_quest():
+            quests = get_current_quests()
+            for quest in quests:
+                if quest.plot_quest and quest.is_finished:
+                    print("Oh, nice work! I see you've done well")
+                    self.player.plot_stage += 1
+                    quest.close_quest(quests=quests, player=self.player)
+                    if self.player.plot_stage > 3:  # todo: total plot quests + 1
+                        print("You've done all the quests, see you in the hometown next time")
+                        sys.exit(0)
+                else:
+                    print("Come back when you've finished")
+                    return
+
+        # if there is no active quest
+        with open(PLOT_QUESTS, "r", encoding="utf-8") as fd:
+            json_quests = json.loads(fd.read())
+            for json_quest in json_quests:
+                if json_quest["id"] == self.player.plot_stage:
+                    print("I have a quest for you:")
+                    order = Enemy(self.player, random_enemy=False, name=json_quest["target"])
+                    quest = Quest(order=order, amount=json_quest["amount"], is_plot=True)
+                    print(json_quest["description"])
+                    print(f"You need kill {color('red', order.name)} {json_quest['amount']} times")
+                    break
         answer = answer_handler(
             question=f'Are you accept? (yes/no) ',
             yes=['y', 'yes', '1'],
@@ -279,10 +296,11 @@ class Tavern:
         Spawns Aleg when necessary
         :return: True if Aleg should be spawned, otherwise False
         """
-        if (quest := there_is_plot_quest()):
-            quest: Quest
-            if quest.is_finished:
-                return True
+        if there_is_plot_quest():
+            quests = get_current_quests()
+            for quest in quests:
+                if quest.plot_quest and quest.is_finished:
+                    return True
         if self.scene.location.name == 'hometown':
             return True
         if random.randint(1, 3) == 3:

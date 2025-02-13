@@ -30,17 +30,17 @@ def there_are_finished_quests(quests: list) -> bool:
     return False
 
 
-def there_is_plot_quest():
+def there_is_plot_quest() -> bool:
     """
     Checks if there is a plot-related quest in the current quests list
-    :return: The plot quest if one is found; otherwise, None
+    :return: True if there is plot quest; otherwise, Falsex
     """
     quests = get_current_quests()
     for quest in quests:
         quest: Quest
         if quest.plot_quest:
-            return quest
-    return None
+            return True
+    return False
 
 
 class Quest:
@@ -87,4 +87,5 @@ class Quest:
         quests.remove(self)
         with open(QUESTS, 'wb') as fd:
             pickle.dump(quests, fd)
-        print(f"\nThanks! Your reward is: {self.reward} gold coins")
+        if not self.plot_quest:
+            print(f"\nThanks! Your reward is: {self.reward} gold coins")

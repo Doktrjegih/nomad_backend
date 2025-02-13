@@ -65,6 +65,7 @@ class Player:
             if quest.plot_quest:
                 is_plot = " [Plot quest]"
             print('*', quest.order.name, '-', quest.goal_amount, f'({quest.goal_amount - quest.current_amount} left){is_plot}')
+            is_plot = ""
 
     def get_condition(self) -> str:
         """

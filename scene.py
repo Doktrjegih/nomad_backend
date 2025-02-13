@@ -115,7 +115,7 @@ class Scene:
         elif action == "check a chest":
             self.items.get_chest_item()
             self.location.chest = False
-        elif action == 'inventory':
+        elif action == "inventory":
             self.items.show_inventory()
         elif action == "get status":
             self.player.show_player_info()

@@ -154,7 +154,7 @@ class Enemy:
         :param: the function to be decorated
         :return: The wrapped function after applying pre-execution of specials
         """
-        def wrapper(self: Enemy, *args: tuple, **kwargs: dict) -> None:
+        def wrapper(self, *args: tuple, **kwargs: dict) -> None:
             self.get_specials()
             self.launch_specials()
             func(self, *args, **kwargs)
