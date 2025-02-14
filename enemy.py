@@ -20,7 +20,13 @@ STAGE_4 = {"stage": 4, "hp_factor": 4, "attack": 4, "defence": 4}
 
 
 class Enemy:
-    def __init__(self, player: Player, random_enemy: bool = True, name: str = "", exclude: list[dict] | None = None, params: dict = DEFAULT_PARAMS) -> None:
+    # todo: remove stupid dict types at all
+    def __init__(self, player: Player,
+                 random_enemy: bool = True,
+                 name: str = "",
+                 exclude: list[dict] | None = None,
+                 params: dict = DEFAULT_PARAMS,
+                 type_: dict = None) -> None:
         self.player = player
         if random_enemy:
             types = [HUMANS, DOGS, TEST]
@@ -30,6 +36,7 @@ class Enemy:
             self.type = random.choice(types)
             self.name = self.type.get(params.get("stage"))
         else:
+            self.type = type_
             self.name = name
         self.health = 2 * params.get("hp_factor")  # todo: use smth instead of lvl
         self.attack = params.get("attack")  # todo: use smth instead of lvl
@@ -225,8 +232,8 @@ class Enemy:
 
 
 class Boss(Enemy):
-    def __init__(self, player: Player, exclude: list[dict] | None = None) -> None:
-        super().__init__(player, exclude)
+    def __init__(self, player: Player, type_: dict) -> None:
+        super().__init__(player=player, random_enemy=False, type_=type_)
 
         self.name = self.type.get(5)
         self.health = int(self.health * 5)
@@ -242,6 +249,8 @@ def generate_enemy(player: Player) -> Enemy:
     :return: object of Enemy class
     """
     rand = random.randint(1, 100)
+    if player.plot_stage == 3:  # todo: magic number
+        return Boss(player, type_=DOGS)
     if player.drunk < 26:
         return Enemy(player)
     elif player.drunk < 51:

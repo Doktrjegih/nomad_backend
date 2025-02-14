@@ -4,7 +4,7 @@ import sys
 
 import db
 from console import print, color, answer_handler
-from enemy import Enemy
+from enemy import Enemy, Boss, DOGS  # todo: remove dict types
 from items import Items, ALWAYS_SHOWED
 from paths import PLOT_QUESTS
 from player import Player
@@ -89,7 +89,6 @@ class Tavern:
         """
         # check if there are finished quests
         quests = get_current_quests()
-        # if quests:  # todo: check on the finished quest
         for quest in quests:
             quest: Quest
             if not quest.plot_quest and quest.is_finished:
@@ -276,10 +275,15 @@ class Tavern:
             for json_quest in json_quests:
                 if json_quest["id"] == self.player.plot_stage:
                     print("I have a quest for you:")
-                    order = Enemy(self.player, random_enemy=False, name=json_quest["target"])
+                    if json_quest.get("boss"):
+                        order = Boss(self.player, type_=DOGS)
+                        print(f"Well, it's time. I have a tough one for you, {json_quest['target']}")
+                        print(f"You need to finish him")
+                    else:
+                        order = Enemy(self.player, random_enemy=False, name=json_quest["target"])
+                        print(json_quest["description"])
+                        print(f"You need kill {color('red', order.name)} {json_quest['amount']} times")
                     quest = Quest(order=order, amount=json_quest["amount"], is_plot=True)
-                    print(json_quest["description"])
-                    print(f"You need kill {color('red', order.name)} {json_quest['amount']} times")
                     break
         answer = answer_handler(
             question=f'Are you accept? (yes/no) ',
