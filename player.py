@@ -4,7 +4,11 @@ import db
 from console import color, print, answer_handler
 from paths import QUESTS
 
-STATS = "\n1 - endurance\n2 - strength\n3 - agility\n4 - luck\n0 - cancel"
+STATS = ("\n1 - beer (endurance)\n"
+          "2 - vodka (strength)\n"
+          "3 - whiskey (agility)\n"
+          "4 - rum (luck)\n"
+          "0 - cancel")
 
 
 class Player:
@@ -24,6 +28,7 @@ class Player:
         self.weapon = None
         self.armor = None
         self.plot_stage = 1
+        self.aleg_drinks = 0
 
     def show_player_info(self) -> None:
         """
@@ -87,7 +92,7 @@ class Player:
             self.drunk = 0
         self.recount_params()
 
-    def improve_stats(self) -> None:  # todo: add to dialog w/ Aleg
+    def improve_stats(self) -> None:
         """
         USER ACTION
         Lets to spend available stats points
@@ -96,30 +101,33 @@ class Player:
         def apply_changes(param: str) -> None:
             attr = getattr(self, param)  # also there is a dirty hack: exec(f'self.{param} += 1')
             setattr(self, param, attr + 1)
-            print(f'{param.capitalize()} has been increased! Current value: {getattr(self, param)}')
+            print(f"{param.capitalize()} has been increased! Current value: {getattr(self, param)}\n")
+            self.aleg_drinks += 1
             self.recount_params()
 
         answer = answer_handler(
-            question='Do you want to distribute stats points? (yes/no) ',
-            yes=['y', 'yes', '1'],
-            no=['n', 'no', '2'])
-        if answer[0] == 'no':
+            question="Wanna drink with me? (yes/no) ",
+            yes=["y", "yes", "1"],
+            no=["n", "no", "2"])
+        if answer[0] == "no":
+            print("As you wish...\n")
             return
         print(STATS)
         answer2 = answer_handler(
-            question=f'Which one do you want to increase? ',
-            skills=['1', '2', '3', '4'],
-            cancel=['0'])
-        if answer2[0] == 'cancel':
+            question="What you want to drink? (0 for cancel) ",
+            skills=["1", "2", "3", "4"],
+            cancel=["0"])
+        if answer2[0] == "cancel":
+            print("As you wish...\n")
             return
-        if answer2[1] == '1':
-            apply_changes('endurance')
-        elif answer2[1] == '2':
-            apply_changes('strength')
-        elif answer2[1] == '3':
-            apply_changes('agility')
-        elif answer2[1] == '4':
-            apply_changes('luck')
+        if answer2[1] == "1":
+            apply_changes("endurance")
+        elif answer2[1] == "2":
+            apply_changes("strength")
+        elif answer2[1] == "3":
+            apply_changes("agility")
+        elif answer2[1] == "4":
+            apply_changes("luck")
 
     def recount_params(self) -> None:
         """

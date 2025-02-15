@@ -183,7 +183,10 @@ class Enemy:
         self.player.recount_params()
         if self.player.health <= 0:
             if self.boss and self.name == "Aleg":
-                self.bad_ending_true()
+                if self.player.aleg_drinks > 3:
+                    self.bad_ending_false()
+                else:
+                    self.bad_ending_true()
             self.game_over()
         return attack
 
@@ -227,7 +230,7 @@ class Enemy:
 
     def good_ending(self) -> None:
         """
-        Finishes the game if player has drunk with Aleg less or equal to 3 times
+        Finishes the game if player has drunk with Aleg less or equal to 3 times and won
         """
         print(f"You defeated {color('red', self.name)}!")
         print("(add text) Everyone is happy! You win! :)")
@@ -235,10 +238,19 @@ class Enemy:
 
     def bad_ending_true(self) -> None:
         """
-        Finishes the game if player has drunk with Aleg MORE than 3 times
+        Finishes the game if player has drunk with Aleg less or equal to 3 times,
+        but lost the last fight
         """
         print(f"You've been defeated by {color('red', self.name)}...")
         print("(add text) Everyone is sad! You lose! :(")
+        sys.exit(0)
+
+    def bad_ending_false(self) -> None:
+        """
+        Finishes the game if player has drunk with Aleg MORE than 3 times
+        """
+        print(f"You've been defeated by {color('red', self.name)}...")
+        print("(add text) Your soul has been absorbed by Aleg")
         sys.exit(0)
 
     def game_over(self) -> None:
@@ -268,10 +280,11 @@ def generate_enemy(player: Player) -> Enemy:
     """
     rand = random.randint(1, 100)
     for quest in get_current_quests():
-        if quest.order.boss and rand > 75 and quest.order.name != "Some shit":
-            return Boss(player, name=quest.order.name)
-        else:
-            return Boss(player, name="Aleg")
+        if quest.order.boss and rand > 75:
+            if quest.order.name == "Some shit":
+                return Boss(player, name="Aleg")
+            else:
+                return Boss(player, name=quest.order.name)
     if player.drunk < 26:
         return Enemy(player)
     elif player.drunk < 51:

@@ -1,6 +1,5 @@
 import json
 import random
-import sys
 
 import db
 from console import print, color, answer_handler
@@ -248,10 +247,10 @@ class Tavern:
         Shows menu within meeting Aleg (plot quests)
         """
         print("\nYou're sitting across from Aleg")
-        print('Drunk level:', self.player.get_condition())
+        print("Drunk level:", self.player.get_condition())
 
         if not self.reaction:
-            print(color('green', 'Hello there!'))
+            print(color("green", "Hello there!"))
             self.reaction = True
 
         # checking quest's state if there is one
@@ -262,6 +261,7 @@ class Tavern:
                     print("Oh, nice work! I see you've done well")
                     self.player.plot_stage += 1
                     quest.close_quest(quests=quests, player=self.player)
+                    self.player.improve_stats()
                 else:
                     print("Come back when you've finished")
                     return
@@ -283,12 +283,12 @@ class Tavern:
                     quest = Quest(order=order, amount=json_quest["amount"], is_plot=True)
                     break
         answer = answer_handler(
-            question=f'Are you accept? (yes/no) ',
-            yes=['y', 'yes', '1'],
-            no=['n', 'no', '2'])
-        if answer[0] == 'no':
+            question="Are you accept? (yes/no) ",
+            yes=["y", "yes", "1"],
+            no=["n", "no", "2"])
+        if answer[0] == "no":
             return
-        print('Quest has been taken')
+        print("Quest has been taken")
         quest.add_to_list()
         return
 
@@ -302,7 +302,7 @@ class Tavern:
             for quest in quests:
                 if quest.plot_quest and quest.is_finished:
                     return True
-        if self.scene.location.name == 'hometown':
+        if self.scene.location.name == "hometown":
             return True
         if random.randint(1, 3) == 3:
             return True
