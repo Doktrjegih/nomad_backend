@@ -24,19 +24,18 @@ class Enemy:
     def __init__(self, player: Player,
                  random_enemy: bool = True,
                  name: str = "",
-                 exclude: list[dict] | None = None,
-                 params: dict = DEFAULT_PARAMS,
-                 type_: dict = None) -> None:
+                 exclude: list[str] | None = None,
+                 params: dict = DEFAULT_PARAMS) -> None:
         self.player = player
         if random_enemy:
-            types = [HUMANS, DOGS, TEST]
-            if exclude:
-                for type_ in exclude:
-                    types.remove(type_)
-            self.type = random.choice(types)
-            self.name = self.type.get(params.get("stage"))
+            while True:
+                type_ = random.choice([HUMANS, DOGS, TEST])
+                self.name = type_.get(params.get("stage"))
+                if exclude and self.name in exclude:
+                    continue
+                else:
+                    break
         else:
-            self.type = type_
             self.name = name
         self.health = 2 * params.get("hp_factor")  # todo: use smth instead of lvl
         self.attack = params.get("attack")  # todo: use smth instead of lvl
@@ -145,6 +144,8 @@ class Enemy:
         """
         Kills enemy, checks if enemy was a quest goal
         """
+        if self.boss and self.name == "Aleg":
+            self.good_ending()
         print(f'\n{color("red", self.name)} was killed!')
         self.reward_for_enemy()
         quests = get_current_quests()
@@ -181,6 +182,8 @@ class Enemy:
         self.player.health -= attack
         self.player.recount_params()
         if self.player.health <= 0:
+            if self.boss and self.name == "Aleg":
+                self.bad_ending_true()
             self.game_over()
         return attack
 
@@ -213,15 +216,30 @@ class Enemy:
         """
         Assigns special abilities to enemies based on their name
         """
-        if self.type == DOGS:
-            if self.name == 'Hyena':
-                self.launch_specials = self.hyena
-            if self.name == 'Wolf':
-                self.launch_specials = self.wolf
-            if self.name == 'Werewolf':
-                self.launch_specials = self.werewolf
-            if self.name == 'Van Helsing':
-                self.launch_specials = self.van_helsing
+        if self.name == 'Hyena':
+            self.launch_specials = self.hyena
+        if self.name == 'Wolf':
+            self.launch_specials = self.wolf
+        if self.name == 'Werewolf':
+            self.launch_specials = self.werewolf
+        if self.name == 'Van Helsing':
+            self.launch_specials = self.van_helsing
+
+    def good_ending(self) -> None:
+        """
+        Finishes the game if player has drunk with Aleg less or equal to 3 times
+        """
+        print(f"You defeated {color('red', self.name)}!")
+        print("(add text) Everyone is happy! You win! :)")
+        sys.exit(0)
+
+    def bad_ending_true(self) -> None:
+        """
+        Finishes the game if player has drunk with Aleg MORE than 3 times
+        """
+        print(f"You've been defeated by {color('red', self.name)}...")
+        print("(add text) Everyone is sad! You lose! :(")
+        sys.exit(0)
 
     def game_over(self) -> None:
         """
@@ -232,10 +250,10 @@ class Enemy:
 
 
 class Boss(Enemy):
-    def __init__(self, player: Player, type_: dict) -> None:
-        super().__init__(player=player, random_enemy=False, type_=type_)
+    def __init__(self, player: Player, name: str) -> None:
+        super().__init__(player=player, random_enemy=False)
 
-        self.name = self.type.get(5)
+        self.name = name
         self.health = int(self.health * 5)
         self.defence = random.randint(2, 6) * 3
         self.attack = random.randint(2, 6) * 3
@@ -249,8 +267,11 @@ def generate_enemy(player: Player) -> Enemy:
     :return: object of Enemy class
     """
     rand = random.randint(1, 100)
-    if player.plot_stage == 3:  # todo: magic number
-        return Boss(player, type_=DOGS)
+    for quest in get_current_quests():
+        if quest.order.boss and rand > 75 and quest.order.name != "Some shit":
+            return Boss(player, name=quest.order.name)
+        else:
+            return Boss(player, name="Aleg")
     if player.drunk < 26:
         return Enemy(player)
     elif player.drunk < 51:
@@ -273,7 +294,7 @@ def generate_enemy(player: Player) -> Enemy:
         return Enemy(player, params=STAGE_4)
 
 
-def enemy_for_npc_quest(player: Player, exclude: list[dict] | None = None) -> Enemy:
+def enemy_for_npc_quest(player: Player, exclude: list[str] | None = None) -> Enemy:
     """
     Generates enemy for NPC quest according to current player drunk state
     :param player: object of Player class

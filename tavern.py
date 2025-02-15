@@ -109,7 +109,7 @@ class Tavern:
             else:
                 current_orders = []
                 for quest in quests:
-                    current_orders.append(quest.order.type)
+                    current_orders.append(quest.order.name)
                 order = Enemy(self.player, exclude=current_orders)
             amount = random.randint(2, 5)
             reward = amount * 5 + (random.randint(2, 10))  # todo: use smth instead of lvl
@@ -262,9 +262,6 @@ class Tavern:
                     print("Oh, nice work! I see you've done well")
                     self.player.plot_stage += 1
                     quest.close_quest(quests=quests, player=self.player)
-                    if self.player.plot_stage > 3:  # todo: total plot quests + 1
-                        print("You've done all the quests, see you in the hometown next time")
-                        sys.exit(0)
                 else:
                     print("Come back when you've finished")
                     return
@@ -276,8 +273,8 @@ class Tavern:
                 if json_quest["id"] == self.player.plot_stage:
                     print("I have a quest for you:")
                     if json_quest.get("boss"):
-                        order = Boss(self.player, type_=DOGS)
-                        print(f"Well, it's time. I have a tough one for you, {json_quest['target']}")
+                        order = Boss(self.player, name=json_quest["target"])
+                        print(f"Well, it's time. I have a tough one for you, {color('red', order.name)}")
                         print(f"You need to finish him")
                     else:
                         order = Enemy(self.player, random_enemy=False, name=json_quest["target"])

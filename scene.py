@@ -1,4 +1,5 @@
 import random
+from itertools import chain
 from json import loads
 
 import db
@@ -10,7 +11,11 @@ from player import Player
 from quest import Quest, get_current_quests
 from tavern import Tavern
 
-ENEMY_TO_LOCATION = {"mountains": [HUMANS, TEST], "forest": [DOGS], "cave": [HUMANS, DOGS]}
+ENEMY_TO_LOCATION = {
+    "mountains": list(chain(HUMANS.values(), TEST.values())),
+    "forest": list(DOGS.values()),
+    "cave": list(chain(HUMANS.values(), DOGS.values()))
+}
 
 
 class Scene:
@@ -186,9 +191,11 @@ class Scene:
         # switching the scene
         if self.location.enemies:
             self.state = 'battle'
+            possible_enemies = ENEMY_TO_LOCATION[self.location.name]
+            possible_enemies.append("Aleg")
             while True:
                 self.enemy = generate_enemy(self.player)
-                if self.enemy.type not in ENEMY_TO_LOCATION[self.location.name]:
+                if self.enemy.name not in possible_enemies:
                     continue
                 else:
                     break
@@ -327,7 +334,7 @@ class Scene:
             else:
                 current_orders = []
                 for quest in quests:
-                    current_orders.append(quest.order.type)
+                    current_orders.append(quest.order.name)
                 order = enemy_for_npc_quest(self.player, exclude=current_orders)
             amount = random.randint(2, 5)
             reward = amount * 5 + random.randint(2, 10)  # todo: use smth instead of lvl
