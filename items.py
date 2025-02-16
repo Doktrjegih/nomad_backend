@@ -4,7 +4,7 @@ import db
 from console import print, answer_handler, color
 from player import Player
 
-ALWAYS_SHOWED = ['food', 'alcohol', 'garbage']
+ALWAYS_SHOWED = ["food", "alcohol", "garbage", "loot"]
 
 
 class Items:
@@ -97,7 +97,7 @@ class Items:
         """
         Gives random item from chest to player
         """
-        item = random.choice([x for x in db.get_all_items() if not x.boss])
+        item = random.choice([x for x in db.get_all_items() if not x.boss and x.type_ != "loot"])
         if item.type_ in ALWAYS_SHOWED:
             print(f"You've found {item.name}")
             db.add_item_to_inventory(item.item_id)

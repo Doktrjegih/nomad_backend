@@ -55,5 +55,25 @@
         "damage": 1
       }
     ]
+  },
+  {
+    "id": 7,
+    "name": "Dog's hide",
+    "type": "loot",
+    "enemies": [
+      "Wet dog",
+      "Hyena",
+      "Wolf"
+    ],
+    "cost": 8
+  },
+    {
+    "id": 8,
+    "name": "Golded tooth",
+    "type": "loot",
+    "enemies": [
+      "Bandit"
+    ],
+    "cost": 15
   }
 ]

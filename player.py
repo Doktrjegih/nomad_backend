@@ -114,7 +114,7 @@ class Player:
             return
         print(STATS)
         answer2 = answer_handler(
-            question="What you want to drink? (0 for cancel) ",
+            question="What do you want to drink? (0 for cancel) ",
             skills=["1", "2", "3", "4"],
             cancel=["0"])
         if answer2[0] == "cancel":

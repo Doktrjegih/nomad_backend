@@ -78,7 +78,7 @@ def answer_handler(question: str, **kwargs) -> (str, str | int):
         try:
             answer = input(question).lower()
             for group, conditional in kwargs.items():
-                if answer in conditional:
+                if answer.strip() in conditional:
                     return group, answer
             print(color('red', 'Incorrect input'))
         except ValueError:

@@ -133,9 +133,21 @@ class Enemy:
         Gives reward for killed enemy
         :param enemy: object of Enemy class
         """
-        if self.player.drunk > 0:
+        def drop_rate():
+            rand = random.randint(1, 100)
+            if rand > 90:
+                return 3
+            elif rand > 70:
+                return 2
+            else:
+                return 1
+
+        if self.name not in list(DOGS.values()):  # todo: make expendable
             reward = random.randint(3, 10)
             print(f'You get {reward} gold coins')
+        if (items := db.get_enemy_loot(self.name)) and random.randint(1, 10) > 3:
+            db.add_item_to_inventory((item := random.choice(items)).item_id, amount=(pieces := drop_rate()))
+            print(f"You get {color('yellow', item.name)} ({pieces})")
         if self.boss:
             db.add_item_to_inventory((unique_item := db.get_item_by_name(self.name)).item_id)
             print(f"You get {color('yellow', unique_item.name)}!")

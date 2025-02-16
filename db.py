@@ -22,8 +22,9 @@ class Items(base):
     boss = Column(String)
     cost = Column(Integer)
     effects = Column(Text)
+    enemies = Column(Text)
 
-    def __init__(self, item_id, name, type_, cost, attack, defence, boss, effects):
+    def __init__(self, item_id, name, type_, cost, attack, defence, boss, effects, enemies):
         self.item_id = item_id
         self.name = name
         self.type_ = type_
@@ -32,6 +33,7 @@ class Items(base):
         self.cost = cost
         self.boss = boss
         self.effects = effects
+        self.enemies = enemies
 
 
 class Inventory(base):
@@ -78,8 +80,10 @@ def add_item_to_game(data: dict) -> None:
     boss = data.get("boss")
     cost = data["cost"]
     effects = dumps(data.get("effects"))
+    enemies = dumps(data.get("enemies"))
 
-    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence, boss=boss, cost=cost, effects=effects)
+    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence,
+               boss=boss, cost=cost, effects=effects, enemies=enemies)
     session.add(tr)
     session.commit()
 
@@ -147,3 +151,11 @@ def put_on_off_item(item: Inventory, state: bool) -> None:
     item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
     item.used = state
     session.commit()
+
+
+def get_enemy_loot(enemy: str) -> list:
+    """
+    :return: list of loot items from the enemy
+    """
+    all_loot = session.query(Items).filter(Items.type_ == "loot").all()
+    return [x for x in all_loot if enemy in x.enemies]
