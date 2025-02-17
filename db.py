@@ -96,7 +96,7 @@ def add_item_to_inventory(item_id: int, amount: int = 1) -> None:
     """
     item = session.query(Inventory).filter(Inventory.item_id == item_id).first()
     if item:
-        item.amount += 1
+        item.amount += amount
     else:
         tr = Inventory(item_id=item_id, amount=amount, used=False)
         session.add(tr)

@@ -3,8 +3,8 @@ import random
 
 import db
 from console import print, color, answer_handler
-from enemy import Enemy, Boss, DOGS  # todo: remove dict types
-from items import Items, ALWAYS_SHOWED
+from enemy import Enemy, Boss
+from items import Items
 from paths import PLOT_QUESTS
 from player import Player
 from quest import Quest, get_current_quests, there_is_plot_quest
@@ -92,7 +92,7 @@ class Tavern:
             quest: Quest
             if not quest.plot_quest and quest.is_finished:
                 quest.close_quest(quests, self.player)
-                db.add_item_to_inventory(1)
+                db.add_item_to_inventory(1)  # todo: hardcode
 
         # check if max value of current quests
         quests = get_current_quests(ignore_plot=True)
@@ -169,7 +169,7 @@ class Tavern:
             return
 
         # showing of items
-        inventory = [x for x in inventory if x[1].type_ not in ALWAYS_SHOWED]
+        inventory = [x for x in inventory if x[1].type_ not in ["food", "alcohol"]]
         if not inventory:
             print('[Nothing to sell]')
             return

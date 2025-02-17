@@ -89,7 +89,7 @@ class Scene:
         elif self.state == 'tavern':
             options = ['go out', 'take a beer', 'take a steak', 'talk with Aleg', 'merchant', 'check quests', 'inventory', 'get status',
                        'exit game']
-            if not self.tavern.merchant or self.player.drunk < 25:
+            if not self.tavern.merchant:
                 options.remove('merchant')
             if not self.tavern.aleg:
                 options.remove('talk with Aleg')
@@ -299,7 +299,7 @@ class Scene:
                     self.check_npc_quests(quests)
                     return
                 elif self.player.drunk < 25 and random.randint(1, 10) > 6:
-                    db.add_item_to_inventory(1)
+                    db.add_item_to_inventory(1)  # todo: hardcode
                     print("I see you need a drink, take it")
                     print("You've gotten Beer bottle")
                     self.state = 'peace'
