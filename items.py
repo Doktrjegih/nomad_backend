@@ -49,14 +49,22 @@ class Items:
                     db.put_on_off_item(self.player.weapon, state=False)
                     self.player.recount_params()
                     return
-                db.put_on_off_item(inventory[item_index][0], state=True)
+                elif self.player.weapon:
+                    db.put_on_off_item(self.player.weapon, state=False)
+                    db.put_on_off_item(inventory[item_index][0], state=True)
+                else:
+                    db.put_on_off_item(inventory[item_index][0], state=True)
                 print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
             elif type_of_item == "armor":
                 if self.player.armor and self.player.armor.name == item_name:
                     db.put_on_off_item(self.player.armor, state=False)
                     self.player.recount_params()
                     return
-                db.put_on_off_item(inventory[item_index][0], state=True)
+                elif self.player.armor:
+                    db.put_on_off_item(self.player.armor, state=False)
+                    db.put_on_off_item(inventory[item_index][0], state=True)
+                else:
+                    db.put_on_off_item(inventory[item_index][0], state=True)
                 print(f"Current armor: {item_name} (defence {inventory[item_index][1].defence})")
             elif type_of_item == "garbage":
                 print(f"You can't use {item_name}, but you will be able to sell it sometime")
