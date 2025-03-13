@@ -4,7 +4,7 @@ from json import loads
 from paths import ENEMIES
 
 import db
-from console import color, print, get_effect_color
+from console import color, print, get_effect_color, ExitException
 from player import Player
 from quest import get_current_quests
 
@@ -37,11 +37,9 @@ class Enemy:
                     break
         else:
             self.name = name
-        self.health = 2 * params.get("hp_factor")  # todo: use smth instead of lvl
+        self.health = self.player.max_hp + params.get("hp_factor") * 2  # todo: use smth instead of lvl
         self.attack = params.get("attack")  # todo: use smth instead of lvl
         self.defence = params.get("defence")  # todo: use smth instead of lvl
-        self.agility = random.randint(0, 2)  # todo: use smth instead of lvl
-        self.base_attack = None
         self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
         self.boss = False
@@ -69,14 +67,13 @@ class Enemy:
         """
         Doubles the attack power when the health is below specific value
         """
-        if self.base_attack:
+        if hasattr(self, "base_attack"):
             self.attack = self.base_attack
         if self.health < 5:
-            if random.randint(1, 100) > 25:  # todo: change value
-                if not self.base_attack:
-                    self.base_attack = self.attack
-                self.attack *= 2
-                print(f"Special skill has been activated! Enemy attack is {self.attack}")
+            if not hasattr(self, "base_attack"):
+                self.base_attack = self.attack
+            self.attack *= 2
+            print(f"Special skill has been activated! Enemy attack is {self.attack}")
 
     def wolf(self) -> None:
         """
@@ -270,7 +267,7 @@ class Enemy:
         Finishes the game
         """
         print('Your HP is 0\nGAME OVER!')
-        sys.exit(0)
+        raise ExitException()
 
 
 class Boss(Enemy):

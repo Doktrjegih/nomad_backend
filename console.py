@@ -6,6 +6,10 @@ from enum import Enum
 from paths import LAST_GAME_LOG
 
 
+class ExitException(Exception):
+    builtins.print("Game over!")
+
+
 class Colors(Enum):
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'

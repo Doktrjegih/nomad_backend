@@ -209,27 +209,37 @@ class Scene:
         Counts player's attack for each turn, then hits enemy.
         Finishes battle if enemy's been slayed, else hits player in response
         """
+        # check if player hits enemy
+        hit_chance = 100 - 1.5 * self.player.luck - 2 * self.player.drunk
+        if hit_chance < 20:
+            hit_chance = 20
+        if random.randint(1, 100) > hit_chance:
+            print("You've missed!")
+            self.enemy.enemy_attack()
+            return
+
+        # base and minimal attack
         attack = self.player.attack - self.enemy.defence
         if attack < 1:
             attack = 1
-        lucky_hit, critical_hit = '', ''
-        if self.player.luck > random.randint(1, 100):
-            lucky_hit = color('green', 'Lucky hit! ')
-        if self.player.luck / 2 + self.player.agility > random.randint(1, 100):
+
+        # critical hits
+        critical_hit = ''
+        if random.randint(1, 100) < self.player.luck * (self.player.drunk / 100):
             critical_hit = color('green', 'CRITICAL HIT! ')
-        lucky_hit = '' if critical_hit else lucky_hit
-        if lucky_hit:
-            attack = int(attack * 1.2)
-        if critical_hit:
-            attack = int(attack * 1.5)
-        print(f'{lucky_hit}{critical_hit}Your default attack is {self.player.attack}')
+            attack = int(attack * 2)
+
+        # some debug information
+        print(f'{critical_hit}Your default attack is {self.player.attack}')
         print(f'Enemy defence is {self.enemy.defence}')
         attack += self.check_damage_effects(self.enemy)
         print(f'Your actual attack is {attack}')
+
+        # attack to enemy and count damage
         self.enemy.get_damage(attack)
         if self.enemy.health <= 0:
             self.enemy.died()
-            self.finish_battle(type_='battle')
+            self.finish_battle()
         else:
             # self.damage_taken += self.enemy.enemy_attack()
             self.enemy.enemy_attack()
@@ -254,29 +264,24 @@ class Scene:
         USER ACTION
         Trying to run away from enemy, if attempt is failed, blocks next attempts
         """
-        if self.player.agility > self.enemy.agility:
+        if random.randint(1, 100) < 50 + self.player.luck * (100 - self.player.drunk / 100) - self.player.drunk * 0.5:
             print('You have ran away')
-            self.finish_battle('run')
+            self.finish_battle(run=True)
         else:
-            diff = self.enemy.agility - self.player.agility
-            if self.player.luck > diff:
-                print('Your luck let you to run away')
-                self.finish_battle('run')
-            else:
-                print("You couldn't run away")
-                self.enemy.enemy_attack()
-                self.enemy.run_away_able = False
+            print("You couldn't run away")
+            self.enemy.enemy_attack()
+            self.enemy.run_away_able = False
 
-    def finish_battle(self, type_: str) -> None:
+    def finish_battle(self, run: bool = False) -> None:
         """
         Finishes battle and reduces drunk level after that
         """
         self.enemy = None
-        self.state = 'peace'
-        if type_ == 'run':
+        if run:
             self.player.set_drunk(-1)
-        elif type_ == 'battle':
+        else:
             self.player.set_drunk(-3)  # todo: depends on taken damage
+        self.state = 'peace'
         # print(f'Damage taken during battle: {self.damage_taken}')
         return
 

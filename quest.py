@@ -33,7 +33,7 @@ def there_are_finished_quests(quests: list) -> bool:
 def there_is_plot_quest() -> bool:
     """
     Checks if there is a plot-related quest in the current quests list
-    :return: True if there is plot quest; otherwise, Falsex
+    :return: True if there is plot quest; otherwise, False
     """
     quests = get_current_quests()
     for quest in quests:

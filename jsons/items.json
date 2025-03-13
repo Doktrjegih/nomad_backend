@@ -69,7 +69,7 @@
   },
     {
     "id": 8,
-    "name": "Golded tooth",
+    "name": "Golden tooth",
     "type": "loot",
     "enemies": [
       "Bandit"
