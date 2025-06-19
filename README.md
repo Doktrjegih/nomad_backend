@@ -1,54 +1,41 @@
 # nomad_backend
-Only CLI version of game
+Only CLI version of game (4th iteration)
 
 # gameplay
-* This is turn-driven game
-* Each turn player can:
-- move to next area
-- check current status
-- change equipment
-- save and stop game
-* When player get into hostile area, game checks either it has enemies or not
-* If player meet an enemy, he can try to run away or fight with it
-* Battle mode:
-- player can attack an enemy or try to run away
-- player can change equipment
-- if player health is 0, game is over
-- if player killed the enemy, he gets an award
-* Player can meet a merchant in peaceful zone and buy/sell goods/equipment
+This is turn-driven game. During the game you can:
+- travel across different locations
+- meet and fight enemies
+- explore the lore by plot quests
+- pass side missions for reward
+- drink alcohol to get special effects
+- loot and change equipment
+- buy and sell goods
 
-# technical details
-Objects - scene, player, enemies, places, weapons
+Find your own style of playing and have fun!
 
-scene_obj:
-- location
-- player
-- state
-- enemies
-
-player_obj:
-- name
-- health
-- attack
-- defence
-- scores (level)
-- gold
-
-enemy_obj:
-- name
-- health
-- attack
-- defence
-- level
-
-location_obj:
-- name
-- type (peaceful/hostile)
-- enemies (if hostile)
-- chests (if hostile)
-
-weapon_obj:
-- name
-- type (melee/range)
-- damage
-- condition
+# technical solutions
+- endless loop for the processing the game
+- DB for storing items (temporary)
+- pickle for storing quests (temporary)
+- overriden print for logging last game session to the file
+- common handler for user's inputs and validation of them
+- random generating of many objects:
+    - locations
+    - enemies (based on player's stats)
+    - treasure chests
+    - quests in taverns and from the strangers
+- inheritance of classes (Boss from Enemy)
+- relative paths are used
+- tempopary files are created
+- JSONs keep some data (plot quests, enemies, items)
+- autotests for some scenarios
+    - use pieces of code to generate needed environment
+    - perform actions
+    - check results by comparing game log
+- autoplayer for adjusting the balance can:
+    - go forward
+    - enter taverns for buying goods, taking and completing quests
+    - fight enemies
+    - loot chests
+    - take quests from the strangers
+    - consume goods and change gear
