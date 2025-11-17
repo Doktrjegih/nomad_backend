@@ -1,10 +1,10 @@
 import random
 import sys
 from json import loads
-from paths import ENEMIES
 
 import db
 from console import color, print, get_effect_color, ExitException
+from paths import ENEMIES
 from player import Player
 from quest import get_current_quests
 
@@ -59,7 +59,8 @@ class Enemy:
             enemies = loads(fd.read())
         for enemy in enemies:
             if enemy.get("name") == name:
-                return enemy.get(param)
+                return enemy.get(param, [])
+        return []
 
     # todo: later need to move all such methods to another class or module
     # ========== enemies' special methods start here ==========

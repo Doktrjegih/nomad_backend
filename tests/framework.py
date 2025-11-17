@@ -1,14 +1,15 @@
+import difflib
 import linecache
 import pickle
 import re
-from types import GeneratorType
-import difflib
 from pathlib import Path
+from types import GeneratorType
 
 import db
 from console import print, start_logger
 from items import Items
 from location import Location
+from paths import QUESTS
 from player import Player
 from scene import Scene
 
@@ -22,7 +23,7 @@ def world_creation() -> Scene:
     player = Player()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
-    with open(Path(tests_folder.parent, "quests.pkl"), 'wb') as fd:
+    with open(QUESTS, 'wb') as fd:
         pickle.dump([], fd)
     return scene
 

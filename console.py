@@ -26,8 +26,11 @@ def start_logger() -> None:
     """
     Creates a clean file for logger and assign it for the logger
     """
-    with open(LAST_GAME_LOG, "w", encoding="utf-8") as fd:
-        fd.write("")
+    try:
+        with open(LAST_GAME_LOG, "w", encoding="utf-8") as fd:
+            fd.write("")
+    except FileNotFoundError:
+        pass
     logging.basicConfig(filename=LAST_GAME_LOG, filemode='a', level=logging.INFO, format='%(message)s')
 
 

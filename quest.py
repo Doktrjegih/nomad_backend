@@ -6,7 +6,7 @@ from paths import QUESTS
 
 def get_current_quests(ignore_plot: bool = False) -> list:
     """
-    Reads active quests from pickle file as list of objects
+    Reads active quests from a pickle file as a list of objects
     :return: list of Quest objects or None
     """
     try:
@@ -20,7 +20,7 @@ def get_current_quests(ignore_plot: bool = False) -> list:
 def there_are_finished_quests(quests: list) -> bool:
     """
     Check if there are any finished quests in the list
-    :param quests: list of Quest objects to be checked
+    :param quests: a list of Quest objects to be checked
     :return: True if any quest in the list is finished, False otherwise
     """
     for quest in quests:
@@ -33,7 +33,7 @@ def there_are_finished_quests(quests: list) -> bool:
 def there_is_plot_quest() -> bool:
     """
     Checks if there is a plot-related quest in the current quests list
-    :return: True if there is plot quest; otherwise, False
+    :return: True if there is a plot quest; otherwise, False
     """
     quests = get_current_quests()
     for quest in quests:

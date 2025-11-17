@@ -42,7 +42,7 @@
     "id": 6,
     "name": "Gun from boss",
     "type": "weapon",
-    "attack": 1,
+    "attack": 10,
     "cost": 100,
     "boss": "Van Helsing",
     "effects": [
