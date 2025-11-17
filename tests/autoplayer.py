@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from quest import there_are_finished_quests, get_current_quests
+from quest import there_are_finished_quests, get_current_quests, there_is_plot_quest
 from tests.framework import *
 from console import ExitException
 
@@ -33,9 +33,9 @@ def make_decision(scene: Scene) -> str:
         return '2'
 
     # upgrade skills
-    if scene.player.available_stats_point > 0:
-        actions = turns_generator([open_entrypoint(scene, "get status"), '1', '1'])
-        return next(actions)
+    # if scene.player.available_stats_point > 0:
+    #     actions = turns_generator([open_entrypoint(scene, "get status"), '1', '1'])
+    #     return next(actions)
 
     # get food, alcohol and better equipment
     inventory = db.get_inventory()
@@ -73,22 +73,34 @@ def make_decision(scene: Scene) -> str:
                 actions_list.append('2')
 
         # quests
-        quests = get_current_quests()
+        quests = get_current_quests(ignore_plot=True)
         finished_quests = there_are_finished_quests(quests)
         if finished_quests or len(quests) < 3:
-            if scene.tavern.merchant and scene.player.drunk > 24:
+            if scene.tavern.merchant and scene.tavern.aleg:
+                actions_list.append('6')
+            elif scene.tavern.merchant or scene.tavern.aleg:
                 actions_list.append('5')
             else:
                 actions_list.append('4')
             if scene.tavern.active_quests:
                 actions_list.append('1')
 
+        # check aleg
+        if scene.tavern.aleg:
+            if there_is_plot_quest():
+                quests = get_current_quests()
+                for quest in quests:
+                    if quest.plot_quest and quest.is_finished:
+                        actions_list.extend(['4', '1'])
+            else:
+                actions_list.extend(['4', '1'])
+
         # exit from tavern and go forward
         actions_list.extend(['1', '1'])
         actions = turns_generator(actions_list)
         return next(actions)
 
-    # just go until death
+    # just going until death
     if scene.player.health > 0:
         return '1'
 
@@ -96,8 +108,8 @@ def make_decision(scene: Scene) -> str:
 @patch("builtins.input")
 # @pytest.mark.usefixtures("clear_dir")
 @pytest.mark.usefixtures("clear_results")
-@pytest.mark.usefixtures("test_counter")
-@pytest.mark.parametrize('run', range(100))
+# @pytest.mark.usefixtures("test_counter")
+@pytest.mark.parametrize("run", range(100))
 def test_autoplayer(mock_input, run) -> None:
     scene = world_creation()
     scene.player.name = "autoplayer"
@@ -108,5 +120,6 @@ def test_autoplayer(mock_input, run) -> None:
     except ExitException:
         # with open("last_game.log") as fd:
         #     assert "GAME OVER!" in fd.read()
-        with open("results.txt", "a") as fd:
-            fd.write(f"total scores = {scene.player.scores}\n")
+        # with open("results.txt", "a") as fd:
+        #     fd.write(f"total scores = {scene.player.scores}\n")
+        pass
