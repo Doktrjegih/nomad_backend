@@ -16,10 +16,13 @@ def clear_dir() -> None:
         pass
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def clear_results() -> None:
-    with open("results.txt", 'w') as fd:
-        fd.write("")
+    # with open("results.txt", "w") as fd:
+    #     fd.write("")
+    with open("stats.csv", "w") as fd:
+        fd.write("step,hp,max_hp,drunk,attack,defence,endurance,strength,agility,luck,gold,tavern,plot,location,enemy,"
+                 "enemy_hp,enemy_attack,enemy_defence,special,chest,npc,armor,weapon\n")
 
 
 def finish() -> None:
