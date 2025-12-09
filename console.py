@@ -2,12 +2,12 @@ import builtins
 import logging
 import sys
 from enum import Enum
-
-from paths import LAST_GAME_LOG
+import os
+from paths import LAST_GAME_LOG, TEMP_FILES
 
 
 class ExitException(Exception):
-    builtins.print("Game over!")
+    pass
 
 
 class Colors(Enum):
@@ -30,7 +30,9 @@ def start_logger() -> None:
         with open(LAST_GAME_LOG, "w", encoding="utf-8") as fd:
             fd.write("")
     except FileNotFoundError:
-        pass
+        os.mkdir(TEMP_FILES)
+        with open(LAST_GAME_LOG, "w", encoding="utf-8") as fd:
+            fd.write("")
     logging.basicConfig(filename=LAST_GAME_LOG, filemode='a', level=logging.INFO, format='%(message)s')
 
 

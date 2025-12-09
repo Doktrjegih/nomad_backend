@@ -11,12 +11,15 @@ from quest import Quest, get_current_quests, there_is_plot_quest
 
 
 class Tavern:
-    def __init__(self, scene, player: Player, items: Items) -> None:
+    player: Player
+    items: Items
+
+    def __init__(self, scene) -> None:
         self.tavern_quest = None
         self.scene = scene
-        self.player = player
+        self.player = scene.player
         self.active_quests = True if self.scene.location.name == "hometown" else random.choice([True, False])
-        self.items = items
+        self.items = scene.items
         self.merchant = True if self.scene.location.name == "hometown" else random.choice([True, False])
         self.aleg = self.spawn_aleg()
         self.reaction = False
@@ -32,27 +35,18 @@ class Tavern:
         if action == "go out":
             self.scene.state = 'peace'
             self.scene.tavern = self
-            return
         elif action == "take a beer":
             self.buy_beer(10)
-            return
         elif action == "take a steak":
             self.buy_steak()
-            return
         elif action == "merchant":
             self.merchant_dialog()
         elif action == "talk with Aleg":
             self.aleg_dialog()
         elif action == "check quests":
             self.check_quests()
-        elif action == "inventory":
-            self.items.show_inventory()
-            return
-        elif action == "get status":
-            self.player.show_player_info()
-            return
-        elif action == "exit game":
-            self.scene.ask_about_exit()
+        else:
+            self.scene.check_common_actions(action)
 
     def buy_beer(self, beer: int) -> None:
         """
@@ -129,7 +123,6 @@ class Tavern:
         print("Quest has been taken")
         self.active_quests = False
         self.tavern_quest.add_to_list()
-        return
 
     def merchant_dialog(self) -> None:
         """
@@ -145,18 +138,10 @@ class Tavern:
             self.tavern_menu()
         elif action == "buy":
             self.merchant_buy()
-            return
         elif action == "sell":
             self.merchant_sell()
-            return
-        elif action == "inventory":
-            self.items.show_inventory()
-            return
-        elif action == "get status":
-            self.player.show_player_info()
-            return
-        elif action == "exit game":
-            self.scene.ask_about_exit()
+        else:
+            self.scene.check_common_actions(action)
 
     def merchant_sell(self) -> None:
         """
@@ -290,7 +275,6 @@ class Tavern:
             return
         print("Quest has been taken")
         quest.add_to_list()
-        return
 
     def spawn_aleg(self) -> bool:
         """

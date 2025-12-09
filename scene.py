@@ -28,7 +28,7 @@ class Scene:
         self.items = items
         self.turns_without_tavern = 0
         self.turns_in_biome_left = 1
-      
+
         self.npc_quest = None  # keeps object of Quest class
         self.reaction = False  # shows if it's first meeting with NPC  # todo: make a runtime variable
 
@@ -46,6 +46,10 @@ class Scene:
             self.npc_dialog()
         elif self.state == 'merchant':
             self.tavern.merchant_dialog()
+
+    def location_header(self) -> None:
+        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type})""")
+        print('Drunk level:', self.player.get_condition())
 
     def show_possible_options(self) -> str | None:
         """
@@ -69,7 +73,7 @@ class Scene:
             return
         action = int(answer[1])
         return options[action - 1]
-    
+
     def get_possible_options(self) -> list[str]:
         """
         Generates a list of possible actions based on the current game state
@@ -103,12 +107,20 @@ class Scene:
                 options.remove('check a chest')
         return options
 
+    def check_common_actions(self, action: str) -> None:
+        assert action in ["inventory", "get status", "exit game"], "Wrong action"
+        if action == "inventory":
+            self.items.show_inventory()
+        elif action == "get status":
+            self.player.show_player_info()
+        elif action == "exit game":
+            self.ask_about_exit()
+
     def show_peace_scene(self) -> None:
         """
         Shows actions outside tavern in peaceful time
         """
-        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type})""")
-        print('Drunk level:', self.player.get_condition())
+        self.location_header()
         action = self.show_possible_options()
         if action == "go forward":
             self.turns_in_biome_left -= 1
@@ -116,36 +128,27 @@ class Scene:
         elif action == "enter tavern":
             self.state = "tavern"
             if not self.tavern:
-                self.tavern = Tavern(scene=self, player=self.player, items=self.items)
+                self.tavern = Tavern(scene=self)
         elif action == "check a chest":
             self.items.get_chest_item()
             self.location.chest = False
-        elif action == "inventory":
-            self.items.show_inventory()
-        elif action == "get status":
-            self.player.show_player_info()
-        elif action == "exit game":
-            self.ask_about_exit()
+        else:
+            self.check_common_actions(action)
 
     def show_battle_scene(self) -> None:
         """
         Shows process of the battle
         """
-        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
         print(color('yellow', 'Battle mode'))
-        print('Drunk level:', self.player.get_condition())
+        self.location_header()
         self.enemy.show_rivals_stats()
         action = self.show_possible_options()
         if action == "attack":
             self.player_attack()
         elif action == "run away":
             self.try_run_away()
-        elif action == "inventory":
-            self.items.show_inventory()
-        elif action == "get status":
-            self.player.show_player_info()
-        elif action == "exit game":
-            self.ask_about_exit()
+        else:
+            self.check_common_actions(action)
 
     def new_scene(self) -> None:
         """
@@ -258,7 +261,7 @@ class Scene:
                 print(f"Your weapon also make {value} damage from {get_effect_color(effect.get('name'))}")
                 total_value += value
         return total_value
-    
+
     def try_run_away(self) -> None:
         """
         USER ACTION
@@ -290,13 +293,12 @@ class Scene:
         USER ACTION
         Shows menu within meeting NPC
         """
-        print(f"""\nYou're in the location "{self.location.name}" ({self.location.type}) """)
+        self.location_header()
         if not self.reaction:
             print("You've met Carl")
             print(color('green', 'Random welcome phrase'))
         else:
             print('Carl is waiting for you')  # todo: only if there is quest from him
-        print('Drunk level:', self.player.get_condition())
         quests = get_current_quests(ignore_plot=True)
         if len(quests) < 3:
             if not self.reaction:
@@ -313,20 +315,13 @@ class Scene:
             self.npc_quest = None
             self.state = 'peace'
             self.new_scene()
-        if action == "talk with Carl":
+        elif action == "talk with Carl":
             self.check_npc_quests(quests)
-        if action == "check a chest":
+        elif action == "check a chest":
             self.items.get_chest_item()
             self.location.chest = False
-            return
-        if action == "inventory":
-            self.items.show_inventory()
-            return
-        elif action == "get status":
-            self.player.show_player_info()
-            return
-        elif action == "exit game":
-            self.ask_about_exit()
+        else:
+            self.check_common_actions(action)
 
     def check_npc_quests(self, quests) -> None:
         """

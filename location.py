@@ -5,14 +5,14 @@ PEACEFUL = ["village", "river"]
 
 
 class Location:
-    def __init__(self, type_, player_luck: int, turns_without_tavern=0, name=None) -> None:
+    def __init__(self, type_: str, player_luck: int, turns_without_tavern=0, name=None) -> None:
         self.type = type_
         self.enemies = False
         self.tavern = False
         self.chest = False
         self.npc = False
         self.name = name
-            
+
         if self.type == 'hostile':
             self.enemies = True if random.randint(1, 10) > 5 else False
             if not self.name:
