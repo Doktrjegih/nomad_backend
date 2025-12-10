@@ -247,9 +247,10 @@ class Tavern:
                     self.player.plot_stage += 1
                     quest.close_quest(quests=quests, player=self.player)
                     self.player.improve_stats()
-                else:
-                    print("Come back when you've finished")
-                    return
+                    break
+            else:
+                print("Come back when you've finished")
+                return
 
         # if there is no active quest
         with open(PLOT_QUESTS, "r", encoding="utf-8") as fd:

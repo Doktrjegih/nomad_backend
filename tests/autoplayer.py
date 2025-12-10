@@ -1,11 +1,11 @@
-import builtins
+import random
 from unittest.mock import patch
 
 import pytest
 
+from console import ExitException
 from quest import there_are_finished_quests, get_current_quests, there_is_plot_quest
 from tests.framework import *
-from console import ExitException
 
 actions = None
 
@@ -91,11 +91,13 @@ def make_decision(scene: Scene) -> str:
                 quests = get_current_quests()
                 for quest in quests:
                     if quest.plot_quest and quest.is_finished:
-                        actions_list.extend(['4', '1'])
+                        # take random skill improvement if the plot quest is finished
+                        actions_list.extend(['4', '1', str(random.randint(1, 4))])
             else:
+                # to talk and accept a new quest
                 actions_list.extend(['4', '1'])
 
-        # exit from tavern and go forward
+        # exit from the tavern and go forward
         actions_list.extend(['1', '1'])
         actions = turns_generator(actions_list)
         return next(actions)
@@ -114,12 +116,42 @@ def test_autoplayer(mock_input, run) -> None:
     scene = world_creation()
     scene.player.name = "autoplayer"
     mock_input.side_effect = lambda x: make_decision(scene)
-    try:
-        while True:
-            scene.show_current_scene()
-    except ExitException:
-        # with open("last_game.log") as fd:
-        #     assert "GAME OVER!" in fd.read()
-        # with open("results.txt", "a") as fd:
-        #     fd.write(f"total scores = {scene.player.scores}\n")
-        pass
+    with open("stats.csv", "a") as fd:
+        try:
+            step = 1
+            while True:
+                scene.show_current_scene()
+                fd.write(
+                    f"{step}, "
+                    f"{scene.player.health}, "
+                    f"{scene.player.max_hp}, "
+                    f"{scene.player.drunk}, "
+                    f"{scene.player.attack}, "
+                    f"{scene.player.defence}, "
+                    f"{scene.player.endurance}, "
+                    f"{scene.player.strength}, "
+                    f"{scene.player.agility}, "
+                    f"{scene.player.luck}, "
+                    f"{scene.player.gold}, "
+                    f"{'tavern' if scene.location.tavern else ''}, "
+                    f"{scene.player.plot_stage}, "
+                    f"{scene.location.name}, "
+                    f"{scene.enemy.name if scene.enemy else ''}, "
+                    f"{scene.enemy.health if scene.enemy else ''}, "
+                    f"{scene.enemy.attack if scene.enemy else ''}, "
+                    f"{scene.enemy.defence if scene.enemy else ''}, "
+                    f"{scene.enemy.special_name if hasattr(scene.enemy, 'special_name') else ''}, "
+                    f"{'chest' if scene.location.chest else ''}, "
+                    f"{'npc' if scene.location.npc else ''}, "
+                    f"{scene.player.armor.name if scene.player.armor else ''}, "
+                    f"{scene.player.weapon.name if scene.player.weapon else ''}\n"
+                    )
+                step += 1
+        except ExitException:
+            # with open("last_game.log") as fd:
+            #     assert "GAME OVER!" in fd.read()
+            # with open("results.txt", "a") as fd2:
+            #     fd2.write(f"killed by = {scene.enemy.name}\n")
+            # fd.write(f"killed by = {scene.enemy.name}\n")
+            # fd.write("-" * 50 + '\n')
+            fd.write("\n")

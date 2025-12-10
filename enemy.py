@@ -71,6 +71,7 @@ class Enemy:
         if hasattr(self, "base_attack"):
             self.attack = self.base_attack
         if self.health < 5:
+            self.special_name = "double damage"
             if not hasattr(self, "base_attack"):
                 self.base_attack = self.attack
             self.attack *= 2
@@ -82,8 +83,11 @@ class Enemy:
         """
         if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
             if random.randint(1, 100) > 25:  # todo: change value
+                self.special_name = "bleeding"
                 self.player_bleeding = 2
                 print(f"Special skill has been activated! Player bleeding is {self.player_bleeding}")
+            else:
+                self.special_name = ""
         else:
             self.player.health -= 2
             self.player_bleeding -= 1
@@ -97,9 +101,11 @@ class Enemy:
             if not hasattr(self, "healing_activatings"):
                 self.healing_activatings = 2
             if self.healing_activatings <= 0:
+                self.special_name = ""
                 return
             self.health += 5
             self.healing_activatings -= 1
+            self.special_name = "healing"
             print(f"Special skill has been activated! Enemy health is {self.health}")
 
     def van_helsing(self) -> None:

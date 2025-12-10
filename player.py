@@ -156,6 +156,6 @@ class Player:
         if not armor:
             self.armor = None
         self.attack = self.strength + (self.drunk // 10) + (
-            (self.weapon.attack if self.weapon else 0) if self.drunk > 0 else 0)
+            self.weapon.attack if self.weapon and self.drunk > 0 else 0)
         self.defence = self.strength + (self.drunk // 10) + (
-            (self.armor.defence if self.armor else 0) if self.drunk > 0 else 0)
+            self.armor.defence if self.armor and self.drunk > 0 else 0)

@@ -28,13 +28,13 @@ class Scene:
         self.items = items
         self.turns_without_tavern = 0
         self.turns_in_biome_left = 1
-
-        self.npc_quest = None  # keeps object of Quest class
+      
+        self.npc_quest = None  # keeps an object of Quest class
         self.reaction = False  # shows if it's first meeting with NPC  # todo: make a runtime variable
 
     def show_current_scene(self) -> None:
         """
-        Shows current scene during some actions if needed
+        Shows the current scene during some actions if needed
         """
         if self.state == 'battle':
             self.show_battle_scene()
@@ -118,7 +118,7 @@ class Scene:
 
     def show_peace_scene(self) -> None:
         """
-        Shows actions outside tavern in peaceful time
+        Shows actions outside the tavern in peaceful time
         """
         self.location_header()
         action = self.show_possible_options()
@@ -193,7 +193,7 @@ class Scene:
 
         # switching the scene
         if self.location.enemies:
-            self.state = 'battle'
+            self.state = "battle"
             possible_enemies = ENEMY_TO_LOCATION[self.location.name]
             possible_enemies.append("Aleg")
             while True:
@@ -203,9 +203,9 @@ class Scene:
                 else:
                     break
         elif self.location.npc:
-            self.state = 'npc'
+            self.state = "npc"
         else:
-            self.show_peace_scene()
+            return
 
     def player_attack(self):
         """
