@@ -14,7 +14,7 @@ def get_current_quests(ignore_plot: bool = False) -> list:
             data = pickle.load(fd)
         return data if not ignore_plot else [quest for quest in data if not quest.plot_quest]
     except EOFError:
-        return list()
+        return []
 
 
 def there_are_finished_quests(quests: list) -> bool:

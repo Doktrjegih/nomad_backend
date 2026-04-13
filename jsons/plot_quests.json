@@ -4,14 +4,16 @@
     "name": "quest name",
     "description": "plot details",
     "target": "Wet dog",
-    "amount": 1
+    "amount": 1,
+    "needed_drunk": 0
   },
   {
     "id": 2,
     "name": "quest name 2",
     "description": "plot details 2",
     "target": "Hyena",
-    "amount": 3
+    "amount": 3,
+    "needed_drunk": 25
   },
   {
     "id": 3,
@@ -19,7 +21,8 @@
     "description": "plot details 3",
     "target": "Van Helsing",
     "amount": 1,
-    "boss": true
+    "boss": true,
+    "needed_drunk": 75
   },
   {
     "id": 4,
@@ -27,6 +30,7 @@
     "description": "plot details 4",
     "target": "Some shit",
     "amount": 1,
-    "boss": true
+    "boss": true,
+    "needed_drunk": 0
   }
 ]
