@@ -257,11 +257,17 @@ class Tavern:
             json_quests = json.loads(fd.read())
             for json_quest in json_quests:
                 if json_quest["id"] == self.player.plot_stage:
+
+                    # check if player is drunk enough
+                    if json_quest["needed_drunk"] > self.player.drunk:
+                        print("Sorry, not sure if you're ready for this now")
+                        return
+
                     print("I have a quest for you:")
                     if json_quest.get("boss"):
                         order = Boss(self.player, name=json_quest["target"])
                         print(f"Well, it's time. I have a tough one for you, {color('red', order.name)}")
-                        print(f"You need to finish him")
+                        print("You need to finish him")
                     else:
                         order = Enemy(self.player, random_enemy=False, name=json_quest["target"])
                         print(json_quest["description"])
