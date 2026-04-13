@@ -138,23 +138,16 @@ class Player:
             self.health = self.max_hp
         inventory = db.get_inventory()
 
-        # todo: optimize
-        weapon = False
+        self.weapon, self.armor = None, None
         for item in inventory:
-            if item[0].used and item[1].type_ == 'weapon':
-                self.weapon = item[1]
-                weapon = True
-                break
-        if not weapon:
-            self.weapon = None
-        armor = False
-        for item in inventory:
-            if item[0].used and item[1].type_ == 'armor':
-                self.armor = item[1]
-                armor = True
-                break
-        if not armor:
-            self.armor = None
+            if item[0].used and (type_ := item[1].type_) in ['weapon', 'armor']:
+                if type_ == 'weapon':
+                    self.weapon = item[1]
+                    weapon = True
+                else:
+                    self.armor = item[1]
+                    armor = True
+
         self.attack = self.strength + (self.drunk // 10) + (
             self.weapon.attack if self.weapon and self.drunk > 0 else 0)
         self.defence = self.strength + (self.drunk // 10) + (
