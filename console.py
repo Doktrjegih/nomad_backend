@@ -72,7 +72,7 @@ def get_effect_color(effect: str) -> str:
     raise ValueError("Unknown effect")
 
 
-def answer_handler(question: str, **kwargs) -> (str, str | int):
+def answer_handler(question: str, **kwargs) -> tuple[str, str]:
     """
     USER ACTION
     Global answer handler. Works with any question-answer dialogs
