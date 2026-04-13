@@ -1,7 +1,7 @@
 import os
 from json import dumps, loads
 
-from sqlalchemy import create_engine, Column, String, Integer, Boolean, Text
+from sqlalchemy import create_engine, Column, String, Integer, Boolean, Text, Row
 from sqlalchemy.orm import sessionmaker, declarative_base
 from paths import DB, ITEMS
 
@@ -111,7 +111,7 @@ def get_all_items() -> list:
     return session.query(Items).all()
 
 
-def get_item_by_name(name: str) -> type(Items):
+def get_item_by_boss_name(name: str) -> type(Items):
     """
     Returns specified game item
     :return: one item
@@ -119,7 +119,7 @@ def get_item_by_name(name: str) -> type(Items):
     return session.query(Items).filter(Items.boss == name).first()
 
 
-def get_inventory() -> list[tuple[Inventory, Items]]:
+def get_inventory() -> list[Row[tuple[Inventory, Items]]]:
     """
     Returns inventory items
     :return: list of items in player inventory
@@ -146,7 +146,7 @@ def remove_item(item: Inventory, amount: int = 1) -> None:
 def put_on_off_item(item: Inventory, state: bool) -> None:
     """
     :param item: Inventory object to removing
-    :param on: if True, puts on the item, otherwise puts off
+    :param state: if True, puts on the item, otherwise puts off
     """
     item = session.query(Inventory).filter(Inventory.item_id == item.item_id).first()
     item.used = state
@@ -159,3 +159,10 @@ def get_enemy_loot(enemy: str) -> list:
     """
     all_loot = session.query(Items).filter(Items.type_ == "loot").all()
     return [x for x in all_loot if enemy in x.enemies]
+
+
+def get_all_equipment() -> list:
+    """
+    :return: list of weapons and armors (except bosses')
+    """
+    return [x for x in get_all_items() if x.type_ in ["weapon", "armor"] and not x.boss]
