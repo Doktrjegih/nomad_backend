@@ -20,9 +20,9 @@ class Player:
         self.defence = 1
         self.endurance = 1  # influences HP
         self.strength = 1  # influences attack
-        self.agility = 1  # influences attack + side-roll
+        self.agility = 1  # influences attack + side-roll (currenty is not used?)
         self.luck = 1  # increases rewards and chances to get good loot
-        self.gold = 0
+        self.gold = 10
         self.drunk = 0
         self.inventory = []
         self.weapon = None
