@@ -42,13 +42,13 @@ class Player:
         # todo: optimize
         if self.weapon:
             unavailable = ''
-            if self.drunk < 1:
-                unavailable = color('red', ' UNAVAILABLE')
+            # if self.drunk < 1:
+            #     unavailable = color('red', ' UNAVAILABLE')
             print(f"Weapon: {self.weapon.name} (attack {self.weapon.attack}){unavailable}")
         if self.armor:
             unavailable = ''
-            if self.drunk < 1:
-                unavailable = color('red', ' UNAVAILABLE')
+            # if self.drunk < 1:
+            #     unavailable = color('red', ' UNAVAILABLE')
             print(f"Armor: {self.armor.name} (defence {self.armor.defence}){unavailable}")
 
         print('Drunk level:', self.get_condition())
@@ -148,7 +148,5 @@ class Player:
                     self.armor = item[1]
                     armor = True
 
-        self.attack = self.strength + (self.drunk // 10) + (
-            self.weapon.attack if self.weapon and self.drunk > 0 else 0)
-        self.defence = self.strength + (self.drunk // 10) + (
-            self.armor.defence if self.armor and self.drunk > 0 else 0)
+        self.attack = self.strength + (self.drunk // 10) + (self.weapon.attack if self.weapon else 0)
+        self.defence = self.strength + (self.drunk // 10) + (self.armor.defence if self.armor else 0)
