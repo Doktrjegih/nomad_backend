@@ -37,6 +37,8 @@ def main() -> None:
     scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
     with open(QUESTS, 'wb') as fd:
         pickle.dump([], fd)
+    db.add_item_to_inventory(1, 10)
+    db.add_item_to_inventory(3 )
     while True:
         scene.show_current_scene()
 

@@ -1,4 +1,5 @@
 import random
+from json import loads
 
 import db
 from console import print, answer_handler, color
@@ -35,39 +36,40 @@ class Items:
             item_index = int(answer[1]) - 1
             item_name = inventory[item_index][1].name
             type_of_item = inventory[item_index][1].type_
-            if type_of_item == "food":
-                self.player.health += 2
-                self.player.set_drunk(-2)
-                db.remove_item(inventory[item_index][0])
-                print(f"Your HP is {self.player.health} now")
-            elif type_of_item == "alcohol":
-                self.player.set_drunk(10)
-                db.remove_item(inventory[item_index][0])
-                print(f"You've drunk {item_name}")
-            elif type_of_item == "weapon":
-                if self.player.weapon and self.player.weapon.name == item_name:
-                    db.put_on_off_item(self.player.weapon, state=False)
-                    self.player.recount_params()
-                    return
-                elif self.player.weapon:
-                    db.put_on_off_item(self.player.weapon, state=False)
-                    db.put_on_off_item(inventory[item_index][0], state=True)
-                else:
-                    db.put_on_off_item(inventory[item_index][0], state=True)
-                print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
-            elif type_of_item == "armor":
-                if self.player.armor and self.player.armor.name == item_name:
-                    db.put_on_off_item(self.player.armor, state=False)
-                    self.player.recount_params()
-                    return
-                elif self.player.armor:
-                    db.put_on_off_item(self.player.armor, state=False)
-                    db.put_on_off_item(inventory[item_index][0], state=True)
-                else:
-                    db.put_on_off_item(inventory[item_index][0], state=True)
-                print(f"Current armor: {item_name} (defence {inventory[item_index][1].defence})")
-            elif type_of_item == "garbage":
-                print(f"You can't use {item_name}, but you will be able to sell it sometime")
+            match type_of_item:
+                case "food":
+                    self.player.health += 2
+                    self.player.set_drunk(-2)
+                    db.remove_item(inventory[item_index][0])
+                    print(f"Your HP is {self.player.health} now")
+                case "alcohol":
+                    self.player.set_drunk(10)
+                    db.remove_item(inventory[item_index][0])
+                    print(f"You've drunk {item_name}")
+                case "weapon":
+                    if self.player.weapon and self.player.weapon.name == item_name:
+                        db.put_on_off_item(self.player.weapon, state=False)
+                        self.player.recount_params()
+                        return
+                    if self.player.weapon:
+                        db.put_on_off_item(self.player.weapon, state=False)
+                        db.put_on_off_item(inventory[item_index][0], state=True)
+                    else:
+                        db.put_on_off_item(inventory[item_index][0], state=True)
+                    print(f"Current weapon: {item_name} (attack {inventory[item_index][1].attack})")
+                case "armor":
+                    if self.player.armor and self.player.armor.name == item_name:
+                        db.put_on_off_item(self.player.armor, state=False)
+                        self.player.recount_params()
+                        return
+                    if self.player.armor:
+                        db.put_on_off_item(self.player.armor, state=False)
+                        db.put_on_off_item(inventory[item_index][0], state=True)
+                    else:
+                        db.put_on_off_item(inventory[item_index][0], state=True)
+                    print(f"Current armor: {item_name} (defence {inventory[item_index][1].defence})")
+                case "loot":
+                    print(f"You can't use {item_name}, but you will be able to sell it sometime")
             self.player.recount_params()
             return
         print(color("yellow", '[Empty inventory]'))
@@ -87,7 +89,7 @@ class Items:
                 if item[1].name == self.player.weapon.name:  # todo: may be weak spot, need to observe usefulness
                     active_weapon = ' [active weapon]'
             if item[1].type_ == 'weapon':
-                attack = f' (attack {item[1].attack})'
+                attack = f' (attack {loads(item[1].levels)[str(self.player.drunk // 25)]["attack"]})'
             if self.player.armor:
                 if item[1].name == self.player.armor.name:
                     active_armor = ' [active armor]'
