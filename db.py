@@ -17,19 +17,23 @@ class Items(base):
     item_id = Column(Integer, primary_key=True)
     name = Column(String)
     type_ = Column(String)
+    attack = Column(Integer)
+    defence = Column(Integer)
     boss = Column(String)
     cost = Column(Integer)
+    effects = Column(Text)
     enemies = Column(Text)
-    levels = Column(Text)
 
-    def __init__(self, item_id, name, type_, cost, boss, enemies, levels):
+    def __init__(self, item_id, name, type_, cost, attack, defence, boss, effects, enemies):
         self.item_id = item_id
         self.name = name
         self.type_ = type_
+        self.attack = attack
+        self.defence = defence
         self.cost = cost
         self.boss = boss
+        self.effects = effects
         self.enemies = enemies
-        self.levels = levels
 
 
 class Inventory(base):
@@ -71,13 +75,15 @@ def add_item_to_game(data: dict) -> None:
     item_id = data["id"]
     name = data["name"]
     type_ = data["type"]
+    attack = data.get("attack")
+    defence = data.get("defence")
     boss = data.get("boss")
     cost = data["cost"]
-    levels = dumps(data.get("levels"))
+    effects = dumps(data.get("effects"))
     enemies = dumps(data.get("enemies"))
 
-    tr = Items(item_id=item_id, name=name, type_=type_, levels=levels,
-               boss=boss, cost=cost, enemies=enemies)
+    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence,
+               boss=boss, cost=cost, effects=effects, enemies=enemies)
     session.add(tr)
     session.commit()
 
@@ -113,7 +119,7 @@ def get_item_by_boss_name(name: str) -> type(Items):
     return session.query(Items).filter(Items.boss == name).first()
 
 
-def get_inventory() -> list[Row[tuple[Inventory, Items]]]:  # todo: possible to merge to avoid indexes?
+def get_inventory() -> list[Row[tuple[Inventory, Items]]]:
     """
     Returns inventory items
     :return: list of items in player inventory

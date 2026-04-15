@@ -20,7 +20,7 @@ class Player:
         self.defence = 1
         self.endurance = 1  # influences HP
         self.strength = 1  # influences attack
-        self.agility = 1  # influences attack + side-roll (currently is not used?)
+        self.agility = 1  # influences attack + side-roll (currenty is not used?)
         self.luck = 1  # increases rewards and chances to get good loot
         self.gold = 10
         self.drunk = 0
@@ -41,9 +41,15 @@ class Player:
 
         # todo: optimize
         if self.weapon:
-            print(f"Weapon: {self.weapon.name} (attack {self.weapon.levels[self.drunk // 25]['attack']})")
+            unavailable = ''
+            # if self.drunk < 1:
+            #     unavailable = color('red', ' UNAVAILABLE')
+            print(f"Weapon: {self.weapon.name} (attack {self.weapon.attack}){unavailable}")
         if self.armor:
-            print(f"Armor: {self.armor.name} (defence {self.armor.defence})")
+            unavailable = ''
+            # if self.drunk < 1:
+            #     unavailable = color('red', ' UNAVAILABLE')
+            print(f"Armor: {self.armor.name} (defence {self.armor.defence}){unavailable}")
 
         print('Drunk level:', self.get_condition())
         print('Attack:', self.attack)
@@ -128,7 +134,8 @@ class Player:
         Recounts all player stats after some actions
         """
         self.max_hp = 5 + (self.endurance * 5)
-        self.health = min(self.health, self.max_hp)
+        if self.health > self.max_hp:
+            self.health = self.max_hp
         inventory = db.get_inventory()
 
         self.weapon, self.armor = None, None
@@ -136,8 +143,10 @@ class Player:
             if item[0].used and (type_ := item[1].type_) in ['weapon', 'armor']:
                 if type_ == 'weapon':
                     self.weapon = item[1]
+                    weapon = True
                 else:
                     self.armor = item[1]
+                    armor = True
 
         self.attack = self.strength + (self.drunk // 10) + (self.weapon.attack if self.weapon else 0)
         self.defence = self.strength + (self.drunk // 10) + (self.armor.defence if self.armor else 0)

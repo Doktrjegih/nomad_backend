@@ -15,10 +15,7 @@
     "id": 3,
     "name": "Rust sword",
     "type": "weapon",
-    "levels": {
-      "0": {"attack": 2},
-      "1": {"attack": 3, "effects": [{"name": "poison", "damage": 1}]}
-    },
+    "attack": 2,
     "cost": 5
   },
   {
