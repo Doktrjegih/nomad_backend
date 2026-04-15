@@ -4,7 +4,7 @@ import db
 from console import print, answer_handler, color
 from player import Player
 
-# ALWAYS_SHOWED = ["food", "alcohol", "garbage", "loot"]
+ALWAYS_SHOWED = ["food", "alcohol", "garbage", "loot"]
 
 
 class Items:
@@ -19,11 +19,11 @@ class Items:
         if inventory:
 
             # showing of items
-            # if self.player.drunk < 1:
-            #    inventory = [x for x in inventory if x[1].type_ in ALWAYS_SHOWED]
-            #    if not inventory:
-            #        print(color("yellow", '[Empty inventory]'))
-            #        return
+            if self.player.drunk < 1:
+                inventory = [x for x in inventory if x[1].type_ in ALWAYS_SHOWED]
+                if not inventory:
+                    print(color("yellow", '[Empty inventory]'))
+                    return
             counter = self.print_inventory(inventory)
 
             # dialog for manipulating with items
@@ -106,12 +106,12 @@ class Items:
         Gives random item from chest to player
         """
         item = random.choice([x for x in db.get_all_items() if not x.boss and x.type_ != "loot"])
-        # if item.type_ in ALWAYS_SHOWED:
-        print(f"You've found {item.name}")
-        db.add_item_to_inventory(item.item_id)
-        # else:
-        # if self.player.drunk > 0:
-        #     print(f"You've found {item.name}")
-        #     db.add_item_to_inventory(item.item_id)
-        self.player.gold += (loot := random.randint(1, 5))
+        if item.type_ in ALWAYS_SHOWED:
+            print(f"You've found {item.name}")
+            db.add_item_to_inventory(item.item_id)
+        else:
+            if self.player.drunk > 0:
+                print(f"You've found {item.name}")
+                db.add_item_to_inventory(item.item_id)
+        self.player.gold += (loot := random.randint(5, 25))
         print(f"You've found {loot} gold coins")
