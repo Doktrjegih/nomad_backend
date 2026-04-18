@@ -1,6 +1,5 @@
 import random
 from itertools import chain
-from json import loads
 
 import db
 from console import print, color, answer_handler, get_effect_color
@@ -248,10 +247,10 @@ class Scene:
             self.enemy.enemy_attack()
 
     def check_damage_effects(self, enemy: Enemy) -> int:
-        if not (self.player.weapon and self.player.weapon.effects != "null"):
+        if not (self.player.weapon and self.player.weapon.effects):
             return 0
         total_value = 0
-        for effect in loads(self.player.weapon.effects):
+        for effect in self.player.weapon.effects:
             if value := effect.get('damage'):
                 if effect.get('name') in enemy.effects_vulnerabilities:
                     value *= 2
@@ -363,6 +362,7 @@ class Scene:
     @staticmethod
     def ask_about_exit() -> None:
         """
+        USER ACTION
         Dialog for confirmation if player wants to exit
         """
         answer = answer_handler(

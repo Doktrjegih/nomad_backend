@@ -4,7 +4,7 @@ import random
 import db
 from console import print, color, answer_handler
 from enemy import Enemy, Boss
-from items import Items
+from items import Items, Equipment, JsonToEquipment
 from paths import PLOT_QUESTS
 from player import Player
 from quest import Quest, get_current_quests, there_is_plot_quest
@@ -200,11 +200,16 @@ class Tavern:
         USER ACTION
         Shows buying menu
         """
-        items_for_sell = [x for x in db.GAME_ITEMS if x["type"] in ["weapon", "armor"] and not x.get("boss")]
+        items_for_sell = [Equipment(JsonToEquipment(x), self.player.drunk) for x in db.GAME_ITEMS
+                          if x["type"] in ["weapon", "armor"] and not x.get("boss")]
         while True:
             print()
             for counter, item in enumerate(items_for_sell, start=1):
-                print(f"{counter} - {item['name']} ({item['cost']} gold coins)")
+                match item.type:
+                    case "weapon":
+                        print(f"{counter} - {item} - {item.cost} gold coins")
+                    case "armor":
+                        print(f"{counter} - {item} - {item.cost} gold coins")
             print("0 - cancel")
             answer_amount = answer_handler(question=f'What do you want to buy? (you have {self.player.gold} gold coins) ',
                                            correct_range=[str(x) for x in range(1, len(items_for_sell) + 1)],
@@ -213,16 +218,16 @@ class Tavern:
                 return
 
             chosen_item = items_for_sell[int(answer_amount[1]) - 1]
-            if (price := chosen_item["cost"]) > self.player.gold:
+            if (price := chosen_item.cost) > self.player.gold:
                 print("You don't have enough gold coins for that")
             else:
-                confirm_buying = answer_handler(question=f'\nYou chose {(item_name := chosen_item["name"])}. '
+                confirm_buying = answer_handler(question=f'\nYou chose {(item_name := chosen_item.name)}. '
                                                          'Buy it? (yes/no) ',
                                                 yes=['y', 'yes', '1'],
                                                 no=['n', 'no', '2'])
                 if confirm_buying[0] == 'no':
                     return
-                db.add_item_to_inventory(chosen_item["id"])
+                db.add_item_to_inventory(chosen_item.id)
                 self.player.gold -= price
                 print(f'Bought {item_name}')
 

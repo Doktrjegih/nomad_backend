@@ -1,7 +1,7 @@
 import pickle
 
 import db
-from console import color, print, answer_handler
+from console import print, answer_handler
 from paths import QUESTS
 
 STATS = ("\n1 - beer (endurance)\n"
@@ -12,23 +12,36 @@ STATS = ("\n1 - beer (endurance)\n"
 
 
 class Player:
+    _instance = None
+
+    def __new__(cls):
+        """
+        Implementing a Singleton pattern.
+        This method allows to return already created instance of the class
+        if it exists, otherwise create a new one
+        """
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self) -> None:
-        self.name = None
-        self.health = 10
-        self.max_hp = 10
-        self.attack = 1
-        self.defence = 1
-        self.endurance = 1  # influences HP
-        self.strength = 1  # influences attack
-        self.agility = 1  # influences attack + side-roll (currenty is not used?)
-        self.luck = 1  # increases rewards and chances to get good loot
-        self.gold = 10
-        self.drunk = 0
-        self.inventory = []
-        self.weapon = None
-        self.armor = None
-        self.plot_stage = 1
-        self.aleg_drinks = 0
+        if not hasattr(self, "_initialized"):
+            self.name = None
+            self.health = 10
+            self.max_hp = 10
+            self.attack = 1
+            self.defence = 1
+            self.endurance = 1  # influences HP
+            self.strength = 1  # influences attack
+            self.agility = 1  # influences attack + side-roll (currently is not used?)
+            self.luck = 1  # increases rewards and chances to get good loot
+            self.gold = 10
+            self.drunk = 0
+            self.weapon = None
+            self.armor = None
+            self.plot_stage = 1
+            self.aleg_drinks = 0
+            self._initialized = True
 
     def show_player_info(self) -> None:
         """
@@ -39,17 +52,10 @@ class Player:
         print('Name:', self.name)
         print(f'Health: {self.health}/{self.max_hp}')
 
-        # todo: optimize
         if self.weapon:
-            unavailable = ''
-            # if self.drunk < 1:
-            #     unavailable = color('red', ' UNAVAILABLE')
-            print(f"Weapon: {self.weapon.name} (attack {self.weapon.attack}){unavailable}")
+            print(self.weapon)
         if self.armor:
-            unavailable = ''
-            # if self.drunk < 1:
-            #     unavailable = color('red', ' UNAVAILABLE')
-            print(f"Armor: {self.armor.name} (defence {self.armor.defence}){unavailable}")
+            print(self.armor)
 
         print('Drunk level:', self.get_condition())
         print('Attack:', self.attack)
@@ -134,19 +140,17 @@ class Player:
         Recounts all player stats after some actions
         """
         self.max_hp = 5 + (self.endurance * 5)
-        if self.health > self.max_hp:
-            self.health = self.max_hp
+        self.health = min(self.health, self.max_hp)
         inventory = db.get_inventory()
 
         self.weapon, self.armor = None, None
         for item in inventory:
             if item[0].used and (type_ := item[1].type_) in ['weapon', 'armor']:
+                from items import Equipment
                 if type_ == 'weapon':
-                    self.weapon = item[1]
-                    weapon = True
+                    self.weapon = Equipment(item[1], self.drunk)
                 else:
-                    self.armor = item[1]
-                    armor = True
+                    self.armor = Equipment(item[1], self.drunk)
 
         self.attack = self.strength + (self.drunk // 10) + (self.weapon.attack if self.weapon else 0)
         self.defence = self.strength + (self.drunk // 10) + (self.armor.defence if self.armor else 0)

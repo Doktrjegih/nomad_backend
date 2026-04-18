@@ -3,6 +3,7 @@ from json import dumps, loads
 
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Text, Row
 from sqlalchemy.orm import sessionmaker, declarative_base
+
 from paths import DB, ITEMS
 
 base = declarative_base()
@@ -17,23 +18,19 @@ class Items(base):
     item_id = Column(Integer, primary_key=True)
     name = Column(String)
     type_ = Column(String)
-    attack = Column(Integer)
-    defence = Column(Integer)
     boss = Column(String)
     cost = Column(Integer)
-    effects = Column(Text)
     enemies = Column(Text)
+    levels = Column(Text)
 
-    def __init__(self, item_id, name, type_, cost, attack, defence, boss, effects, enemies):
+    def __init__(self, item_id, name, type_, cost, boss, enemies, levels):
         self.item_id = item_id
         self.name = name
         self.type_ = type_
-        self.attack = attack
-        self.defence = defence
         self.cost = cost
         self.boss = boss
-        self.effects = effects
         self.enemies = enemies
+        self.levels = levels
 
 
 class Inventory(base):
@@ -75,15 +72,13 @@ def add_item_to_game(data: dict) -> None:
     item_id = data["id"]
     name = data["name"]
     type_ = data["type"]
-    attack = data.get("attack")
-    defence = data.get("defence")
     boss = data.get("boss")
     cost = data["cost"]
-    effects = dumps(data.get("effects"))
+    levels = dumps(data.get("levels"))
     enemies = dumps(data.get("enemies"))
 
-    tr = Items(item_id=item_id, name=name, type_=type_, attack=attack, defence=defence,
-               boss=boss, cost=cost, effects=effects, enemies=enemies)
+    tr = Items(item_id=item_id, name=name, type_=type_, levels=levels,
+               boss=boss, cost=cost, enemies=enemies)
     session.add(tr)
     session.commit()
 
@@ -119,13 +114,28 @@ def get_item_by_boss_name(name: str) -> type(Items):
     return session.query(Items).filter(Items.boss == name).first()
 
 
-def get_inventory() -> list[Row[tuple[Inventory, Items]]]:
+def get_inventory() -> list[Row[tuple[Inventory, Items]]]:  # todo: possible to merge to avoid indexes?
     """
     Returns inventory items
     :return: list of items in player inventory
     """
+    # todo: a crutch
+    def mark_weapon_as_equipment(inventory):
+        from items import Equipment
+        from player import Player
+
+        player = Player()
+
+        updated_inventory = []
+        for item in inventory:
+            if item[1].type_ in ['weapon', 'armor']:
+                updated_inventory.append((item[0], Equipment(item[1], player.drunk)))
+            else:
+                updated_inventory.append(item)
+        return updated_inventory
+
     if inventory := session.query(Inventory, Items).select_from(Inventory).join(Items, Inventory.item_id == Items.item_id).all():
-        return inventory
+        return mark_weapon_as_equipment(inventory)
     return []
 
 
