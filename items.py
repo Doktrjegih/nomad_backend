@@ -119,7 +119,7 @@ class JsonToEquipment:
 class Equipment:
     def __init__(self, item: db.Row, drunk: int) -> None:
         self._row = item
-        drunk_stage = str(drunk // 25)
+        drunk_stage = str(min(drunk // 25, 3))
         match self.type_:
             case 'weapon':
                 self.attack = loads(self.levels).get(drunk_stage).get('attack')

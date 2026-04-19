@@ -219,7 +219,7 @@ class Enemy:
             effect_name = effect_damage.get('name')
 
             if self.player.armor and self.player.armor.effects:
-                for armor_effect in loads(self.player.armor.effects):
+                for armor_effect in self.player.armor.effects:
                     if armor_effect.get('name') == effect_name:
                         if not (resist := armor_effect.get('resist')):
                             continue

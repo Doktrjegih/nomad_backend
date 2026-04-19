@@ -21,6 +21,7 @@ def world_creation() -> Scene:
     db.create_database()
     print('Hello, a big new world!')
     player = Player()
+    player.reset()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
     with open(QUESTS, 'wb') as fd:

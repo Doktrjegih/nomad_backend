@@ -43,6 +43,10 @@ class Player:
             self.aleg_drinks = 0
             self._initialized = True
 
+    @classmethod
+    def reset(cls):
+        cls._instance = None
+
     def show_player_info(self) -> None:
         """
         USER ACTION
