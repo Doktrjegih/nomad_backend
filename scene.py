@@ -333,17 +333,17 @@ class Scene:
             else:
                 current_orders = []
                 for quest in quests:
-                    current_orders.append(quest.order.name)
+                    current_orders.append(quest.order)
                 order = enemy_for_npc_quest(self.player, exclude=current_orders)
             amount = random.randint(2, 5)
             reward = amount * 5 + random.randint(2, 10)  # todo: use smth instead of lvl
-            quest = Quest(order=order, amount=amount, reward=reward)
+            quest = Quest(order=order.name, amount=amount, reward=reward)
             self.npc_quest = quest
             if self.state != 'npc':
                 self.state = 'npc'
 
         print() if self.reaction else None
-        print(f'I need to clean this area from {color("red", self.npc_quest.order.name + "s")}')
+        print(f'I need to clean this area from {color("red", self.npc_quest.order + "s")}')
         print(f'Think {self.npc_quest.goal_amount} ones will be enough for now')
         print(f'Reward for this is {self.npc_quest.reward} gold coins')
 

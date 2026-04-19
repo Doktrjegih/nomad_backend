@@ -172,7 +172,7 @@ class Enemy:
         if not quests:
             return
         for quest in quests:
-            if quest.order.name == self.name and quest.current_amount < quest.goal_amount:
+            if quest.order == self.name and quest.current_amount < quest.goal_amount:
                 quest.update_quest(quests)
 
     @staticmethod
@@ -218,7 +218,7 @@ class Enemy:
             value = effect_damage.get('value')
             effect_name = effect_damage.get('name')
 
-            if not self.player.armor and self.player.armor.effects:
+            if self.player.armor and self.player.armor.effects:
                 for armor_effect in loads(self.player.armor.effects):
                     if armor_effect.get('name') == effect_name:
                         if not (resist := armor_effect.get('resist')):
@@ -298,11 +298,11 @@ def generate_enemy(player: Player) -> Enemy:
     """
     rand = random.randint(1, 100)
     for quest in get_current_quests():
-        if quest.order.boss and rand > 75:
-            if quest.order.name == "Some shit":
+        if quest.boss and rand > 75:
+            if quest.order == "Some shit":
                 return Boss(player, name="Aleg")
             else:
-                return Boss(player, name=quest.order.name)
+                return Boss(player, name=quest.order)
     if player.drunk < 26:
         return Enemy(player)
     elif player.drunk < 51:

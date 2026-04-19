@@ -44,13 +44,14 @@ def there_is_plot_quest() -> bool:
 
 
 class Quest:
-    def __init__(self, order, amount, reward=0, is_plot=False) -> None:
+    def __init__(self, order: str, amount: int, reward: int = 0, is_plot: bool = False, boss: bool = False) -> None:
         self.order = order
         self.goal_amount = amount
         self.current_amount = 0
         self.reward = reward
         self.is_finished = False
         self.plot_quest = is_plot
+        self.boss = boss
 
     def add_to_list(self) -> None:
         """

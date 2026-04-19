@@ -102,15 +102,15 @@ class Tavern:
             else:
                 current_orders = []
                 for quest in quests:
-                    current_orders.append(quest.order.name)
+                    current_orders.append(quest.order)
                 order = Enemy(self.player, exclude=current_orders)
             amount = random.randint(2, 5)
             reward = amount * 5 + (random.randint(2, 10))  # todo: use smth instead of lvl
-            quest = Quest(order=order, amount=amount, reward=reward)
+            quest = Quest(order=order.name, amount=amount, reward=reward)
             self.tavern_quest = quest
 
         print('\nHello stranger!')
-        print(f'I need to clean this area from {color("red", self.tavern_quest.order.name + "s")}')
+        print(f'I need to clean this area from {color("red", self.tavern_quest.order + "s")}')
         print(f'Think {self.tavern_quest.goal_amount} ones will be enough for now')
         print(f'Reward for this is {self.tavern_quest.reward} gold coins')
 
@@ -271,13 +271,15 @@ class Tavern:
                     print("I have a quest for you:")
                     if json_quest.get("boss"):
                         order = Boss(self.player, name=json_quest["target"])
+                        boss = True
                         print(f"Well, it's time. I have a tough one for you, {color('red', order.name)}")
                         print("You need to finish him")
                     else:
                         order = Enemy(self.player, random_enemy=False, name=json_quest["target"])
+                        boss = False
                         print(json_quest["description"])
                         print(f"You need kill {color('red', order.name)} {json_quest['amount']} times")
-                    quest = Quest(order=order, amount=json_quest["amount"], is_plot=True)
+                    quest = Quest(order=order.name, amount=json_quest["amount"], is_plot=True, boss=boss)
                     break
         answer = answer_handler(
             question="Are you accept? (yes/no) ",
