@@ -38,7 +38,7 @@ def make_decision(scene: Scene) -> str:
     #     return next(actions)
 
     # get food, alcohol and better equipment
-    inventory = db.get_inventory()
+    inventory = scene.items.get_inventory()
     food_alcohol = ["Beer bottle", "Steak"]
     for index, item in enumerate(inventory, start=1):
         if item[1].name in food_alcohol:

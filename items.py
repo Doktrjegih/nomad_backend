@@ -1,21 +1,33 @@
 import random
 from json import loads, dumps
+from typing import TYPE_CHECKING
 
 import db
 from console import print, answer_handler, color, get_effect_color
-from player import Player
+
+if TYPE_CHECKING:
+    from player import Player
 
 
 class Items:
-    def __init__(self, player: Player) -> None:
+    def __init__(self, player: "Player") -> None:
         self.player = player
+
+    def get_inventory(self):
+        updated_inventory = []
+        for item in db.get_inventory():
+            if item[1].type_ in ['weapon', 'armor']:
+                updated_inventory.append((item[0], Equipment(item[1], self.player.drunk)))
+            else:
+                updated_inventory.append(item)
+        return updated_inventory
 
     def show_inventory(self) -> None:
         """
         USER ACTION
         Shows inventory and lets to manage it
         """
-        inventory = db.get_inventory()
+        inventory = self.get_inventory()
         if inventory:
 
             # showing of items

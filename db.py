@@ -119,23 +119,8 @@ def get_inventory() -> list[Row[tuple[Inventory, Items]]]:  # todo: possible to 
     Returns inventory items
     :return: list of items in player inventory
     """
-    # todo: a crutch
-    def mark_weapon_as_equipment(inventory):
-        from items import Equipment
-        from player import Player
-
-        player = Player()
-
-        updated_inventory = []
-        for item in inventory:
-            if item[1].type_ in ['weapon', 'armor']:
-                updated_inventory.append((item[0], Equipment(item[1], player.drunk)))
-            else:
-                updated_inventory.append(item)
-        return updated_inventory
-
     if inventory := session.query(Inventory, Items).select_from(Inventory).join(Items, Inventory.item_id == Items.item_id).all():
-        return mark_weapon_as_equipment(inventory)
+        return inventory
     return []
 
 

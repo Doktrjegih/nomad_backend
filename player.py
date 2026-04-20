@@ -1,6 +1,5 @@
 import pickle
-
-import db
+from items import Items
 from console import print, answer_handler
 from paths import QUESTS
 
@@ -26,6 +25,8 @@ class Player:
 
     def __init__(self) -> None:
         if not hasattr(self, "_initialized"):
+            self.items = Items(self)  # here or after all vars?
+
             self.name = None
             self.health = 10
             self.max_hp = 10
@@ -145,7 +146,7 @@ class Player:
         """
         self.max_hp = 5 + (self.endurance * 5)
         self.health = min(self.health, self.max_hp)
-        inventory = db.get_inventory()
+        inventory = self.items.get_inventory()
 
         self.weapon, self.armor = None, None
         for item in inventory:

@@ -148,7 +148,7 @@ class Tavern:
         USER ACTION
         Shows sell menu which manipulates with items
         """
-        inventory = db.get_inventory()
+        inventory = self.items.get_inventory()
         if not inventory:
             print(color("yellow", '[Empty inventory]'))
             return
