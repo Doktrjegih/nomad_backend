@@ -82,16 +82,16 @@ class Enemy:
         Causes bleeding effect to the player
         """
         if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
-            if random.randint(1, 100) > 25:  # todo: change value
+            if random.randint(1, 100) > 50:  # todo: change value
                 self.special_name = "bleeding"
                 self.player_bleeding = 2
                 print(f"Special skill has been activated! Player bleeding is {self.player_bleeding}")
             else:
                 self.special_name = ""
         else:
-            self.player.health -= 2
+            self.player.health -= 1
             self.player_bleeding -= 1
-            print(f"You less 2 HP due to {color('red', 'bleeding')}")
+            print(f"You less 1 HP due to {color('red', 'bleeding')}")
 
     def werewolf(self) -> None:
         """
