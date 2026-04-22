@@ -106,7 +106,7 @@ def get_all_items() -> list:
     return session.query(Items).all()
 
 
-def get_item_by_boss_name(name: str) -> type(Items):
+def get_item_by_boss_name(name: str) -> type[Items]:
     """
     Returns specified game item
     :return: one item

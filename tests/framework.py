@@ -24,6 +24,11 @@ def world_creation() -> Scene:
     player.reset()
     items = Items(player=player)
     scene = Scene(location=Location(type_='hometown', player_luck=player.luck), player=player, items=items)
+    db.add_item_to_inventory(3)
+    db.add_item_to_inventory(5)
+    for item in items.get_inventory():
+        db.put_on_off_item(item[0], True)
+    player.recount_params()
     with open(QUESTS, 'wb') as fd:
         pickle.dump([], fd)
     return scene
