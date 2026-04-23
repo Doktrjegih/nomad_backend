@@ -162,19 +162,52 @@
     "id": 6,
     "name": "Gun from boss",
     "type": "weapon",
-    "attack": 10,
     "cost": 100,
     "boss": "Van Helsing",
-    "effects": [
-      {
-        "name": "fire",
-        "damage": 2
+    "levels": {
+      "0": {
+        "attack": 3
       },
-      {
-        "name": "cold",
-        "damage": 1
+      "1": {
+        "attack": 5,
+        "effects": [
+          {
+            "name": "cold",
+            "damage": 1
+          },
+          {
+            "name": "fire",
+            "damage": 2
+          }
+        ]
+      },
+      "2": {
+        "attack": 8,
+        "effects": [
+          {
+            "name": "cold",
+            "damage": 2
+          },
+          {
+            "name": "fire",
+            "damage": 1
+          }
+        ]
+      },
+      "3": {
+        "attack": 10,
+        "effects": [
+          {
+            "name": "cold",
+            "damage": 4
+          },
+          {
+            "name": "fire",
+            "damage": 4
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": 7,
