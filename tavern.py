@@ -3,6 +3,7 @@ import random
 
 import db
 from console import print, color, answer_handler
+from constants import *
 from enemy import Enemy, Boss
 from items import Items, Equipment, JsonToEquipment
 from paths import PLOT_QUESTS
@@ -36,7 +37,7 @@ class Tavern:
             self.scene.state = 'peace'
             self.scene.tavern = self
         elif action == "take a beer":
-            self.buy_beer(10)
+            self.buy_beer(BEER_DRUNK)
         elif action == "take a steak":
             self.buy_steak()
         elif action == "merchant":
@@ -51,28 +52,28 @@ class Tavern:
     def buy_beer(self, beer: int) -> None:
         """
         USER ACTION
-        Buy a cup of beer for 5 coins, increases Player.drunk level
+        Buy a cup of beer, increases Player.drunk level
         """
-        if self.player.gold < 5:
-            print("Not enough money, it's 5 gold coins for beer")
+        if self.player.gold < BEER_PRICE:
+            print(f"Not enough money, it's {BEER_PRICE} gold coins for beer")
             return
         self.player.set_drunk(beer)
-        self.player.gold -= 5
+        self.player.gold -= BEER_PRICE
 
     def buy_steak(self) -> None:
         """
         USER ACTION
-        Buy a steak for 5 coins, increases Player.health level
+        Buy a steak, increases Player.health level
         """
-        if self.player.gold < 5:
-            print("Not enough money, it's 5 gold coins for steak")
+        if self.player.gold < FOOD_PRICE:
+            print(f"Not enough money, it's {FOOD_PRICE} gold coins for steak")
             return
-        self.player.health += 2
-        self.player.set_drunk(-2)
-        if self.player.health > self.player.max_hp:
-            self.player.health = self.player.max_hp
+        self.player.health += FOOD_HP
+        self.player.set_drunk(-FOOD_DRUNK_LOSS)
+        # if self.player.health > self.player.max_hp:
+        #     self.player.health = self.player.max_hp
         print(f'Your HP is {self.player.health} now')
-        self.player.gold -= 5
+        self.player.gold -= FOOD_PRICE
 
     def check_quests(self) -> None:
         """
@@ -86,6 +87,7 @@ class Tavern:
             quest: Quest
             if not quest.plot_quest and quest.is_finished:
                 quest.close_quest(quests, self.player)
+                print("You got one beer bottle from the bartender as a bonus")
                 db.add_item_to_inventory(1)  # todo: hardcode
 
         # check if max value of current quests
@@ -104,8 +106,8 @@ class Tavern:
                 for quest in quests:
                     current_orders.append(quest.order)
                 order = Enemy(self.player, exclude=current_orders)
-            amount = random.randint(2, 5)
-            reward = amount * 5 + (random.randint(2, 10))  # todo: use smth instead of lvl
+            amount = random.randint(MIN_QUEST_ENEMIES_AMOUNT, MAX_QUEST_ENEMIES_AMOUNT)
+            reward = amount * GOLD_REWARD_FOR_QUEST_PER_ENEMY + (random.randint(MIN_QUEST_ADDITIONAL_REWARD, MAX_QUEST_ADDITIONAL_REWARD))  # todo: use smth instead of lvl
             quest = Quest(order=order.name, amount=amount, reward=reward)
             self.tavern_quest = quest
 
@@ -176,8 +178,9 @@ class Tavern:
             if answer_confirm[0] == 'no':
                 return
             db.remove_item(inventory[item_index][0])
-            self.player.gold += round(inventory[item_index][1].cost / 2)
-            print(f'Sold 1 {item_name}')
+            profit = round(inventory[item_index][1].cost / 2)
+            self.player.gold += profit
+            print(f'Sold 1 {item_name} for {profit} gold coins')
         else:
             answer_amount = answer_handler(question=f'You chose {item_name} ({amount} ones). '
                                                     'How many item would you want to sell? (0 for cancel) ',
@@ -190,9 +193,10 @@ class Tavern:
                                                     no=['n', 'no', '2'])
             if answer_confirm_several[0] == 'no':
                 return
-            db.remove_item(inventory[item_index][0], int(answer_amount[1]))
-            self.player.gold += round(inventory[item_index][1].cost / 2)
-            print(f'Sold {answer_amount[1]} {item_name}')
+            db.remove_item(inventory[item_index][0], pieces := int(answer_amount[1]))
+            profit = round(inventory[item_index][1].cost / 2) * pieces
+            self.player.gold += profit
+            print(f'Sold {answer_amount[1]} {item_name} for {profit} gold coins')
         self.player.recount_params()
 
     def merchant_buy(self) -> None:
@@ -302,6 +306,6 @@ class Tavern:
                     return True
         if self.scene.location.name == "hometown":
             return True
-        if random.randint(1, 3) == 3:
+        if random.randint(1, 100) > ALEG_SPAWN_CHANCE_THRESHOLD:
             return True
         return False

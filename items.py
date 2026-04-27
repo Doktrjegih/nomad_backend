@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 import db
 from console import print, answer_handler, color, get_effect_color
+from constants import *
 
 if TYPE_CHECKING:
     from player import Player
@@ -44,12 +45,12 @@ class Items:
             type_of_item = inventory[item_index][1].type_
             match type_of_item:
                 case "food":
-                    self.player.health += 2
-                    self.player.set_drunk(-2)
+                    self.player.health += FOOD_HP
+                    self.player.set_drunk(-FOOD_DRUNK_LOSS)
                     db.remove_item(inventory[item_index][0])
                     print(f"Your HP is {self.player.health} now")
                 case "alcohol":
-                    self.player.set_drunk(10)
+                    self.player.set_drunk(BEER_DRUNK)
                     db.remove_item(inventory[item_index][0])
                     print(f"You've drunk {item_name}")
                 case "weapon":
@@ -113,7 +114,7 @@ class Items:
         item = random.choice([x for x in db.get_all_items() if not x.boss and x.type_ != "loot"])
         print(f"You've found {item.name}")
         db.add_item_to_inventory(item.item_id)
-        self.player.gold += (loot := random.randint(1, 5))
+        self.player.gold += (loot := random.randint(MIN_CHEST_GOLD_REWARD, MAX_CHEST_GOLD_REWARD))
         print(f"You've found {loot} gold coins")
 
 

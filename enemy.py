@@ -4,6 +4,7 @@ from json import loads
 
 import db
 from console import color, print, get_effect_color, ExitException
+from constants import *
 from paths import ENEMIES
 from player import Player
 from quest import get_current_quests
@@ -13,10 +14,10 @@ HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'
 DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
 TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
 
-DEFAULT_PARAMS = {"stage": 1, "hp_factor": 1, "attack": 1, "defence": 1}
-STAGE_2 = {"stage": 2, "hp_factor": 2, "attack": 2, "defence": 2}
-STAGE_3 = {"stage": 3, "hp_factor": 3, "attack": 3, "defence": 3}
-STAGE_4 = {"stage": 4, "hp_factor": 4, "attack": 4, "defence": 4}
+DEFAULT_PARAMS = {"stage": 1, "attack": ATK_LV_1, "defence": DEF_LV_1}
+STAGE_2 = {"stage": 2, "attack": ATK_LV_2, "defence": DEF_LV_2}
+STAGE_3 = {"stage": 3, "attack": ATK_LV_3, "defence": DEF_LV_3}
+STAGE_4 = {"stage": 4, "attack": ATK_LV_4, "defence": DEF_LV_4}
 
 
 class Enemy:
@@ -37,9 +38,10 @@ class Enemy:
                     break
         else:
             self.name = name
-        self.health = self.player.max_hp + params.get("hp_factor") * 2  # todo: use smth instead of lvl
-        self.attack = params.get("attack")  # todo: use smth instead of lvl
-        self.defence = params.get("defence")  # todo: use smth instead of lvl
+        self.stage = params.get("stage")
+        self.health = self.player.max_hp + self.stage * random.randint(self.stage, MAX_ENEMY_HP_FACTOR)  # todo: need balance
+        self.attack = params.get("attack") + random.randint(MIN_ENEMY_ATK_SHIFT, MAX_ENEMY_ATK_SHIFT)  # todo: need balance
+        self.defence = params.get("defence") + random.randint(MIN_ENEMY_DEF_SHIFT, MAX_ENEMY_DEF_SHIFT)  # todo: need balance
         self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
         self.boss = False
@@ -70,11 +72,11 @@ class Enemy:
         """
         if hasattr(self, "base_attack"):
             self.attack = self.base_attack
-        if self.health < 5:
+        if self.health < HYENA_SPECIAL_HP_THRESHOLD:
             self.special_name = "double damage"
             if not hasattr(self, "base_attack"):
                 self.base_attack = self.attack
-            self.attack *= 2
+            self.attack *= HYENA_SPECIAL_ATK_FACTOR
             print(f"Special skill has been activated! Enemy attack is {self.attack}")
 
     def wolf(self) -> None:
@@ -82,28 +84,28 @@ class Enemy:
         Causes bleeding effect to the player
         """
         if not hasattr(self, "player_bleeding") or self.player_bleeding == 0:
-            if random.randint(1, 100) > 50:  # todo: change value
+            if random.randint(1, 100) > WOLF_BLEEDING_CHANCE_THRESHOLD:  # todo: change value
                 self.special_name = "bleeding"
                 self.player_bleeding = 2
                 print(f"Special skill has been activated! Player bleeding is {self.player_bleeding}")
             else:
                 self.special_name = ""
         else:
-            self.player.health -= 1
+            self.player.health -= BLEEDING_LOSS_VALUE
             self.player_bleeding -= 1
-            print(f"You less 1 HP due to {color('red', 'bleeding')}")
+            print(f"You lost {BLEEDING_LOSS_VALUE} HP due to {color('red', 'bleeding')}")
 
     def werewolf(self) -> None:
         """
         Heals the enemy's health by when it drops below specific value
         """
-        if self.health < 5:
+        if self.health < WEREWOLF_SPECIAL_HP_THRESHOLD:
             if not hasattr(self, "healing_activatings"):
                 self.healing_activatings = 2
             if self.healing_activatings <= 0:
                 self.special_name = ""
                 return
-            self.health += 5
+            self.health += WEREWOLF_HP_RECOVERY
             self.healing_activatings -= 1
             self.special_name = "healing"
             print(f"Special skill has been activated! Enemy health is {self.health}")
@@ -139,21 +141,21 @@ class Enemy:
         """
         def drop_rate():
             rand = random.randint(1, 100)
-            if rand > 90:
+            if rand > THREE_LOOT_ITEMS_CHANCE_THRESHOLD:
                 return 3
-            if rand > 70:
+            if rand > TWO_LOOT_ITEMS_CHANCE_THRESHOLD:
                 return 2
             return 1
 
         if self.name not in list(DOGS.values()):  # todo: make expendable
-            reward = random.randint(3, 10)
+            reward = random.randint(MIN_GOLD_REWARD, MAX_GOLD_REWARD)
             self.player.gold += reward
             print(f'You get {reward} gold coins')
-            if self.attack > 2:  # todo: already a crutch, need to get level of an enemy explicitly
-                if random.randint(1, 10) > 7:
+            if self.stage > 2:
+                if random.randint(1, 100) > EQUIPMENT_CHANCE_THRESHOLD:
                     db.add_item_to_inventory((item := random.choice(db.get_all_equipment())).item_id)
                     print(f"You get {color('yellow', item.name)}")
-        if (items := db.get_enemy_loot(self.name)) and random.randint(1, 10) > 3:
+        if (items := db.get_enemy_loot(self.name)) and random.randint(1, 100) > LOOT_CHANCE_THRESHOLD:
             db.add_item_to_inventory((item := random.choice(items)).item_id, amount=(pieces := drop_rate()))
             print(f"You get {color('yellow', item.name)} ({pieces})")
         if self.boss:
@@ -198,12 +200,12 @@ class Enemy:
         attack = self.attack - self.player.defence
         attack += self.count_effect_damage()
         if attack < 1:
-            attack = 0
+            attack = 1
         self.player.health -= attack
         self.player.recount_params()
         if self.player.health <= 0:
             if self.boss and self.name == "Aleg":
-                if self.player.aleg_drinks > 3:
+                if self.player.aleg_drinks >= ALEG_DRINKS_TO_BAD_ENDING:
                     self.bad_ending_false()
                 else:
                     self.bad_ending_true()
@@ -248,7 +250,7 @@ class Enemy:
 
     def good_ending(self) -> None:
         """
-        Finishes the game if player has drunk with Aleg less or equal to 3 times and won
+        Finishes the game if player has drunk with Aleg less or equal to the max acceptable times and won the battle
         """
         print(f"You defeated {color('red', self.name)}!")
         print("(add text) Everyone is happy! You win! :)")
@@ -256,8 +258,8 @@ class Enemy:
 
     def bad_ending_true(self) -> None:
         """
-        Finishes the game if player has drunk with Aleg less or equal to 3 times,
-        but lost the last fight
+        Finishes the game if player has drunk with Aleg less or equal to the max acceptable times,
+        but lost the last battle
         """
         print(f"You've been defeated by {color('red', self.name)}...")
         print("(add text) Everyone is sad! You lose! :(")
@@ -265,7 +267,7 @@ class Enemy:
 
     def bad_ending_false(self) -> None:
         """
-        Finishes the game if player has drunk with Aleg MORE than 3 times
+        Finishes the game if player has drunk with Aleg more than max acceptable times
         """
         print(f"You've been defeated by {color('red', self.name)}...")
         print("(add text) Your soul has been absorbed by Aleg")
@@ -284,9 +286,9 @@ class Boss(Enemy):
         super().__init__(player=player, random_enemy=False)
 
         self.name = name
-        self.health = int(self.health * 5)
-        self.defence = random.randint(2, 6) * 3
-        self.attack = random.randint(2, 6) * 3
+        self.health = round(self.health * BOSS_HP_FACTOR)
+        self.defence = round(self.defence * BOSS_ATK_FACTOR)
+        self.attack = round(self.attack * BOSS_DEF_FACTOR)
         self.boss = True
 
 
@@ -306,21 +308,21 @@ def generate_enemy(player: Player) -> Enemy:
     if player.drunk < 26:
         return Enemy(player)
     elif player.drunk < 51:
-        if rand > 90:
+        if rand > STAGE_2_LV_1_SPAWN_THRESHOLD:
             return Enemy(player)
         return Enemy(player, params=STAGE_2)
     elif player.drunk < 76:
-        if rand > 90:
+        if rand > STAGE_3_LV_1_SPAWN_THRESHOLD:
             return Enemy(player)
-        elif rand > 80:
+        elif rand > STAGE_3_LV_2_SPAWN_THRESHOLD:
             return Enemy(player, params=STAGE_2)
         return Enemy(player, params=STAGE_3)
     else:
-        if rand > 90:
+        if rand > STAGE_4_LV_1_SPAWN_THRESHOLD:
             return Enemy(player)
-        elif rand > 80:
+        elif rand > STAGE_4_LV_2_SPAWN_THRESHOLD:
             return Enemy(player, params=STAGE_2)
-        elif rand > 70:
+        elif rand > STAGE_4_LV_3_SPAWN_THRESHOLD:
             return Enemy(player, params=STAGE_3)
         return Enemy(player, params=STAGE_4)
 

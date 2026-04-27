@@ -1,6 +1,7 @@
 import pickle
 from items import Items
 from console import print, answer_handler
+from constants import *
 from paths import QUESTS
 
 STATS = ("\n1 - beer (endurance)\n"
@@ -28,15 +29,15 @@ class Player:
             self.items = Items(self)  # here or after all vars?
 
             self.name = None
-            self.health = 10
-            self.max_hp = 10
-            self.attack = 1
-            self.defence = 1
-            self.endurance = 1  # influences HP
-            self.strength = 1  # influences attack
-            self.agility = 1  # influences attack + side-roll (currently is not used?)
-            self.luck = 1  # increases rewards and chances to get good loot
-            self.gold = 10
+            self.health = PLAYER_HP
+            self.max_hp = self.health
+            self.attack = PLAYER_ATK
+            self.defence = PLAYER_DEF
+            self.endurance = PLAYER_ENDURANCE  # influences HP
+            self.strength = PLAYER_STRENGTH  # influences attack
+            self.agility = PLAYER_AGILITY  # influences attack + side-roll (currently is not used?)
+            self.luck = PLAYER_LUCK  # increases rewards and chances to get good loot
+            self.gold = INITIAL_GOLD
             self.drunk = 0
             self.weapon = None
             self.armor = None
@@ -144,7 +145,7 @@ class Player:
         """
         Recounts all player stats after some actions
         """
-        self.max_hp = 5 + (self.endurance * 5)
+        self.max_hp = PLAYER_HP - MAX_HP_ENDURANCE_FACTOR + (self.endurance * MAX_HP_ENDURANCE_FACTOR)
         self.health = min(self.health, self.max_hp)
         inventory = self.items.get_inventory()
 
@@ -157,5 +158,5 @@ class Player:
                 else:
                     self.armor = Equipment(item[1], self.drunk)
 
-        self.attack = self.strength + (self.drunk // 10) + (self.weapon.attack if self.weapon else 0)
-        self.defence = self.strength + (self.drunk // 10) + (self.armor.defence if self.armor else 0)
+        self.attack = self.strength * PLAYER_ATK_FACTOR + (self.drunk // 10) + (self.weapon.attack if self.weapon else 0)
+        self.defence = self.strength * PLAYER_DEF_FACTOR + (self.drunk // 10) + (self.armor.defence if self.armor else 0)

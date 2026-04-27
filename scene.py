@@ -3,6 +3,7 @@ from itertools import chain
 
 import db
 from console import print, color, answer_handler, get_effect_color
+from constants import *
 from enemy import Enemy, generate_enemy, enemy_for_npc_quest, HUMANS, DOGS, TEST
 from items import Items
 from location import Location
@@ -180,8 +181,8 @@ class Scene:
                 self.location = second_location
             del first_location
             del second_location
-            self.player.set_drunk(-1)
-            self.turns_in_biome_left = random.randint(2, 5)
+            self.player.set_drunk(-DRUNK_FOR_MOVING)
+            self.turns_in_biome_left = random.randint(MIN_LOCATION_SIZE, MAX_LOCATION_SIZE)
 
         # mandatory actions after location has been selected
         if self.location.tavern:
@@ -212,9 +213,9 @@ class Scene:
         Finishes battle if enemy's been slayed, else hits player in response
         """
         # check if player hits enemy
-        hit_chance = 100 - 1.5 * self.player.luck - 2 * self.player.drunk
-        if hit_chance < 20:
-            hit_chance = 20
+        hit_chance = 100 - HIT_LUCK_FACTOR * self.player.luck - HIT_DRUNK_FACTOR * self.player.drunk
+        if hit_chance < DEFAULT_HIT_CHANCE:
+            hit_chance = DEFAULT_HIT_CHANCE
         if random.randint(1, 100) > hit_chance:
             print("You've missed!")
             self.enemy.enemy_attack()
@@ -229,7 +230,7 @@ class Scene:
         critical_hit = ''
         if random.randint(1, 100) < self.player.luck * (self.player.drunk / 100):
             critical_hit = color('green', 'CRITICAL HIT! ')
-            attack = int(attack * 2)
+            attack = int(attack * CRIT_ATK_FACTOR)
 
         # some debug information
         print(f'{critical_hit}Your default attack is {self.player.attack}')
@@ -253,9 +254,9 @@ class Scene:
         for effect in self.player.weapon.effects:
             if value := effect.get('damage'):
                 if effect.get('name') in enemy.effects_vulnerabilities:
-                    value *= 2
+                    value *= VULNERABILITY_FACTOR
                 if effect.get('name') in enemy.effects_resist:
-                    value *= 0.5
+                    value *= RESIST_FACTOR
                     value = round(value)
                 print(f"Your weapon also make {value} damage from {get_effect_color(effect.get('name'))}")
                 total_value += value
@@ -266,7 +267,7 @@ class Scene:
         USER ACTION
         Trying to run away from enemy, if attempt is failed, blocks next attempts
         """
-        if random.randint(1, 100) < 50 + self.player.luck * (100 - self.player.drunk / 100) - self.player.drunk * 0.5:
+        if random.randint(1, 100) < RUN_AWAY_THRESHOLD + self.player.luck * RUN_AWAY_LUCK_FACTOR - self.player.drunk * RUN_AWAY_DRUNK_FACTOR:  # todo: balance
             print('You have ran away')
             self.finish_battle(run=True)
         else:
@@ -280,9 +281,9 @@ class Scene:
         """
         self.enemy = None
         if run:
-            self.player.set_drunk(-1)
+            self.player.set_drunk(-RUN_AWAY_DRUNK_LOSS)
         else:
-            self.player.set_drunk(-3)  # todo: depends on taken damage
+            self.player.set_drunk(-FINISH_BATTLE_DRUNK_LOSS)  # todo: depends on taken damage
         self.state = 'peace'
         # print(f'Damage taken during battle: {self.damage_taken}')
         return
@@ -301,10 +302,10 @@ class Scene:
         quests = get_current_quests(ignore_plot=True)
         if len(quests) < 3:
             if not self.reaction:
-                if self.player.drunk > 24 and random.randint(1, 10) > 2:
+                if self.player.drunk > 24 and random.randint(1, 100) > NPC_QUEST_CHANCE_THRESHOLD:
                     self.check_npc_quests(quests)
                     return
-                elif self.player.drunk < 25 and random.randint(1, 10) > 6:
+                elif self.player.drunk < 25 and random.randint(1, 100) > NPC_DRINK_CHANCE_THRESHOLD:
                     db.add_item_to_inventory(1)  # todo: hardcode
                     print("I see you need a drink, take it")
                     print("You've gotten Beer bottle")
@@ -335,8 +336,8 @@ class Scene:
                 for quest in quests:
                     current_orders.append(quest.order)
                 order = enemy_for_npc_quest(self.player, exclude=current_orders)
-            amount = random.randint(2, 5)
-            reward = amount * 5 + random.randint(2, 10)  # todo: use smth instead of lvl
+            amount = random.randint(MIN_QUEST_ENEMIES_AMOUNT, MAX_QUEST_ENEMIES_AMOUNT)
+            reward = amount * GOLD_REWARD_FOR_QUEST_PER_ENEMY + random.randint(MIN_QUEST_ADDITIONAL_REWARD, MAX_QUEST_ADDITIONAL_REWARD)
             quest = Quest(order=order.name, amount=amount, reward=reward)
             self.npc_quest = quest
             if self.state != 'npc':

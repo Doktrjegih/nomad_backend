@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from console import ExitException
+from constants import *
 from quest import there_are_finished_quests, get_current_quests, there_is_plot_quest
 from tests.framework import *
 
@@ -60,13 +61,14 @@ def make_decision(scene: Scene) -> str:
     # actions in the tavern
     if scene.state == 'tavern':
         actions_list = []
-        if (available_purchase := scene.player.gold // 5) > 0:
-            needed_operations = (scene.player.max_hp - scene.player.health) // 2
+        if (available_purchase := scene.player.gold // FOOD_PRICE) > 0:
+            needed_operations = (scene.player.max_hp - scene.player.health) // FOOD_HP
             while available_purchase > 0 and needed_operations > 0:
                 available_purchase -= 1
                 needed_operations -= 1
                 actions_list.append('3')
-            needed_operations = (100 - scene.player.drunk) // 10
+        if (available_purchase := scene.player.gold // BEER_PRICE) > 0:
+            needed_operations = (100 - scene.player.drunk) // BEER_DRUNK
             while available_purchase > 0 and needed_operations > 0:
                 available_purchase -= 1
                 needed_operations -= 1
