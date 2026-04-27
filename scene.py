@@ -1,20 +1,24 @@
 import random
-from itertools import chain
 
 import db
-from console import print, color, answer_handler, get_effect_color
+from console import answer_handler, color, get_effect_color, print
 from constants import *
-from enemy import Enemy, generate_enemy, enemy_for_npc_quest, HUMANS, DOGS, TEST
+from enemy import ENEMIES_PARAMS, Enemy, enemy_for_npc_quest, generate_enemy
 from items import Items
 from location import Location
 from player import Player
 from quest import Quest, get_current_quests
 from tavern import Tavern
 
+
+def names(category: str):
+    return [enemy.name for enemy in ENEMIES_PARAMS[category].values()]
+
+
 ENEMY_TO_LOCATION = {
-    "mountains": list(chain(HUMANS.values(), TEST.values())),
-    "forest": list(DOGS.values()),
-    "cave": list(chain(HUMANS.values(), DOGS.values()))
+    "mountains": names("humans") + names("test"),
+    "forest": names("dogs"),
+    "cave": names("humans") + names("dogs"),
 }
 
 
@@ -28,7 +32,7 @@ class Scene:
         self.items = items
         self.turns_without_tavern = 0
         self.turns_in_biome_left = 1
-      
+
         self.npc_quest = None  # keeps an object of Quest class
         self.reaction = False  # shows if it's first meeting with NPC  # todo: make a runtime variable
 

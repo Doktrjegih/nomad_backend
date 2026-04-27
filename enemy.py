@@ -3,51 +3,49 @@ import sys
 from json import loads
 
 import db
-from console import color, print, get_effect_color, ExitException
+from console import ExitException, color, get_effect_color, print
 from constants import *
+from enemies_categories import ENEMIES_PARAMS
 from paths import ENEMIES
 from player import Player
 from quest import get_current_quests
 
-# todo: try to change to enums
-HUMANS = {1: 'Homeless guy', 2: 'Bandit', 3: 'Knight', 4: 'Berserk', 5: 'Madman'}
-DOGS = {1: 'Wet dog', 2: 'Hyena', 3: 'Wolf', 4: 'Werewolf', 5: 'Van Helsing'}
-TEST = {1: 'test1', 2: 'test2', 3: 'test3', 4: 'test4', 5: 'test5'}
-
-DEFAULT_PARAMS = {"stage": 1, "attack": ATK_LV_1, "defence": DEF_LV_1}
-STAGE_2 = {"stage": 2, "attack": ATK_LV_2, "defence": DEF_LV_2}
-STAGE_3 = {"stage": 3, "attack": ATK_LV_3, "defence": DEF_LV_3}
-STAGE_4 = {"stage": 4, "attack": ATK_LV_4, "defence": DEF_LV_4}
-
 
 class Enemy:
-    # todo: remove stupid dict types at all
-    def __init__(self, player: Player,
+    def __init__(self, 
+                 player: Player,
                  random_enemy: bool = True,
                  name: str = "",
-                 exclude: list[str] | None = None,
-                 params: dict = DEFAULT_PARAMS) -> None:
+                 exclude: list[str] = [],
+                 stage: int = 1) -> None:
         self.player = player
         if random_enemy:
             while True:
-                type_ = random.choice([HUMANS, DOGS, TEST])
-                self.name = type_.get(params.get("stage"))
-                if exclude and self.name in exclude:
-                    continue
-                else:
+                category = random.choice(list(ENEMIES_PARAMS.keys()))
+                template = ENEMIES_PARAMS[category][stage]
+
+                if template.name not in exclude:
                     break
         else:
-            self.name = name
-        self.stage = params.get("stage")
+            template = self._find_by_name(name)
+        self.name = template.name
+        self.stage = stage
         self.health = self.player.max_hp + self.stage * random.randint(self.stage, MAX_ENEMY_HP_FACTOR)  # todo: need balance
-        self.attack = params.get("attack") + random.randint(MIN_ENEMY_ATK_SHIFT, MAX_ENEMY_ATK_SHIFT)  # todo: need balance
-        self.defence = params.get("defence") + random.randint(MIN_ENEMY_DEF_SHIFT, MAX_ENEMY_DEF_SHIFT)  # todo: need balance
+        self.attack = template.attack + random.randint(MIN_ENEMY_ATK_SHIFT, MAX_ENEMY_ATK_SHIFT)  # todo: need balance
+        self.defence = template.defence + random.randint(MIN_ENEMY_DEF_SHIFT, MAX_ENEMY_DEF_SHIFT)  # todo: need balance
         self.launch_specials = lambda: print("No specials")
         self.run_away_able = True
         self.boss = False
         self.effects_damage = self.get_effects_param(self.name, "effects_damage")
         self.effects_vulnerabilities = self.get_effects_param(self.name, "vulnerabilities")
         self.effects_resist = self.get_effects_param(self.name, "resist")
+
+    def _find_by_name(self, name: str):
+        for group in ENEMIES_PARAMS.values():
+            for template in group.values():
+                if template.name == name:
+                    return template
+        raise ValueError(f"Enemy '{name}' not found")
 
     @staticmethod
     def get_effects_param(name: str, param: str) -> list:
@@ -147,7 +145,7 @@ class Enemy:
                 return 2
             return 1
 
-        if self.name not in list(DOGS.values()):  # todo: make expendable
+        if self.name not in list(ENEMIES_PARAMS['dogs']):  # todo: make expendable
             reward = random.randint(MIN_GOLD_REWARD, MAX_GOLD_REWARD)
             self.player.gold += reward
             print(f'You get {reward} gold coins')
@@ -310,24 +308,24 @@ def generate_enemy(player: Player) -> Enemy:
     elif player.drunk < 51:
         if rand > STAGE_2_LV_1_SPAWN_THRESHOLD:
             return Enemy(player)
-        return Enemy(player, params=STAGE_2)
+        return Enemy(player, stage=2)
     elif player.drunk < 76:
         if rand > STAGE_3_LV_1_SPAWN_THRESHOLD:
             return Enemy(player)
         elif rand > STAGE_3_LV_2_SPAWN_THRESHOLD:
-            return Enemy(player, params=STAGE_2)
-        return Enemy(player, params=STAGE_3)
+            return Enemy(player, stage=2)
+        return Enemy(player, stage=3)
     else:
         if rand > STAGE_4_LV_1_SPAWN_THRESHOLD:
             return Enemy(player)
         elif rand > STAGE_4_LV_2_SPAWN_THRESHOLD:
-            return Enemy(player, params=STAGE_2)
+            return Enemy(player, stage=2)
         elif rand > STAGE_4_LV_3_SPAWN_THRESHOLD:
-            return Enemy(player, params=STAGE_3)
-        return Enemy(player, params=STAGE_4)
+            return Enemy(player, stage=3)
+        return Enemy(player, stage=4)
 
 
-def enemy_for_npc_quest(player: Player, exclude: list[str] | None = None) -> Enemy:
+def enemy_for_npc_quest(player: Player, exclude: list[str] = []) -> Enemy:
     """
     Generates enemy for NPC quest according to current player drunk state
     :param player: object of Player class
@@ -335,10 +333,10 @@ def enemy_for_npc_quest(player: Player, exclude: list[str] | None = None) -> Ene
     :return: object of enemy depends on its stage
     """
     if 51 > player.drunk > 24:
-        return Enemy(player, params=STAGE_2, exclude=exclude)
+        return Enemy(player, stage=2, exclude=exclude)
     elif 76 > player.drunk > 50:
-        return Enemy(player, params=STAGE_3, exclude=exclude)
+        return Enemy(player, stage=3, exclude=exclude)
     elif player.drunk > 75:
-        return Enemy(player, params=STAGE_4, exclude=exclude)
+        return Enemy(player, stage=4, exclude=exclude)
     else:
         raise ValueError("Can't generate enemies with low drunk level")
