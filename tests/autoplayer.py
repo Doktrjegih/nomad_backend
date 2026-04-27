@@ -1,6 +1,6 @@
 import random
 from unittest.mock import patch
-
+from json import loads
 import pytest
 
 from console import ExitException
@@ -46,13 +46,25 @@ def make_decision(scene: Scene) -> str:
             actions = turns_generator([open_entrypoint(scene, "inventory"), index])
             return next(actions)
         if item[1].type_ == "weapon":
-            if not scene.player.weapon or item[1].attack > scene.player.weapon.attack:
+            if not scene.player.weapon:
                 actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                 return next(actions)
+            else:
+                current_total_attack = scene.player.weapon.attack + sum([x.get('damage') for x in loads(scene.player.weapon.levels).get('3').get('effects')])
+                new_total_attack = item[1].attack + sum([x.get('damage') for x in loads(item[1].levels).get('3').get('effects')])
+                if new_total_attack > current_total_attack:
+                    actions = turns_generator([open_entrypoint(scene, "inventory"), index])
+                    return next(actions)
         if item[1].type_ == "armor":
-            if not scene.player.armor or item[1].defence > scene.player.armor.defence:
+            if not scene.player.armor:
                 actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                 return next(actions)
+            else:
+                current_total_defence = scene.player.armor.defence + sum([x.get('resist') for x in loads(scene.player.armor.levels).get('3').get('effects')])
+                new_total_defence = item[1].defence + sum([x.get('resist') for x in loads(item[1].levels).get('3').get('effects')])
+                if new_total_defence > current_total_defence:
+                    actions = turns_generator([open_entrypoint(scene, "inventory"), index])
+                    return next(actions)
 
     # enter the tavern
     if scene.location.tavern and scene.state != "tavern":
