@@ -50,8 +50,8 @@ def make_decision(scene: Scene) -> str:
                 actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                 return next(actions)
             else:
-                current_total_attack = scene.player.weapon.attack + sum([x.get('damage') for x in loads(scene.player.weapon.levels).get('3').get('effects')])
-                new_total_attack = item[1].attack + sum([x.get('damage') for x in loads(item[1].levels).get('3').get('effects')])
+                current_total_attack = scene.player.weapon.attack + sum([x.get('damage') for x in loads(scene.player.weapon.levels).get('3').get('effects')]) if scene.player.weapon.effects else 0
+                new_total_attack = item[1].attack + sum([x.get('damage') for x in loads(item[1].levels).get('3').get('effects')]) if item[1].effects else 0
                 if new_total_attack > current_total_attack:
                     actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                     return next(actions)
@@ -60,8 +60,8 @@ def make_decision(scene: Scene) -> str:
                 actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                 return next(actions)
             else:
-                current_total_defence = scene.player.armor.defence + sum([x.get('resist') for x in loads(scene.player.armor.levels).get('3').get('effects')])
-                new_total_defence = item[1].defence + sum([x.get('resist') for x in loads(item[1].levels).get('3').get('effects')])
+                current_total_defence = scene.player.armor.defence + sum([x.get('resist') for x in loads(scene.player.armor.levels).get('3').get('effects')]) if scene.player.armor.effects else 0
+                new_total_defence = item[1].defence + sum([x.get('resist') for x in loads(item[1].levels).get('3').get('effects')]) if item[1].effects else 0
                 if new_total_defence > current_total_defence:
                     actions = turns_generator([open_entrypoint(scene, "inventory"), index])
                     return next(actions)
