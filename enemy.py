@@ -5,14 +5,14 @@ from json import loads
 import db
 from console import ExitException, color, get_effect_color, print
 from constants import *
-from enemies_categories import ENEMIES_PARAMS
+from enemies_categories import ENEMIES_PARAMS, enemies_names
 from paths import ENEMIES
 from player import Player
 from quest import get_current_quests
 
 
 class Enemy:
-    def __init__(self, 
+    def __init__(self,
                  player: Player,
                  random_enemy: bool = True,
                  name: str = "",
@@ -145,7 +145,7 @@ class Enemy:
                 return 2
             return 1
 
-        if self.name not in list(ENEMIES_PARAMS['dogs']):  # todo: make expendable
+        if self.name not in enemies_names('dogs'):  # todo: make expendable
             reward = random.randint(MIN_GOLD_REWARD, MAX_GOLD_REWARD)
             self.player.gold += reward
             print(f'You get {reward} gold coins')

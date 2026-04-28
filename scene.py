@@ -3,22 +3,18 @@ import random
 import db
 from console import answer_handler, color, get_effect_color, print
 from constants import *
-from enemy import ENEMIES_PARAMS, Enemy, enemy_for_npc_quest, generate_enemy
+from enemies_categories import enemies_names
+from enemy import Enemy, enemy_for_npc_quest, generate_enemy
 from items import Items
 from location import Location
 from player import Player
 from quest import Quest, get_current_quests
 from tavern import Tavern
 
-
-def names(category: str):
-    return [enemy.name for enemy in ENEMIES_PARAMS[category].values()]
-
-
 ENEMY_TO_LOCATION = {
-    "mountains": names("humans") + names("test"),
-    "forest": names("dogs"),
-    "cave": names("humans") + names("dogs"),
+    "mountains": enemies_names("humans") + enemies_names("test"),
+    "forest": enemies_names("dogs"),
+    "cave": enemies_names("humans") + enemies_names("dogs"),
 }
 
 

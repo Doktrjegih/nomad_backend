@@ -30,3 +30,7 @@ ENEMIES_PARAMS = {
         4: EnemyTemplate("test4", ATK_LV_4, DEF_LV_4),
     },
 }
+
+
+def enemies_names(category: str):
+    return [enemy.name for enemy in ENEMIES_PARAMS[category].values()]
