@@ -1,7 +1,8 @@
 import pickle
-from items import Items
+
 from console import print, answer_handler
 from constants import *
+from items import Items
 from paths import QUESTS
 
 STATS = ("\n1 - beer (endurance)\n"

@@ -1,6 +1,7 @@
 import random
-from unittest.mock import patch
 from json import loads
+from unittest.mock import patch
+
 import pytest
 
 from console import ExitException

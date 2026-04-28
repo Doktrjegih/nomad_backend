@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 from enum import Enum
-import os
+
 from paths import LAST_GAME_LOG, TEMP_FILES
 
 
