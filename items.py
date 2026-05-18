@@ -111,9 +111,19 @@ class Items:
         USER ACTION
         Gives random item from chest to player
         """
-        item = random.choice([x for x in db.get_all_items() if not x.boss and x.type_ != "loot"])
-        print(f"You've found {item.name}")
+        def choose_item(items: list[db.Items], luck: int = 1):
+            weights = []
+
+            for item in items:
+                base_weight = 1 / item.cost
+                adjusted_weight = base_weight ** (1 / (luck))
+                weights.append(adjusted_weight)
+
+            return random.choices(items, weights=weights, k=1)[0]
+        item = choose_item([x for x in db.get_all_items() if not x.boss and x.type_ != "loot"], self.player.luck)
+
         db.add_item_to_inventory(item.item_id)
+        print(f"You've found {item.name}")
         self.player.gold += (loot := random.randint(MIN_CHEST_GOLD_REWARD, MAX_CHEST_GOLD_REWARD))
         print(f"You've found {loot} gold coins")
 
