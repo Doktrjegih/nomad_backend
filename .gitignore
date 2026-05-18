@@ -168,3 +168,7 @@ pyproject.toml
 # game files
 tests/results.txt
 temp_files/*
+stats.csv
+
+# vscode
+.vscode/
