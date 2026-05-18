@@ -30,7 +30,10 @@ class Enemy:
             template = self._find_by_name(name)
         self.name = template.name
         self.stage = stage
-        self.health = self.player.max_hp + self.stage * random.randint(self.stage, MAX_ENEMY_HP_FACTOR)  # todo: need balance
+
+        multiplier = random.uniform(0.8 + 0.05 * self.stage, 1.0 + 0.15 * self.stage)
+        self.health = int(self.player.max_hp * multiplier)  # todo: need balance
+
         self.attack = template.attack + random.randint(MIN_ENEMY_ATK_SHIFT, MAX_ENEMY_ATK_SHIFT)  # todo: need balance
         self.defence = template.defence + random.randint(MIN_ENEMY_DEF_SHIFT, MAX_ENEMY_DEF_SHIFT)  # todo: need balance
         self.launch_specials = lambda: print("No specials")
