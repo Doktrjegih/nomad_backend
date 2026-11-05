@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 
 MAIN_FOLDER = Path(__file__).parent
 JSONS = Path(MAIN_FOLDER, "jsons")
-TEMP_FILES = Path(MAIN_FOLDER, "temp_files")
+TEMP_FILES = Path(os.environ.get("NOMAD_STATE_DIR", MAIN_FOLDER / "temp_files"))
 TESTS = Path(MAIN_FOLDER, "tests")
 
 PLOT_QUESTS = Path(JSONS, "plot_quests.json")

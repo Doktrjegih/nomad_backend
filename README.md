@@ -65,3 +65,26 @@ game. It writes per-game transcripts and `results.csv` under ignored
 at 500 moves. A fresh 100-seed evaluation (100–199) produced 47 wins, 9 story
 losses, and 44 deaths; 97 runs finished within 100–500 moves, with median 156 and
 range 79–274. This evaluates the supplied automated policy, not human players.
+
+# browser version
+
+Run the browser interface with the same installed dependencies:
+
+```sh
+.venv/bin/python web_server.py
+```
+
+Open your local browser at `http://127.0.0.1:8000`. Actions, inventory items,
+merchant purchases, quest decisions, and confirmations use labeled buttons.
+Health, equipment, gold, and moves update after each choice. Reloading reconnects
+to the current prompt; New journey starts over after confirmation.
+
+The CLI remains available through `python main.py`. The web server runs each
+browser session in a separate process with its own temporary SQLite database,
+quests, and log. Web games do not reset CLI saves. Sessions are temporary: server
+shutdown removes them, and inactive sessions can be reclaimed after 30 minutes.
+The local development server supports up to 16 sessions; it is not a production
+hosting service. Use `--host` and `--port` to change the listening address.
+
+Run `.venv/bin/python -m pytest -q` to include HTTP integration checks for button
+flows, purchases, refresh, separate browser sessions, and stale/invalid actions.

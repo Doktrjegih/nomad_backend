@@ -7,6 +7,9 @@ from enum import Enum
 from paths import LAST_GAME_LOG, TEMP_FILES
 
 
+browser_ui = None
+
+
 class ExitException(Exception):
     pass
 
@@ -42,7 +45,10 @@ def print(*args) -> None:
     A wrapper for logging the game during printing messages
     """
     row = " ".join(f"{value}" for value in args)
-    builtins.print(row)
+    if browser_ui is not None:
+        browser_ui.write(row)
+    else:
+        builtins.print(row)
     logging.info(row)
 
 
@@ -81,6 +87,8 @@ def answer_handler(question: str, **kwargs) -> tuple[str, str]:
     For example: items=[x for x in range(1, counter + 1)] - it will check if answer is in list
     :return: tuple with group name and user answer if answer in one of the groups
     """
+    if browser_ui is not None:
+        return browser_ui.choose(question, kwargs)
     while True:
         try:
             answer = input(question).lower()
