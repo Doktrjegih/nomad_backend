@@ -7,19 +7,19 @@
 <title>Nomad</title>
 </head>
 <body data-location="hometown" data-screen="menu">
-<header class="app-header"><div class="brand">NOMAD</div><div class="location-strip" hidden><h2 id="location">—</h2></div><div class="tools"><button class="quiet" id="install" hidden>Install game</button><button class="quiet" id="update" hidden>Update ready · Reload</button><button class="quiet" id="open-menu">Main menu</button></div></header>
+<header class="app-header" hidden><div class="brand">NOMAD</div><div class="location-strip" hidden><h2 id="location">—</h2></div><div class="tools"><button class="quiet" id="install" hidden>Install game</button><button class="quiet" id="update" hidden>Update ready · Reload</button><button class="quiet" id="open-menu" disabled>Main menu</button></div></header>
 <p id="offline-status" role="alert" hidden></p>
 <section id="main-menu" class="main-menu" aria-label="Main menu">
   <h1>Nomad</h1>
-  <nav aria-label="Game menu"><button class="action" id="continue">Continue</button><button class="action" id="new-game">New journey</button><button class="quiet" id="import">Import save</button><button class="quiet" id="export">Export save</button></nav>
+  <button class="quiet" id="close-menu" disabled hidden>Close menu</button>
+  <nav aria-label="Game menu"><button class="action" id="new-game" disabled>New journey</button><button class="quiet" id="import" disabled>Import save</button><button class="quiet" id="export" disabled>Export save</button></nav>
   <input type="file" accept="application/json,.json" id="save-file" hidden>
 </section>
 <main id="game-screen" hidden>
 <aside class="card sheet" aria-label="Character stats">
   <div class="meters"><div class="meter"><div class="meter-label"><span>Health</span><strong id="hp">—</strong></div><div class="bar" role="progressbar" aria-label="Health" id="hp-bar"><i></i></div></div>
   <div class="meter"><div class="meter-label"><span>Alcohol</span><strong id="condition">0%</strong></div><div class="bar alcohol" role="progressbar" aria-label="Alcohol" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="alcohol-bar"><i></i></div></div></div>
-  <div class="stats"><div><b id="attack">—</b><span>Attack</span></div><div><b id="defence">—</b><span>Defence</span></div><div><b id="gold">—</b><span>Gold</span></div><div><b id="moves">—</b><span>Moves</span></div></div>
-  <div class="gear"><div><span class="gear-icon" id="weapon-icon"></span><div><span>Weapon</span><strong id="weapon">—</strong></div></div><div><span class="gear-icon" id="armor-icon"></span><div><span>Armor</span><strong id="armor">—</strong></div></div></div>
+  <div class="gear"><div class="currency"><span class="gear-icon" id="gold-icon"></span><div><span>Gold</span><strong id="gold">—</strong></div></div><div><span class="gear-icon" id="weapon-icon"></span><div><span>Weapon</span><strong id="weapon">—</strong></div></div><div><span class="gear-icon" id="armor-icon"></span><div><span>Armor</span><strong id="armor">—</strong></div></div></div>
 </aside>
 <section class="card journey" aria-label="Your journey">
   <div class="story-wrap"><div class="story" id="story" role="log" aria-label="Adventure log" aria-live="polite"></div><nav class="pager" id="story-pager" aria-label="Story history" hidden><button class="quiet" id="older-story" aria-label="Earlier story">←</button><span id="story-page" class="small"></span><button class="quiet" id="newer-story" aria-label="Later story">→</button></nav></div>

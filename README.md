@@ -32,18 +32,23 @@ path. HTTP integration tests require local socket access.
 
 ## Interface
 
-The main menu contains Continue, New journey, and save import/export. Returning to
-it pauses the interface without resetting your journey. Health and alcohol use
-matching progress bars. Equipped items, inventory/shop choices, and every enemy
+The main menu contains New journey and save import/export, with plain text buttons
+and no game header. Existing saves reopen automatically; Close menu returns to
+an open journey. Returning to it pauses the interface without resetting your journey. Health and alcohol use
+matching progress bars. Gold has a coin icon beside the equipment; Attack and
+Defence are shown through Get status. Moves are no longer displayed, and there is
+no Exit or Continue control. Equipped items, inventory/shop choices, and every enemy
 use a generated, colored medieval RPG icon atlas. Tavern and chest buttons have a
-gold highlight. Every button has a colored icon, including confirmations, menu and
-save controls, and history/page navigation. Wooden plate buttons, Cinzel headings and Alegreya log text complete
+gold highlight. Gameplay buttons, confirmations, and history/page navigation have
+colored icons; main-menu buttons remain text-only. Wooden plate buttons, Cinzel headings and Alegreya log text complete
 the theme; fonts and their licenses are bundled locally.
 
 Desktop play has three columns: a character-status panel matching the warm window theme, a dedicated
 log panel, and a right-hand action panel split into contextual choices above and
-pinned Inventory, Status, and Exit controls below. On portrait phones the status panel sits
-above the log/action columns. Only the location stays in the game header; the main menu hides it. A static,
+pinned Inventory and Status controls below. On portrait phones the actions are at the top (Inventory and Status directly below
+the contextual choices), the log is in the middle, and the status/equipment panel
+is at the bottom. The phone header has an opaque layer covering the installed-app
+status-bar safe area so the scene blur stays behind it. Only the location stays in the game header; the main menu hides it. A static,
 lightly blurred (3px) painted background changes for taverns/shops, forests, mountains, caves,
 villages/hometown, and rivers. Art and fonts are included in the offline cache.
 The first complete offline download includes about 9 MB of lossless WebP artwork, including the painted control icons.

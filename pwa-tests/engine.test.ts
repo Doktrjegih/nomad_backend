@@ -13,16 +13,18 @@ function battle(g: Game, name = 'Wet dog', stage = 1): Game {
 }
 function restore(g: Game) { return validateGame(JSON.parse(JSON.stringify(g))); }
 
-test('tavern, purchases, menu restoration, inventory and exit work without a server', () => {
+test('tavern, purchases, menu restoration and inventory work without an exit flow', () => {
   let g = click(fresh(), 'enter tavern');
   g = click(g, 'take a beer');
   assert.equal(g.player.gold, 5); assert.equal(g.player.drunk, 10); assert.equal(g.player.moves, 1);
   g = click(g, 'inventory'); assert.equal(view(restore(g)).question, view(g).question);
   g = click(g, 'Broken Spear'); assert.equal(equipment(g, 'weapon'), undefined);
   g = click(click(g, 'inventory'), 'Broken Spear'); assert.equal(equipment(g, 'weapon')?.id, 3);
-  g = click(click(g, 'exit game'), 'No'); assert.equal(g.status, 'playing');
-  g = click(click(g, 'exit game'), 'Yes'); assert.equal(g.status, 'finished'); assert.equal(g.outcome, 'exit');
-  assert.deepEqual(view(g).options, []);
+  assert.ok(!view(g).options.some(o => o.id === 'exit game'));
+  assert.throws(() => act(g, 'exit game'));
+  g = click(g, 'get status');
+  assert.ok(g.log.some(line => line.includes(`Attack: ${g.player.attack}`) && line.includes(`Defence: ${g.player.defence}`)));
+
 });
 
 test('shop confirms cost, rejects unaffordable items, sells equipped gear, and handles stacks', () => {

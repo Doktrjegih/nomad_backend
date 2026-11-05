@@ -13,10 +13,10 @@ let busy = true;
 let storageBroken = false;
 let actionPage = 0;
 const storyPages = new StoryPages($('story'), $('story-pager'), $('story-page'), $('older-story'), $('newer-story'));
-function showGame() { document.body.dataset.screen = 'game'; document.querySelector<HTMLElement>('.location-strip')!.hidden = false; $('main-menu').hidden = true; $('game-screen').hidden = false; if (current) render(current.game); }
-function showMenu() { document.body.dataset.screen = 'menu'; document.querySelector<HTMLElement>('.location-strip')!.hidden = true; $('main-menu').hidden = false; $('game-screen').hidden = true; }
+function showGame() { document.querySelector<HTMLElement>('.app-header')!.hidden = false; document.body.dataset.screen = 'game'; document.querySelector<HTMLElement>('.location-strip')!.hidden = false; $('main-menu').hidden = true; $('game-screen').hidden = false; if (current) render(current.game); }
+function showMenu() { document.querySelector<HTMLElement>('.app-header')!.hidden = true; $('close-menu').hidden = !current; document.body.dataset.screen = 'menu'; document.querySelector<HTMLElement>('.location-strip')!.hidden = true; $('main-menu').hidden = false; $('game-screen').hidden = true; }
 $('open-menu').onclick = showMenu;
-$('continue').onclick = showGame;
+$('close-menu').onclick = showGame;
 
 const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('nomad-journey') : null;
 const errorText = (e: unknown) => e instanceof Error ? e.message : 'Something went wrong.';
@@ -24,9 +24,9 @@ function message(text: string, error = false) { $('status').textContent = text; 
 function storageError(text: string) { $('save-error').hidden = !text; $('save-error').textContent = text; }
 function setBusy(value: boolean) {
   busy = value;
-  document.querySelectorAll<HTMLButtonElement>('#actions button,#common-actions button,#new-game,#import,#export,#update,#continue,#open-menu').forEach(b => b.disabled = value);
+  document.querySelectorAll<HTMLButtonElement>('#actions button,#common-actions button,#new-game,#import,#export,#update,#close-menu,#open-menu').forEach(b => b.disabled = value);
   if (!value && current) renderActions(current.game);
-  ($('continue') as HTMLButtonElement).disabled = value || !current;
+  ($('close-menu') as HTMLButtonElement).disabled = value || !current;
 }
 function render(g: Game) {
   const v = view(g), p = g.player;
@@ -35,7 +35,8 @@ function render(g: Game) {
   document.body.dataset.battle = String(g.scene === 'battle' && g.status === 'playing');
   $('question').textContent = g.scene === 'battle' && g.menu.kind === 'main' ? 'What do you want to do?' : v.question;
   storyPages.set(g.log);
-  for (const key of ['attack', 'defence', 'gold', 'moves'] as const) $(key).textContent = String(p[key]);
+  $('gold').textContent = String(p.gold);
+  $('gold-icon').replaceChildren(icon('coins'));
   $('weapon').textContent = equipment(g, 'weapon')?.name ?? 'Unarmed';
   $('armor').textContent = equipment(g, 'armor')?.name ?? 'No armor';
   for (const type of ['weapon', 'armor'] as const) $('' + type + '-icon').replaceChildren(icon(equipment(g, type) ? `item-${equipment(g, type)!.id}` : type === 'weapon' ? 'sword' : 'armor'));
@@ -57,14 +58,14 @@ function render(g: Game) {
 const commonControls = [
   { id: 'inventory', label: 'Inventory', icon: 'bag' },
   { id: 'get status', label: 'Get status', icon: 'status' },
-  { id: 'exit game', label: 'Exit game', icon: 'exit' },
 ];
 function renderActions(g: Game) {
   const actions = $('actions'); actions.replaceChildren();
   const all = view(g).options;
   const options = g.menu.kind === 'main' ? all.filter(o => !commonControls.some(c => c.id === o.id)) : all;
   const short = window.innerHeight <= 620;
-  const size = window.innerWidth <= 700 ? (short ? (g.menu.kind === 'main' ? 2 : 1) : 3) : (window.innerHeight <= 520 ? 2 : 4);
+  const portrait = window.matchMedia('(max-width: 700px) and (orientation: portrait)').matches;
+  const size = portrait ? 2 : window.innerWidth <= 700 ? (short ? (g.menu.kind === 'main' ? 2 : 1) : 3) : (window.innerHeight <= 520 ? 2 : 4);
   const count = Math.max(1, Math.ceil(options.length / size));
   actionPage = Math.min(actionPage, count - 1);
   for (const option of options.slice(actionPage * size, (actionPage + 1) * size)) {
@@ -96,8 +97,7 @@ function renderActions(g: Game) {
   }
 }
 for (const [id, name] of Object.entries({
-  install: 'install', update: 'reload', 'open-menu': 'menu', continue: 'road',
-  'new-game': 'new', import: 'import', export: 'export',
+  install: 'install', update: 'reload', 'open-menu': 'menu',
   'older-story': 'left', 'newer-story': 'right', 'previous-actions': 'left', 'next-actions': 'right',
   'cancel-restart': 'cancel', 'confirm-restart': 'confirm',
 })) decorateButton($(id) as HTMLButtonElement, name);
@@ -189,9 +189,9 @@ async function setupOffline() {
 async function boot() {
   try {
     current = await load();
-    if (current) render(current.game);
+    if (current) showGame();
     else {
-      await commit(createGame(crypto.getRandomValues(new Uint32Array(1))[0], crypto.randomUUID()));
+      showMenu();
       try {
         if (localStorage.getItem('nomad-save')) message('A new offline journey has begun. Saves from the earlier online game cannot be imported.');
       } catch { /* Legacy storage is optional; the current save uses IndexedDB. */ }

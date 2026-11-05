@@ -7,18 +7,25 @@ async function resize(page: Page, size: { width: number; height: number }) {
 }
 async function ready(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.locator('#new-game')).toBeEnabled();
+  if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'New journey', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
+async function resume(page: Page) {
+  await expect(page.locator('#new-game')).toBeEnabled();
+  if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  await expect(page.locator('#game-screen')).toBeVisible();
+}
 async function click(page: Page, name: string) {
   await expect(page.locator('#open-menu')).toBeEnabled();
+  if (name === 'Main menu' && await page.locator('#main-menu').isVisible()) return;
   const target = page.getByRole('button', { name, exact: true });
   if (await target.isVisible()) { await target.click(); return; }
   if (['New journey', 'Export save', 'Import save'].includes(name)) await page.getByRole('button', { name: 'Main menu', exact: true }).click();
-  else if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  else if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Close menu', exact: true }).click();
   const previous = page.getByRole('button', { name: 'Previous choices', exact: true });
   while (await previous.isVisible() && await previous.isEnabled()) await previous.click();
   const next = page.getByRole('button', { name: 'More choices', exact: true });
@@ -52,16 +59,15 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   await click(page, 'Merchant'); await click(page, 'Buy');
   await page.getByRole('button', { name: /Broken Spear.*3 gold/ }).click();
   await expect(page.locator('#question')).toContainText('Buy Broken Spear');
-  await page.reload(); await click(page, 'Continue'); await expect(page.locator('#question')).toContainText('Buy Broken Spear');
+  await page.reload(); await resume(page); await expect(page.locator('#question')).toContainText('Buy Broken Spear');
   await expect(page.locator('#story .divider')).toHaveCount(1);
   await click(page, 'Yes'); await expect(page.locator('#gold')).toHaveText('2');
   await click(page, 'Cancel'); await click(page, 'Inventory');
   await expect(page.getByRole('button', { name: /Broken Spear.*×2/ })).toBeVisible();
-  await click(page, 'Cancel'); await click(page, 'Exit game'); await click(page, 'No');
-  await click(page, 'Exit game'); await click(page, 'Yes');
-  await expect(page.locator('#question')).toHaveText('Your journey has ended.');
-  await page.reload(); await click(page, 'Continue'); await expect(page.locator('#question')).toHaveText('Your journey has ended.');
-  await click(page, 'Begin a new journey'); await expect(page.locator('#gold')).toHaveText('10');
+  await click(page, 'Cancel'); await expect(page.getByRole('button', { name: 'Exit game', exact: true })).toHaveCount(0);
+  await page.reload(); await resume(page); await expect(page.locator('#gold')).toHaveText('2');
+  await click(page, 'Main menu'); await click(page, 'New journey'); await click(page, 'Start again');
+  await expect(page.locator('#gold')).toHaveText('10');
   expect(apiRequests).toEqual([]);
 });
 
@@ -166,12 +172,14 @@ async function fitsScreen(page: Page) {
 test('main menu resumes the same journey and alcohol uses an accessible progress bar', async ({ page }) => {
   await page.goto('/'); await expect(page.locator('#main-menu')).toBeVisible();
   await expect(page.locator('.location-strip')).toBeHidden();
-  await expect(page.locator('#progress,#mode')).toHaveCount(0);
-  await click(page, 'Continue'); await click(page, 'Enter tavern'); await click(page, 'Take a beer');
+  await expect(page.locator('.app-header')).toBeHidden();
+  await expect(page.locator('#main-menu svg')).toHaveCount(0);
+  await expect(page.locator('#progress,#mode,#moves,#attack,#defence,#continue')).toHaveCount(0);
+  await click(page, 'New journey'); await click(page, 'Enter tavern'); await click(page, 'Take a beer');
   await expect(page.getByRole('progressbar', { name: 'Alcohol', exact: true })).toHaveAttribute('aria-valuenow', '10');
   await expect(page.locator('#alcohol-bar i')).toHaveCSS('width', /px$/);
   await click(page, 'Main menu'); await expect(page.locator('#game-screen')).toBeHidden();
-  await click(page, 'Continue'); await expect(page.locator('#gold')).toHaveText('5');
+  await resume(page); await expect(page.locator('#gold')).toHaveText('5');
   await expect(page.locator('#story')).not.toContainText("You're in the");
 });
 
@@ -237,15 +245,19 @@ test('desktop separates unchanged status, log-only center and right-hand actions
   const context = (await page.locator('.context-panel').boundingBox())!;
   const common = (await page.locator('.common-panel').boundingBox())!;
   expect(context.y + context.height).toBeLessThan(common.y);
-  await expect(page.locator('#common-actions button')).toHaveCount(3);
+  await expect(page.locator('#common-actions button')).toHaveCount(2);
+  await expect(page.locator('.gear #gold')).toHaveText('10');
+  await expect(page.locator('#gold-icon svg')).toHaveAttribute('data-icon', 'coins');
   await expect(page.locator('#actions button[aria-label="Get status"]')).toHaveCount(0);
-  expect(await page.evaluate(() => [...document.querySelectorAll('button')].every(b => b.querySelector('.game-icon image')))).toBe(true);
+  expect(await page.evaluate(() => [...document.querySelectorAll('button')].filter(b => !b.closest('#main-menu')).every(b => b.querySelector('.game-icon image')))).toBe(true);
   expect(await page.locator('.sheet').evaluate(e => getComputedStyle(e).backgroundColor)).toBe(await page.locator('.context-panel').evaluate(e => getComputedStyle(e).backgroundColor));
   await expect(page.locator('#actions .action').first()).toHaveCSS('font-size', '14px');
   await click(page, 'Inventory'); await expect(page.locator('#question')).toContainText('Which item');
   for (const button of await page.locator('#common-actions button').all()) await expect(button).toBeDisabled();
   await click(page, 'Cancel'); await click(page, 'Get status');
   await expect(page.locator('#story')).toContainText('Health:');
+  await expect(page.locator('#story')).toContainText('Attack:');
+  await expect(page.locator('#story')).toContainText('Defence:');
 });
 
 test('static blurred backgrounds follow all locations and indoor scenes without network access', async ({ page, context }) => {
@@ -287,8 +299,8 @@ test('log colors survive reload safely, battle frames clear on restart, and menu
   const redBorder = await page.locator('.journey').evaluate(e => getComputedStyle(e).borderColor);
   await expect(page.locator('body')).toHaveAttribute('data-battle', 'true');
   await click(page, 'Main menu'); await expect(page.locator('.location-strip')).toBeHidden();
-  await click(page, 'Continue'); await expect(page.locator('.location-strip')).toBeVisible();
-  await page.reload(); await click(page, 'Continue');
+  await resume(page); await expect(page.locator('.location-strip')).toBeVisible();
+  await page.reload(); await resume(page);
   await expect(page.locator('#story .log-enemy')).toHaveText('Wet dog');
   await click(page, 'Main menu'); await click(page, 'New journey'); await click(page, 'Start again');
   await expect(page.locator('#main-menu')).toBeHidden(); await expect(page.locator('#game-screen')).toBeVisible();
@@ -321,6 +333,49 @@ test('route buttons show destination icons and names, and continuing keeps the c
       // uses the saved biome after reload, rather than a generic road icon.
       await expect(page.locator('#location')).toHaveText(label);
     } else await expect(forward.locator('svg')).toHaveAttribute('data-icon', `location-${name}`);
-    await page.reload(); await click(page, 'Continue'); await expect(page.locator('#location')).toHaveText(label);
+    await page.reload(); await resume(page); await expect(page.locator('#location')).toHaveText(label);
   }
+});
+
+test('portrait installed-app safe area keeps the header sharp and stacks actions, log and status', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  try {
+    await context.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
+    const page = await context.newPage(); await ready(page);
+    await page.evaluate(() => document.documentElement.style.setProperty('--safe-top', '24px'));
+    for (const size of [{ width: 390, height: 844 }, { width: 320, height: 568 }]) {
+      await resize(page, size); await fitsScreen(page);
+      const actions = (await page.locator('.action-panel').boundingBox())!;
+      const log = (await page.locator('.journey').boundingBox())!;
+      const stats = (await page.locator('.sheet').boundingBox())!;
+      const common = (await page.locator('.common-panel').boundingBox())!;
+      const choices = (await page.locator('.context-panel').boundingBox())!;
+      expect(actions.y + actions.height).toBeLessThan(log.y);
+      expect(log.y + log.height).toBeLessThan(stats.y);
+      expect(choices.y + choices.height).toBeLessThan(common.y);
+      await expect(page.getByRole('button', { name: 'Inventory', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Get status', exact: true })).toBeVisible();
+      const header = await page.locator('.app-header').evaluate(e => ({
+        background: getComputedStyle(e).backgroundColor,
+        filter: getComputedStyle(e).filter,
+        backdrop: getComputedStyle(e).backdropFilter,
+        isolation: getComputedStyle(e).isolation,
+        safeTop: getComputedStyle(e, '::before').top,
+        safeBackground: getComputedStyle(e, '::before').backgroundColor,
+      }));
+      expect(header).toEqual({ background: 'rgb(36, 26, 16)', filter: 'none', backdrop: 'none', isolation: 'isolate', safeTop: '-24px', safeBackground: 'rgb(36, 26, 16)' });
+      await click(page, 'Enter tavern'); await fitsScreen(page);
+      await click(page, 'Go out'); await fitsScreen(page);
+    }
+    await resize(page, { width: 844, height: 390 }); await fitsScreen(page);
+    await expect(page.locator('.app-header')).toHaveCSS('background-color', 'rgb(36, 26, 16)');
+    await expect(page.locator('.app-header')).toHaveCSS('filter', 'none');
+    await resize(page, { width: 390, height: 844 }); await fitsScreen(page);
+    await page.screenshot({ path: '/tmp/nomad-phone-installed.png' });
+    await click(page, 'Main menu'); await expect(page.locator('.app-header')).toBeHidden();
+    await expect(page.locator('#main-menu svg')).toHaveCount(0);
+    await page.reload(); await resume(page); await expect(page.locator('#game-screen')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Continue', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Exit game', exact: true })).toHaveCount(0);
+  } finally { await context.close(); }
 });

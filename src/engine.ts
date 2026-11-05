@@ -126,7 +126,7 @@ function mainOptions(g: Game): Option[] {
     default: actions = ['go forward', ...(g.place.tavern ? ['enter tavern'] : []),
       ...(g.place.chest ? ['check a chest'] : []), ...(g.scene === 'npc' && g.npcOffer ? ['talk with Carl'] : [])];
   }
-  return [...actions, 'inventory', 'get status', 'exit game'].map(a => option(a));
+  return [...actions, 'inventory', 'get status'].map(a => option(a));
 }
 function inventoryOptions(g: Game, sell = false): Option[] {
   return g.inventory.filter(e => !sell || !['food', 'alcohol'].includes(item(e.id).type)).map(e =>
@@ -387,6 +387,7 @@ function mainAction(g: Game, action: string) {
     case 'get status': {
       const p = g.player;
       say(g, `Health: ${p.health}/${p.max_hp} · Gold coins: ${p.gold} · Alcohol: ${p.drunk}%`,
+        `Attack: ${p.attack} · Defence: ${p.defence}`,
         `Endurance: ${p.endurance} · Strength: ${p.strength} · Agility: ${p.agility} · Luck: ${p.luck}`,
         'Active quests:', ...(g.quests.length ? g.quests.map(q => `${q.order}: ${q.current}/${q.goal}${q.plot ? ' [Plot quest]' : ''}`) : ['[Empty list]']));
       break;
