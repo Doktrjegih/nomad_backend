@@ -172,3 +172,6 @@ stats.csv
 
 # vscode
 .vscode/
+
+# Vercel local project settings
+.vercel

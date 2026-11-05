@@ -56,11 +56,14 @@ class BrowserUI:
                 accepted[value] = group
         self.revision += 1
         self.emit(status='playing', question=question.strip(), options=options)
-        request = json.loads(sys.stdin.readline())
+        request = self.read_action()
         value = request.get('action')
         if request.get('revision') != self.revision or value not in accepted:
             raise ValueError('Invalid or stale action')
         return accepted[value], value
+
+    def read_action(self):
+        return json.loads(sys.stdin.readline())
 
 
 def run():

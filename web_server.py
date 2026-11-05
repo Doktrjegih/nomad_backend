@@ -164,6 +164,15 @@ class Handler(BaseHTTPRequestHandler):
                     game = Game()
                     self.server.games[token] = game
                 self.reply(201, game.state, cookie=token)
+            elif self.path == '/api/state':
+                with self.server.games_lock:
+                    game = self.server.games.get(self.token())
+                if not game:
+                    self.reply(404, {'error': 'Session expired. Start a new journey.'})
+                else:
+                    with game.lock:
+                        game.touched = time.monotonic()
+                        self.reply(200, game.state)
             elif self.path == '/api/action':
                 with self.server.games_lock:
                     game = self.server.games.get(self.token())

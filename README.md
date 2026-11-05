@@ -88,3 +88,34 @@ hosting service. Use `--host` and `--port` to change the listening address.
 
 Run `.venv/bin/python -m pytest -q` to include HTTP integration checks for button
 flows, purchases, refresh, separate browser sessions, and stale/invalid actions.
+
+# Vercel deployment
+
+Import this GitHub repository in Vercel and select branch `chatgpt/web`. Keep the
+repository root as Root Directory and use the committed `vercel.json` (static
+output `web`, Python functions in `api/`). No frontend build command is needed.
+
+Before deploying, add `NOMAD_SAVE_SECRET` in Vercel Environment Variables for
+Production and Preview. Use a securely generated random value of at least 32
+characters; never commit it. Keep it stable across deployments if saves should
+continue to work. Changing the key invalidates existing saves.
+
+Vercel uses a stateless adapter rather than the local persistent-process server.
+Each API request authenticates a JSON save, replays the recorded button choices
+with their original random seed in an isolated temporary directory, and returns
+the next prompt. Temporary SQLite and quest files are removed after each request.
+A signed save lives in browser local storage, expires after seven days, and can
+be restored on a different function instance. No database service is required.
+Clearing browser storage loses that browser's save; prior signed saves can be
+replayed, so this is a casual single-player game, not an anti-cheat leaderboard.
+
+The API fails closed when the signing key is missing or the save was modified.
+Replay is capped at 3,000 button choices and 20 seconds per replay. A 232-choice
+winning game was reproduced locally within the replay timeout; deployed function
+performance still needs verification. Saves are versioned: bump `SAVE_VERSION`
+in `vercel_game.py` when incompatible game-rule changes are deployed.
+
+After deployment, verify: start a journey, enter the tavern, buy beer, reload
+(the gold/alcohol values should persist), open inventory, and finish an exit
+confirmation. `python web_server.py` still runs the process-based local version;
+Vercel does not start that server.
