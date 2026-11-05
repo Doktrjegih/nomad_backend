@@ -174,3 +174,17 @@ test('seeded complete journeys reach story bosses and a winning ending without c
   assert.ok(wins.every(g => g.player.plot_stage === 4 && g.player.battles_won >= 7));
   console.log(`Seeded policy: ${wins.length}/20 wins; first win seed ${outcomes.findIndex(g => g.outcome === 'win')}, ${wins[0].player.moves} moves.`);
 });
+
+test('quiet travel reports an uneventful move, but encounters and cancelled travel do not', () => {
+  const empty = { name: 'village', type: 'peaceful' as const, enemies: false, tavern: false, chest: false, npc: false };
+  for (const event of [null, 'enemies', 'tavern', 'chest', 'npc'] as const) {
+    const g = fresh();
+    const place = { ...empty };
+    if (event) place[event] = true;
+    g.menu = { kind: 'roads', places: [place, { ...empty, name: 'river' }] };
+    const moved = act(g, '0');
+    assert.equal(moved.player.travel_moves, 1);
+    assert.equal(moved.log.includes('Nothing interesting so far.'), event === null);
+    assert.ok(!act(g, 'cancel').log.includes('Nothing interesting so far.'));
+  }
+});

@@ -20,10 +20,10 @@ export function icon(name: string): SVGSVGElement {
   svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('class', 'game-icon'); svg.setAttribute('aria-hidden', 'true');
   svg.dataset.icon = name;
   const image = document.createElementNS(svg.namespaceURI, 'image');
-  image.setAttribute('href', control ? '/art/controls.webp' : '/art/icons.webp');
-  image.setAttribute('width', String(cols * 100)); image.setAttribute('height', String(rows * 100));
+  image.setAttribute('href', name === 'run' ? '/art/run.webp' : control ? '/art/controls.webp' : '/art/icons.webp');
+  image.setAttribute('width', String(name === 'run' ? 100 : cols * 100)); image.setAttribute('height', String(name === 'run' ? 100 : rows * 100));
   image.setAttribute('preserveAspectRatio', 'none');
-  image.setAttribute('x', String(-(tile % cols) * 100)); image.setAttribute('y', String(-Math.floor(tile / cols) * 100));
+  image.setAttribute('x', String(name === 'run' ? 0 : -(tile % cols) * 100)); image.setAttribute('y', String(name === 'run' ? 0 : -Math.floor(tile / cols) * 100));
   if (name === 'shade') svg.style.filter = 'hue-rotate(65deg)';
   if (name === 'specter') svg.style.filter = 'hue-rotate(-50deg)';
   svg.append(image); return svg;
@@ -46,7 +46,7 @@ export function actionIcon(g: Game, id: string): string {
     'enter tavern': 'tavern', 'check a chest': 'chest', attack: 'item-99', inventory: 'bag', merchant: 'coins',
     'go forward': 'road', 'take a beer': 'item-1', 'take a steak': 'item-2', 'talk with Aleg': 'aleg',
     'get status': 'status', 'exit game': 'exit', 'go out': 'left', 'back to tavern': 'tavern',
-    buy: 'coins', sell: 'coins', 'check quests': 'status', 'talk with Carl': 'wanderer', 'run away': 'road',
+    buy: 'coins', sell: 'coins', 'check quests': 'status', 'talk with Carl': 'wanderer', 'run away': 'run',
     yes: 'confirm', no: 'cancel', cancel: 'cancel', endurance: 'item-1', strength: 'item-7', agility: 'road', luck: 'coins',
   } as Record<string, string>)[id] ?? (g.menu.kind === 'sell-amount' ? 'coins' : 'road');
 }

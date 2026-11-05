@@ -46,9 +46,11 @@ pinned Inventory, Status, and Exit controls below. On portrait phones the status
 above the log/action columns. Only the location stays in the game header; the main menu hides it. A static,
 lightly blurred (3px) painted background changes for taverns/shops, forests, mountains, caves,
 villages/hometown, and rivers. Art and fonts are included in the offline cache.
-The first complete offline download includes about 6 MB of lossless WebP artwork, including the painted control icons.
+The first complete offline download includes about 7 MB of lossless WebP artwork, including the painted control icons.
 
-Log equipment and enemy names use distinct colors; elemental and status effects
+Uneventful travel logs “Nothing interesting so far.”; encounters suppress that message.
+Run away uses a painted boots icon. Gold amounts such as “12 gold coins” share the
+equipment highlight. Log equipment and enemy names use distinct colors; elemental and status effects
 use matching fire, cold, poison, bleeding, rage, healing, and alcohol colors.
 Combat gives the window frames a subtle red tint, cleared when battle ends or a
 new journey starts. Start again saves and opens a fresh game immediately.

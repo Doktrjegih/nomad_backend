@@ -218,6 +218,8 @@ function enterPlace(g: Game, place: Place) {
         addItem(g, 1); say(g, 'I see you need a drink, take it.', "You've gotten Beer bottle"); g.scene = 'peace';
       }
     }
+  } else if (!g.place.chest && !g.place.tavern) {
+    say(g, 'Nothing interesting so far.');
   }
 }
 function sideQuest(g: Game, stage = 1): Quest | null {

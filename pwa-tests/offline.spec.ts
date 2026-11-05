@@ -40,6 +40,7 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   expect(cached).toContain('/icon-512.png');
   expect(cached).toContain('/art/icons.webp');
   expect(cached).toContain('/art/controls.webp');
+  expect(cached).toContain('/art/run.webp');
   expect(cached).toContain('/art/locations.webp');
   expect(cached.some(path => path.endsWith('.woff2'))).toBe(true);
   await context.setOffline(true);
@@ -269,11 +270,15 @@ test('log colors survive reload safely, battle frames clear on restart, and menu
   await resize(page, { width: 1366, height: 768 }); await ready(page);
   const game = createGame(42, 'colored-log');
   game.scene = 'battle'; game.enemy = makeEnemy(game, 'Wet dog', 1);
-  game.log = ['Equipped Broken Spear and Leather armor. Wet dog attacks!', 'fire cold poison bleeding Rage healing Alcohol', '<img src=x onerror="alert(1)">'];
+  game.log = ['Equipped Broken Spear and Leather armor. Wet dog attacks!', 'fire cold poison bleeding Rage healing Alcohol. You get 12 gold coins and spend 1 gold coin.', '<img src=x onerror="alert(1)">'];
   await importJourney(page, game);
   for (const kind of ['weapon', 'armor', 'enemy', 'fire', 'cold', 'poison', 'bleeding', 'rage', 'healing', 'alcohol']) {
     await expect(page.locator(`#story .log-${kind}`).first()).toBeVisible();
   }
+  await expect(page.locator('#story .log-gold')).toHaveText(['12 gold coins', '1 gold coin']);
+  expect(await page.locator('#story .log-gold').first().evaluate(e => getComputedStyle(e).color)).toBe(await page.locator('#story .log-weapon').evaluate(e => getComputedStyle(e).color));
+  await expect(page.getByRole('button', { name: 'Run away', exact: true }).locator('svg')).toHaveAttribute('data-icon', 'run');
+  await expect(page.getByRole('button', { name: 'Run away', exact: true }).locator('image')).toHaveAttribute('href', '/art/run.webp');
   const colors = await page.locator('#story span').evaluateAll(nodes => nodes.map(e => getComputedStyle(e).color));
   expect(new Set(colors).size).toBeGreaterThan(7);
   await expect(page.locator('#story img')).toHaveCount(0);

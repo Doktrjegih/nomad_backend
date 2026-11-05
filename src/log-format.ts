@@ -12,7 +12,7 @@ const terms = new Map<string, string>([
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Longest names first keep complete equipment names together (e.g. Elderfire
 // greatsword), rather than highlighting an elemental substring inside a name.
-const pattern = new RegExp([...terms.keys()].sort((a, b) => b.length - a.length).map(escape).join('|'), 'giu');
+const pattern = new RegExp('(?<gold>\\d+\\s+gold\\s+coins?)|' + [...terms.keys()].sort((a, b) => b.length - a.length).map(escape).join('|'), 'giu');
 const word = /[\p{L}\p{N}_]/u;
 export function tokenizeLog(text: string): LogToken[] {
   const tokens: LogToken[] = []; let cursor = 0;
@@ -20,7 +20,7 @@ export function tokenizeLog(text: string): LogToken[] {
     const start = match.index, end = start + match[0].length;
     if ((start > 0 && word.test(text[start - 1])) || (end < text.length && word.test(text[end]))) continue;
     if (start > cursor) tokens.push({ text: text.slice(cursor, start) });
-    tokens.push({ text: match[0], kind: terms.get(match[0].toLowerCase()) }); cursor = end;
+    tokens.push({ text: match[0], kind: match.groups?.gold ? 'gold' : terms.get(match[0].toLowerCase()) }); cursor = end;
   }
   if (cursor < text.length) tokens.push({ text: text.slice(cursor) });
   return tokens;
