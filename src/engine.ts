@@ -49,6 +49,7 @@ const names = [
   ['Wet dog', 'Hyena', 'Wolf', 'Werewolf'],
   ['test1', 'test2', 'test3', 'test4'],
 ];
+export const ENEMY_NAMES = [...names.flat(), 'Van Helsing', 'Aleg'];
 const clamp = (n: number, low: number, high: number) => Math.max(low, Math.min(high, n));
 // Python's round uses ties-to-even; keep combat/economy rounding consistent.
 export function round(n: number): number {

@@ -1,3 +1,5 @@
+import { tokenizeLog, renderLogRange } from './log-format';
+
 /** Fit the complete narrative into pages instead of hiding it in a scroll area. */
 export class StoryPages {
   private lines: string[] = [];
@@ -34,19 +36,22 @@ export class StoryPages {
       }
       boundary = false;
       let words = text.split(/\s+/);
+      const source = words.join(' '), tokens = tokenizeLog(source); let offset = 0;
+      const fill = (p: HTMLElement, count: number) => renderLogRange(p, tokens, offset, offset + words.slice(0, count).join(' ').length);
       while (words.length) {
-        const p = document.createElement('p'); p.textContent = words.join(' '); this.story.append(p);
+        const p = document.createElement('p'); fill(p, words.length); this.story.append(p);
         if (fits()) { page.push(p); break; }
         p.remove();
         // Prefer moving a complete paragraph to the next page.
         if (page.length) { commit(); continue; }
         let low = 1, high = words.length, count = 1;
         while (low <= high) {
-          const mid = Math.floor((low + high) / 2); p.textContent = words.slice(0, mid).join(' '); this.story.append(p);
+          const mid = Math.floor((low + high) / 2); fill(p, mid); this.story.append(p);
           if (fits()) { count = mid; low = mid + 1; } else high = mid - 1;
           p.remove();
         }
-        p.textContent = words.slice(0, count).join(' '); this.story.append(p); page.push(p);
+        fill(p, count); this.story.append(p); page.push(p);
+        offset += words.slice(0, count).join(' ').length + 1;
         words = words.slice(count); if (words.length) commit();
       }
     }

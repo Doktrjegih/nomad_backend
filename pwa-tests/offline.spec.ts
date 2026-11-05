@@ -57,8 +57,8 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   await expect(page.getByRole('button', { name: /Broken Spear.*×2/ })).toBeVisible();
   await click(page, 'Cancel'); await click(page, 'Exit game'); await click(page, 'No');
   await click(page, 'Exit game'); await click(page, 'Yes');
-  await expect(page.locator('#mode')).toHaveText('Journey ended');
-  await page.reload(); await click(page, 'Continue'); await expect(page.locator('#mode')).toHaveText('Journey ended');
+  await expect(page.locator('#question')).toHaveText('Your journey has ended.');
+  await page.reload(); await click(page, 'Continue'); await expect(page.locator('#question')).toHaveText('Your journey has ended.');
   await click(page, 'Begin a new journey'); await expect(page.locator('#gold')).toHaveText('10');
   expect(apiRequests).toEqual([]);
 });
@@ -67,7 +67,7 @@ test('exported saves can be imported offline without changing their prompt or in
   await ready(page); await click(page, 'Enter tavern'); await click(page, 'Take a beer');
   const downloaded = page.waitForEvent('download'); await click(page, 'Export save');
   const download = await downloaded; const path = await download.path(); expect(path).toBeTruthy();
-  await click(page, 'New journey'); await click(page, 'Start again'); await expect(page.locator('#gold')).toHaveText('10');
+  await click(page, 'New journey'); await click(page, 'Start again'); await expect(page.locator('#game-screen')).toBeVisible(); await expect(page.locator('#gold')).toHaveText('10');
   await context.setOffline(true); page.once('dialog', d => d.accept());
   await page.locator('#save-file').setInputFiles(path!);
   await expect(page.locator('#gold')).toHaveText('5'); await expect(page.locator('#condition')).toContainText('10%');
@@ -163,6 +163,8 @@ async function fitsScreen(page: Page) {
 
 test('main menu resumes the same journey and alcohol uses an accessible progress bar', async ({ page }) => {
   await page.goto('/'); await expect(page.locator('#main-menu')).toBeVisible();
+  await expect(page.locator('.location-strip')).toBeHidden();
+  await expect(page.locator('#progress,#mode')).toHaveCount(0);
   await click(page, 'Continue'); await click(page, 'Enter tavern'); await click(page, 'Take a beer');
   await expect(page.getByRole('progressbar', { name: 'Alcohol', exact: true })).toHaveAttribute('aria-valuenow', '10');
   await expect(page.locator('#alcohol-bar i')).toHaveCSS('width', /px$/);
@@ -260,4 +262,31 @@ test('static blurred backgrounds follow all locations and indoor scenes without 
   await expect(page.locator('body')).toHaveAttribute('data-location', 'tavern');
   await click(page, 'Merchant'); await expect(page.locator('body')).toHaveAttribute('data-location', 'tavern');
   await expect(page.locator('#location')).toHaveText('Merchant');
+});
+
+test('log colors survive reload safely, battle frames clear on restart, and menu hides location', async ({ page }) => {
+  const { createGame, makeEnemy } = await import('../src/engine');
+  await resize(page, { width: 1366, height: 768 }); await ready(page);
+  const game = createGame(42, 'colored-log');
+  game.scene = 'battle'; game.enemy = makeEnemy(game, 'Wet dog', 1);
+  game.log = ['Equipped Broken Spear and Leather armor. Wet dog attacks!', 'fire cold poison bleeding Rage healing Alcohol', '<img src=x onerror="alert(1)">'];
+  await importJourney(page, game);
+  for (const kind of ['weapon', 'armor', 'enemy', 'fire', 'cold', 'poison', 'bleeding', 'rage', 'healing', 'alcohol']) {
+    await expect(page.locator(`#story .log-${kind}`).first()).toBeVisible();
+  }
+  const colors = await page.locator('#story span').evaluateAll(nodes => nodes.map(e => getComputedStyle(e).color));
+  expect(new Set(colors).size).toBeGreaterThan(7);
+  await expect(page.locator('#story img')).toHaveCount(0);
+  await expect(page.locator('#story')).toContainText('<img src=x onerror="alert(1)">');
+  const redBorder = await page.locator('.journey').evaluate(e => getComputedStyle(e).borderColor);
+  await expect(page.locator('body')).toHaveAttribute('data-battle', 'true');
+  await click(page, 'Main menu'); await expect(page.locator('.location-strip')).toBeHidden();
+  await click(page, 'Continue'); await expect(page.locator('.location-strip')).toBeVisible();
+  await page.reload(); await click(page, 'Continue');
+  await expect(page.locator('#story .log-enemy')).toHaveText('Wet dog');
+  await click(page, 'Main menu'); await click(page, 'New journey'); await click(page, 'Start again');
+  await expect(page.locator('#main-menu')).toBeHidden(); await expect(page.locator('#game-screen')).toBeVisible();
+  await expect(page.locator('#location')).toHaveText('Hometown'); await expect(page.locator('body')).toHaveAttribute('data-battle', 'false');
+  expect(await page.locator('.journey').evaluate(e => getComputedStyle(e).borderColor)).not.toBe(redBorder);
+  await expect(page.locator('#progress,#mode')).toHaveCount(0);
 });

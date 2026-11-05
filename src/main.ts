@@ -13,8 +13,8 @@ let busy = true;
 let storageBroken = false;
 let actionPage = 0;
 const storyPages = new StoryPages($('story'), $('story-pager'), $('story-page'), $('older-story'), $('newer-story'));
-function showGame() { $('main-menu').hidden = true; $('game-screen').hidden = false; if (current) render(current.game); }
-function showMenu() { $('main-menu').hidden = false; $('game-screen').hidden = true; }
+function showGame() { document.body.dataset.screen = 'game'; document.querySelector<HTMLElement>('.location-strip')!.hidden = false; $('main-menu').hidden = true; $('game-screen').hidden = false; if (current) render(current.game); }
+function showMenu() { document.body.dataset.screen = 'menu'; document.querySelector<HTMLElement>('.location-strip')!.hidden = true; $('main-menu').hidden = false; $('game-screen').hidden = true; }
 $('open-menu').onclick = showMenu;
 $('continue').onclick = showGame;
 
@@ -32,7 +32,7 @@ function render(g: Game) {
   const v = view(g), p = g.player;
   document.body.dataset.location = g.scene === 'tavern' || g.scene === 'merchant' ? 'tavern' : g.place.name;
   $('location').textContent = v.location[0].toUpperCase() + v.location.slice(1);
-  $('mode').textContent = g.status === 'playing' ? (g.scene === 'battle' ? 'Battle' : 'Your turn') : 'Journey ended';
+  document.body.dataset.battle = String(g.scene === 'battle' && g.status === 'playing');
   $('question').textContent = g.scene === 'battle' && g.menu.kind === 'main' ? 'What do you want to do?' : v.question;
   storyPages.set(g.log);
   for (const key of ['attack', 'defence', 'gold', 'moves'] as const) $(key).textContent = String(p[key]);
@@ -52,7 +52,6 @@ function render(g: Game) {
   $('condition').textContent = `${p.drunk}%`;
   $('alcohol-bar').setAttribute('aria-valuenow', String(p.drunk));
   ($('alcohol-bar').firstElementChild as HTMLElement).style.width = `${p.drunk}%`;
-  $('progress').textContent = `Chapter ${p.plot_stage} · Move ${p.moves}`;
   renderActions(g);
 }
 const commonControls = [
@@ -126,7 +125,7 @@ async function takeTurn(action: string, revision: number) {
 async function newJourney(force = false) {
   if (busy) return;
   setBusy(true);
-  try { await commit(createGame(crypto.getRandomValues(new Uint32Array(1))[0], crypto.randomUUID()), force); }
+  try { await commit(createGame(crypto.getRandomValues(new Uint32Array(1))[0], crypto.randomUUID()), force); showGame(); }
   catch (e) { storageError(`Could not save a new journey. ${errorText(e)}`); }
   finally { setBusy(false); }
 }

@@ -43,10 +43,15 @@ the theme; fonts and their licenses are bundled locally.
 Desktop play has three columns: a character-status panel matching the warm window theme, a dedicated
 log panel, and a right-hand action panel split into contextual choices above and
 pinned Inventory, Status, and Exit controls below. On portrait phones the status panel sits
-above the log/action columns. Location and chapter stay in the top header. A static,
+above the log/action columns. Only the location stays in the game header; the main menu hides it. A static,
 lightly blurred (3px) painted background changes for taverns/shops, forests, mountains, caves,
 villages/hometown, and rivers. Art and fonts are included in the offline cache.
 The first complete offline download includes about 6 MB of lossless WebP artwork, including the painted control icons.
+
+Log equipment and enemy names use distinct colors; elemental and status effects
+use matching fire, cold, poison, bleeding, rage, healing, and alcohol colors.
+Combat gives the window frames a subtle red tint, cleared when battle ends or a
+new journey starts. Start again saves and opens a fresh game immediately.
 
 The game fits the viewport without page or panel scrolling. Long action lists use
 Previous choices / More choices; story history uses the arrow buttons. Narrative
