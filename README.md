@@ -30,6 +30,20 @@ set `CHROMIUM_PATH` to your browser executable on another machine. For example,
 install Chromium with `npx playwright install chromium` and use its executable
 path. HTTP integration tests require local socket access.
 
+## Interface
+
+The main menu contains Continue, New journey, and save import/export. Returning to
+it pauses the interface without resetting your journey. Health and alcohol use
+matching progress bars. Equipped items, inventory/shop choices, and every enemy
+have custom grayscale SVG icons, included in the offline cache. Tavern and chest
+buttons have a bright highlight.
+
+The game fits the viewport without page or panel scrolling. Long action lists use
+Previous choices / More choices; story history uses the arrow buttons. Narrative
+pages preserve the separators between turns and omit location announcements
+already shown in the header. Layout checks cover desktop, portrait phones down to
+320×568, and phone landscape.
+
 ## Offline play and saves
 
 Open the app once on HTTPS (or localhost) and let the offline assets finish downloading.

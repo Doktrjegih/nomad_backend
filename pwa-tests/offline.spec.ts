@@ -1,11 +1,23 @@
 import { test, expect, type Page } from '@playwright/test';
 async function ready(page: Page) {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
 }
-async function click(page: Page, name: string) { await page.getByRole('button', { name, exact: true }).click(); }
+async function click(page: Page, name: string) {
+  await expect(page.locator('#open-menu')).toBeEnabled();
+  const target = page.getByRole('button', { name, exact: true });
+  if (await target.isVisible()) { await target.click(); return; }
+  if (['New journey', 'Export save', 'Import save'].includes(name)) await page.getByRole('button', { name: 'Main menu', exact: true }).click();
+  else if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  const previous = page.getByRole('button', { name: 'Previous choices', exact: true });
+  while (await previous.isVisible() && await previous.isEnabled()) await previous.click();
+  const next = page.getByRole('button', { name: 'More choices', exact: true });
+  for (let n = 0; n < 10 && !(await target.isVisible()) && await next.isVisible() && await next.isEnabled(); n++) await next.click();
+  await target.click();
+}
 
 test('installs a complete static shell and plays, saves, reloads, and restarts entirely offline', async ({ page, context }) => {
   const apiRequests: string[] = [];
@@ -19,23 +31,24 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   });
   expect(cached).toContain('/index.html'); expect(cached.some(k => k.endsWith('.js'))).toBe(true);
   expect(cached).toContain('/icon-512.png');
+  expect(cached).toContain('/game-icons.svg');
   await context.setOffline(true);
   await click(page, 'Enter tavern'); await click(page, 'Take a beer');
-  await expect(page.locator('#story .divider')).toHaveCount(2);
+  await expect(page.locator('#story .divider')).toHaveCount(1);
   await expect(page.locator('#offline-status')).toBeHidden();
   await expect(page.locator('#gold')).toHaveText('5'); await expect(page.locator('#condition')).toContainText('10%');
   await click(page, 'Merchant'); await click(page, 'Buy');
   await page.getByRole('button', { name: /Broken Spear.*3 gold/ }).click();
   await expect(page.locator('#question')).toContainText('Buy Broken Spear');
-  await page.reload(); await expect(page.locator('#question')).toContainText('Buy Broken Spear');
-  await expect(page.locator('#story .divider')).toHaveCount(3);
+  await page.reload(); await click(page, 'Continue'); await expect(page.locator('#question')).toContainText('Buy Broken Spear');
+  await expect(page.locator('#story .divider')).toHaveCount(1);
   await click(page, 'Yes'); await expect(page.locator('#gold')).toHaveText('2');
   await click(page, 'Cancel'); await click(page, 'Inventory');
   await expect(page.getByRole('button', { name: /Broken Spear.*×2/ })).toBeVisible();
   await click(page, 'Cancel'); await click(page, 'Exit game'); await click(page, 'No');
   await click(page, 'Exit game'); await click(page, 'Yes');
   await expect(page.locator('#mode')).toHaveText('Journey ended');
-  await page.reload(); await expect(page.locator('#mode')).toHaveText('Journey ended');
+  await page.reload(); await click(page, 'Continue'); await expect(page.locator('#mode')).toHaveText('Journey ended');
   await click(page, 'Begin a new journey'); await expect(page.locator('#gold')).toHaveText('10');
   expect(apiRequests).toEqual([]);
 });
@@ -120,4 +133,71 @@ test('a service-worker update waits for consent and preserves the saved journey'
     await context.setOffline(true); await page.reload();
     await expect(page.locator('#gold')).toHaveText('5');
   } finally { await writeFile('dist/sw.js', original); }
+});
+
+async function importJourney(page: Page, game: unknown) {
+  page.once('dialog', d => d.accept());
+  await page.locator('#save-file').setInputFiles({ name: 'journey.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(game)) });
+  await expect(page.locator('#game-screen')).toBeVisible();
+}
+async function fitsScreen(page: Page) {
+  await expect.poll(() => page.evaluate(() => {
+    const visible = (e: Element) => (e as HTMLElement).offsetParent !== null;
+    const elements = [...document.querySelectorAll('#actions button,#action-pager,#enemy-card,#story,#game-screen,.sheet,.app-header')].filter(visible);
+    return elements.every(e => { const b = e.getBoundingClientRect(); return b.top >= 0 && b.left >= 0 && b.right <= innerWidth + 1 && b.bottom <= innerHeight + 1; })
+      && document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight
+      && document.querySelector('#story')!.scrollHeight <= document.querySelector('#story')!.clientHeight + 1;
+  })).toBe(true);
+}
+
+test('main menu resumes the same journey and alcohol uses an accessible progress bar', async ({ page }) => {
+  await page.goto('/'); await expect(page.locator('#main-menu')).toBeVisible();
+  await click(page, 'Continue'); await click(page, 'Enter tavern'); await click(page, 'Take a beer');
+  await expect(page.getByRole('progressbar', { name: 'Alcohol', exact: true })).toHaveAttribute('aria-valuenow', '10');
+  await expect(page.locator('#alcohol-bar i')).toHaveCSS('width', /px$/);
+  await click(page, 'Main menu'); await expect(page.locator('#game-screen')).toBeHidden();
+  await click(page, 'Continue'); await expect(page.locator('#gold')).toHaveText('5');
+  await expect(page.locator('#story')).not.toContainText("You're in the");
+});
+
+test('equipment and every enemy have cached icons; tavern and chest choices are highlighted', async ({ page, context }) => {
+  const { createGame } = await import('../src/engine');
+  await ready(page);
+  await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toHaveClass(/highlight/);
+  await expect(page.locator('#weapon-icon use')).toHaveAttribute('href', '/game-icons.svg#item-3');
+  const svg = await (await page.request.get('/game-icons.svg')).text();
+  for (const id of [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 95, 96, 97, 98, 99]) expect(svg).toContain(`id="item-${id}"`);
+  for (const id of ['wanderer', 'bandit', 'knight', 'berserk', 'dog', 'hyena', 'wolf', 'werewolf', 'hunter', 'aleg', 'wisp', 'shade', 'specter', 'phantom']) expect(svg).toContain(`id="${id}"`);
+  const game = createGame(42, 'chest-test'); game.place.chest = true;
+  await context.setOffline(true); await importJourney(page, game);
+  await expect(page.getByRole('button', { name: 'Check a chest', exact: true })).toHaveClass(/highlight/);
+  await click(page, 'Check a chest'); await expect(page.locator('#story')).toContainText("You've found");
+});
+
+test('battle, long history, inventory and merchant pages fit phone, desktop and landscape screens', async ({ page }) => {
+  const { createGame, makeEnemy, ITEMS, addItem } = await import('../src/engine');
+  await ready(page);
+  const game = createGame(42, 'layout-test');
+  game.log = Array.from({ length: 80 }, (_, i) => i % 4 === 0 ? '' : `Story ${i}: You cross the forest and discover an unfamiliar path through the mountains.`);
+  for (const item of ITEMS) addItem(game, item.id, 3);
+  game.scene = 'battle'; game.enemy = makeEnemy(game, 'Van Helsing', 3, true);
+  await importJourney(page, game); await expect(page.locator('#enemy-name')).toHaveText('Van Helsing');
+  await expect(page.locator('#enemy-icon use')).toHaveAttribute('href', '/game-icons.svg#hunter');
+  for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(size); await fitsScreen(page);
+    await expect(page.locator('#story-pager')).toBeVisible();
+    await click(page, 'Earlier story'); await fitsScreen(page);
+    await click(page, 'Inventory'); await fitsScreen(page);
+    while (await page.locator('#next-actions').isEnabled()) { await click(page, 'More choices'); await fitsScreen(page); }
+    await click(page, 'Cancel'); await fitsScreen(page);
+  }
+  await page.setViewportSize({ width: 390, height: 844 }); await fitsScreen(page);
+  await page.screenshot({ path: '/tmp/nomad-battle.png' });
+  const shop = createGame(42, 'shop-layout'); shop.scene = 'merchant'; shop.tavern = { merchant: true, aleg: true, quests: true, offer: null };
+  await importJourney(page, shop); await click(page, 'Buy');
+  for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1366, height: 768 }]) {
+    await page.setViewportSize(size); await fitsScreen(page);
+    while (await page.locator('#next-actions').isEnabled()) { await click(page, 'More choices'); await fitsScreen(page); }
+    await click(page, 'Previous choices');
+  }
 });

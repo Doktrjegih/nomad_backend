@@ -1,7 +1,7 @@
 /** Browser-only rules. Every transition works on a snapshot; nothing uses I/O or replay. */
-import itemData from '../jsons/items.json';
-import enemyData from '../jsons/enemies.json';
-import plots from '../jsons/plot_quests.json';
+import itemData from '../jsons/items.json' with { type: 'json' };
+import enemyData from '../jsons/enemies.json' with { type: 'json' };
+import plots from '../jsons/plot_quests.json' with { type: 'json' };
 
 export interface Effect { name: string; damage?: number; resist?: number }
 export interface Item {
