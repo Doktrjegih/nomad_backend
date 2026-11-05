@@ -1,5 +1,89 @@
-# nomad_backend
-Only CLI version of game (4th iteration)
+# Nomad · Offline PWA
+
+The `chatgpt/ts_pwa` branch runs the game entirely in your browser. TypeScript
+handles combat, travel, equipment, merchants, quests, and endings. There are no
+API calls, Python runtime, signing keys, accounts, or remote database in this app.
+The Python implementation remains in the repository as a CLI/reference version.
+
+## Run and verify
+
+Use Node.js 22+ (tested with Node 24):
+
+```sh
+npm ci
+npm run dev
+```
+
+For the installable offline version:
+
+```sh
+npm test
+npm run build
+npm run preview
+npm run test:e2e
+```
+
+`npm run build` runs strict TypeScript checks and generates `dist/`, including a
+service worker that precaches every app asset. Development mode deliberately
+leaves service-worker caching off. Playwright uses `/usr/bin/chromium` by default;
+set `CHROMIUM_PATH` to your browser executable on another machine. For example,
+install Chromium with `npx playwright install chromium` and use its executable
+path. HTTP integration tests require local socket access.
+
+## Offline play and saves
+
+Open the app once on HTTPS (or localhost) and wait for **Ready for offline play**.
+You can then disconnect, reload, close/reopen the app, and start new journeys
+without Internet. Use **Install game** when your browser offers installation; on
+iOS use Safari's Share → Add to Home Screen. Installation is optional.
+
+Each successful action saves a complete versioned snapshot in IndexedDB, including
+inventory, quests, current dialog, enemy specials, story log, and the random-number
+cursor. Turns never replay previous choices. Reloading restores the exact prompt.
+Two tabs compare save tokens in an atomic transaction to prevent lost updates.
+A failed save does not advance the displayed game. Updates wait until you choose
+**Update ready · Reload**, and keep the saved journey.
+
+Saves have no expiry. They belong to this browser/profile and origin; clearing
+site data, private browsing cleanup, or browser storage eviction can remove them.
+Use **Export save** for a backup and **Import save** to move a journey to another
+browser/device. The app requests persistent storage where supported, but browsers
+may decline it. Corrupt or unsupported saves are preserved for export until you
+explicitly reset them. Previous signed saves from the Python/Vercel replay version
+are not imported. Local saves are editable; this is a single-player game.
+
+## Static deployment
+
+Vercel: select `chatgpt/ts_pwa`, repository root, and the committed `vercel.json`.
+It installs with `npm ci`, builds with `npm run build`, and serves **dist**.
+The old `api/` functions are removed and Python files are excluded from deployment.
+No environment variables or `NOMAD_SAVE_SECRET` are required. Remove any manually
+configured dashboard build/output overrides that conflict with these settings.
+You can also serve `dist/` with any static HTTPS host. The app assumes the origin
+root (`/`); deployment under a subdirectory would need base-path changes.
+
+## Rules and validation
+
+`src/engine.ts` is a pure snapshot transition engine and imports the original
+item, enemy-effect, and story JSON data. It retains story-driven encounter tiers,
+smooth damage mitigation, alcohol equipment stages, elemental damage/resistance,
+Hyena/Wolf/Werewolf/Van Helsing specials, predictable second/fourth-victory gear,
+tavern recovery and quests, Carl encounters, Aleg stat drinks, and story endings.
+Python's ties-to-even rounding is preserved. The browser uses a saved Mulberry32
+random cursor; matching Python seed numbers do not produce identical journeys.
+Declining route selection consumes no travel move.
+
+Rules tests cover purchases, sales, consumables, restoration, combat, quests,
+progression, death/win endings, invalid actions and save formats, and 20 complete
+seeded games through the actual choices. Browser tests exercise the production
+build with networking disabled, including caching, reloads, export/import,
+multiple tabs, storage failures, and mobile layout.
+
+## Legacy Python game
+
+The following describes the retained Python version, which is not used by the PWA.
+Install `requirements.txt` in a virtual environment and run `python main.py`.
+The older process-based browser UI is still available through `python web_server.py`.
 
 # gameplay
 This is turn-driven game. During the game you can:
@@ -65,57 +149,3 @@ game. It writes per-game transcripts and `results.csv` under ignored
 at 500 moves. A fresh 100-seed evaluation (100–199) produced 47 wins, 9 story
 losses, and 44 deaths; 97 runs finished within 100–500 moves, with median 156 and
 range 79–274. This evaluates the supplied automated policy, not human players.
-
-# browser version
-
-Run the browser interface with the same installed dependencies:
-
-```sh
-.venv/bin/python web_server.py
-```
-
-Open your local browser at `http://127.0.0.1:8000`. Actions, inventory items,
-merchant purchases, quest decisions, and confirmations use labeled buttons.
-Health, equipment, gold, and moves update after each choice. Reloading reconnects
-to the current prompt; New journey starts over after confirmation.
-
-The CLI remains available through `python main.py`. The web server runs each
-browser session in a separate process with its own temporary SQLite database,
-quests, and log. Web games do not reset CLI saves. Sessions are temporary: server
-shutdown removes them, and inactive sessions can be reclaimed after 30 minutes.
-The local development server supports up to 16 sessions; it is not a production
-hosting service. Use `--host` and `--port` to change the listening address.
-
-Run `.venv/bin/python -m pytest -q` to include HTTP integration checks for button
-flows, purchases, refresh, separate browser sessions, and stale/invalid actions.
-
-# Vercel deployment
-
-Import this GitHub repository in Vercel and select branch `chatgpt/web`. Keep the
-repository root as Root Directory and use the committed `vercel.json` (static
-output `web`, Python functions in `api/`). No frontend build command is needed.
-
-Before deploying, add `NOMAD_SAVE_SECRET` in Vercel Environment Variables for
-Production and Preview. Use a securely generated random value of at least 32
-characters; never commit it. Keep it stable across deployments if saves should
-continue to work. Changing the key invalidates existing saves.
-
-Vercel uses a stateless adapter rather than the local persistent-process server.
-Each API request authenticates a JSON save, replays the recorded button choices
-with their original random seed in an isolated temporary directory, and returns
-the next prompt. Temporary SQLite and quest files are removed after each request.
-A signed save lives in browser local storage, expires after seven days, and can
-be restored on a different function instance. No database service is required.
-Clearing browser storage loses that browser's save; prior signed saves can be
-replayed, so this is a casual single-player game, not an anti-cheat leaderboard.
-
-The API fails closed when the signing key is missing or the save was modified.
-Replay is capped at 3,000 button choices and 20 seconds per replay. A 232-choice
-winning game was reproduced locally within the replay timeout; deployed function
-performance still needs verification. Saves are versioned: bump `SAVE_VERSION`
-in `vercel_game.py` when incompatible game-rule changes are deployed.
-
-After deployment, verify: start a journey, enter the tavern, buy beer, reload
-(the gold/alcohol values should persist), open inventory, and finish an exit
-confirmation. `python web_server.py` still runs the process-based local version;
-Vercel does not start that server.

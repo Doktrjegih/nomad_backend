@@ -175,3 +175,6 @@ stats.csv
 
 # Vercel local project settings
 .vercel
+node_modules/
+test-results/
+playwright-report/

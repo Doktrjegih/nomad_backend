@@ -6,3 +6,11 @@ temp_files
 tests
 stats.csv
 *.log
+api/
+*.py
+requirements.txt
+.python-version
+web/
+node_modules/
+pwa-tests/
+playwright.config.ts
