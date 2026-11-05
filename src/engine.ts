@@ -141,7 +141,7 @@ export function view(g: Game): View {
     case 'main': return result(g.scene === 'battle'
       ? `${g.enemy!.name} · ${g.enemy!.health} / ${g.enemy!.max_hp} HP` : 'What do you want to do?', mainOptions(g));
     case 'inventory': return result('Which item do you want to use?', [...inventoryOptions(g), cancel]);
-    case 'roads': return result('Where do you want to go?', [...m.places.map((p, i) => option(String(i), `${p.name} (${p.type})`)), cancel]);
+    case 'roads': return result('Where do you want to go?', [...m.places.map((p, i) => option(String(i), p.name)), cancel]);
     case 'exit': return result('Do you want to exit?', yesNo);
     case 'buy': return result(`What do you want to buy? You have ${g.player.gold} gold coins.`,
       [...ITEMS.filter(i => ['weapon', 'armor'].includes(i.type) && !i.boss).map(i => option(String(i.id), `${describe(g, i)} · ${i.cost} gold`)), cancel]);

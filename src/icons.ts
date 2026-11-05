@@ -12,18 +12,27 @@ export const CONTROL_TILES: Record<string, number> = {
   status: 0, exit: 1, left: 2, right: 3, confirm: 4, cancel: 5,
   menu: 6, new: 7, export: 8, import: 9, install: 10, reload: 11,
 };
+export const LOCATION_TILES: Record<string, number> = {
+  'location-village': 0, 'location-forest': 1, 'location-mountains': 2,
+  'location-cave': 3, 'location-river': 4, 'location-hometown': 5,
+};
+export function locationIcon(name: string): string {
+  const key = `location-${name}`;
+  return Object.hasOwn(LOCATION_TILES, key) ? key : 'road';
+}
 export function icon(name: string): SVGSVGElement {
-  const control = Object.hasOwn(CONTROL_TILES, name);
-  const tile = control ? CONTROL_TILES[name] : ICON_TILES[name] ?? ICON_TILES.phantom;
-  const cols = control ? 4 : 6, rows = control ? 3 : 6;
+  let tile = ICON_TILES[name] ?? ICON_TILES.phantom, cols = 6, rows = 6, source = '/art/icons.webp';
+  if (Object.hasOwn(CONTROL_TILES, name)) { tile = CONTROL_TILES[name]; cols = 4; rows = 3; source = '/art/controls.webp'; }
+  else if (Object.hasOwn(LOCATION_TILES, name)) { tile = LOCATION_TILES[name]; cols = 3; rows = 2; source = '/art/location-icons.webp'; }
+  else if (name === 'run') { tile = 0; cols = rows = 1; source = '/art/run.webp'; }
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('class', 'game-icon'); svg.setAttribute('aria-hidden', 'true');
   svg.dataset.icon = name;
   const image = document.createElementNS(svg.namespaceURI, 'image');
-  image.setAttribute('href', name === 'run' ? '/art/run.webp' : control ? '/art/controls.webp' : '/art/icons.webp');
-  image.setAttribute('width', String(name === 'run' ? 100 : cols * 100)); image.setAttribute('height', String(name === 'run' ? 100 : rows * 100));
+  image.setAttribute('href', source);
+  image.setAttribute('width', String(cols * 100)); image.setAttribute('height', String(rows * 100));
   image.setAttribute('preserveAspectRatio', 'none');
-  image.setAttribute('x', String(name === 'run' ? 0 : -(tile % cols) * 100)); image.setAttribute('y', String(name === 'run' ? 0 : -Math.floor(tile / cols) * 100));
+  image.setAttribute('x', String(-(tile % cols) * 100)); image.setAttribute('y', String(-Math.floor(tile / cols) * 100));
   if (name === 'shade') svg.style.filter = 'hue-rotate(65deg)';
   if (name === 'specter') svg.style.filter = 'hue-rotate(-50deg)';
   svg.append(image); return svg;
@@ -41,10 +50,15 @@ export const enemyIcon = (name: string) => ({
   'Van Helsing': 'hunter', Aleg: 'aleg', test1: 'wisp', test2: 'shade', test3: 'specter', test4: 'phantom',
 }[name] ?? 'phantom');
 export function actionIcon(g: Game, id: string): string {
+  if (g.menu.kind === 'roads' && /^\d+$/.test(id)) {
+    const destination = g.menu.places[Number(id)];
+    if (destination) return locationIcon(destination.name);
+  }
+  if (g.menu.kind === 'main' && id === 'go forward') return locationIcon(g.place.name);
   if (['inventory', 'buy', 'sell'].includes(g.menu.kind) && /^\d+$/.test(id)) return `item-${item(Number(id)).id}`;
   return ({
     'enter tavern': 'tavern', 'check a chest': 'chest', attack: 'item-99', inventory: 'bag', merchant: 'coins',
-    'go forward': 'road', 'take a beer': 'item-1', 'take a steak': 'item-2', 'talk with Aleg': 'aleg',
+    'take a beer': 'item-1', 'take a steak': 'item-2', 'talk with Aleg': 'aleg',
     'get status': 'status', 'exit game': 'exit', 'go out': 'left', 'back to tavern': 'tavern',
     buy: 'coins', sell: 'coins', 'check quests': 'status', 'talk with Carl': 'wanderer', 'run away': 'run',
     yes: 'confirm', no: 'cancel', cancel: 'cancel', endurance: 'item-1', strength: 'item-7', agility: 'road', luck: 'coins',

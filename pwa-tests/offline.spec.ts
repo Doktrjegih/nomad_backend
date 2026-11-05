@@ -41,6 +41,7 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   expect(cached).toContain('/art/icons.webp');
   expect(cached).toContain('/art/controls.webp');
   expect(cached).toContain('/art/run.webp');
+  expect(cached).toContain('/art/location-icons.webp');
   expect(cached).toContain('/art/locations.webp');
   expect(cached.some(path => path.endsWith('.woff2'))).toBe(true);
   await context.setOffline(true);
@@ -294,4 +295,32 @@ test('log colors survive reload safely, battle frames clear on restart, and menu
   await expect(page.locator('#location')).toHaveText('Hometown'); await expect(page.locator('body')).toHaveAttribute('data-battle', 'false');
   expect(await page.locator('.journey').evaluate(e => getComputedStyle(e).borderColor)).not.toBe(redBorder);
   await expect(page.locator('#progress,#mode')).toHaveCount(0);
+});
+
+test('route buttons show destination icons and names, and continuing keeps the current biome icon offline', async ({ page, context }) => {
+  const { createGame } = await import('../src/engine');
+  await ready(page); await context.setOffline(true);
+  for (const name of ['village', 'forest', 'mountains', 'cave', 'river', 'hometown']) {
+    const game = createGame(42, `route-${name}`);
+    const destination = { name, type: ['forest', 'mountains', 'cave'].includes(name) ? 'hostile' as const : 'peaceful' as const,
+      enemies: false, tavern: false, chest: false, npc: false };
+    game.menu = { kind: 'roads', places: [destination, { ...destination, name: name === 'river' ? 'forest' : 'river' }] };
+    await importJourney(page, game);
+    const label = name[0].toUpperCase() + name.slice(1);
+    const button = page.getByRole('button', { name: label, exact: true }).first();
+    await expect(button.locator('svg')).toHaveAttribute('data-icon', `location-${name}`);
+    await expect(button.locator('image')).toHaveAttribute('href', '/art/location-icons.webp');
+    await expect(page.locator('#actions')).not.toContainText(/hostile|peaceful/i);
+    await button.click();
+    const forward = page.getByRole('button', { name: 'Go forward', exact: true });
+    await expect(forward.locator('svg')).toHaveAttribute('data-icon', `location-${name}`);
+    await click(page, 'Go forward');
+    await expect(page.locator('#open-menu')).toBeEnabled();
+    if (await page.locator('#enemy-card').isVisible()) {
+      // Same-biome travel may generate an encounter; its next peace prompt still
+      // uses the saved biome after reload, rather than a generic road icon.
+      await expect(page.locator('#location')).toHaveText(label);
+    } else await expect(forward.locator('svg')).toHaveAttribute('data-icon', `location-${name}`);
+    await page.reload(); await click(page, 'Continue'); await expect(page.locator('#location')).toHaveText(label);
+  }
 });
