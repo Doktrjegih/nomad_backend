@@ -22,7 +22,7 @@ async function click(page: Page, name: string) {
   const previous = page.getByRole('button', { name: 'Previous choices', exact: true });
   while (await previous.isVisible() && await previous.isEnabled()) await previous.click();
   const next = page.getByRole('button', { name: 'More choices', exact: true });
-  for (let n = 0; n < 10 && !(await target.isVisible()) && await next.isVisible() && await next.isEnabled(); n++) await next.click();
+  for (let n = 0; n < 50 && !(await target.isVisible()) && await next.isVisible() && await next.isEnabled(); n++) await next.click();
   await target.click();
 }
 
@@ -39,6 +39,7 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   expect(cached).toContain('/index.html'); expect(cached.some(k => k.endsWith('.js'))).toBe(true);
   expect(cached).toContain('/icon-512.png');
   expect(cached).toContain('/art/icons.webp');
+  expect(cached).toContain('/art/controls.webp');
   expect(cached).toContain('/art/locations.webp');
   expect(cached.some(path => path.endsWith('.woff2'))).toBe(true);
   await context.setOffline(true);
@@ -153,7 +154,7 @@ async function importJourney(page: Page, game: unknown) {
 async function fitsScreen(page: Page) {
   await expect.poll(() => page.evaluate(() => {
     const visible = (e: Element) => (e as HTMLElement).offsetParent !== null;
-    const elements = [...document.querySelectorAll('#actions button,#action-pager,#enemy-card,#story,#game-screen,.sheet,.app-header')].filter(visible);
+    const elements = [...document.querySelectorAll('#actions button,#common-actions button,#common-actions,#action-pager,#enemy-card,#story,#game-screen,.sheet,.app-header')].filter(visible);
     return elements.every(e => { const b = e.getBoundingClientRect(); return b.top >= 0 && b.left >= 0 && b.right <= innerWidth + 1 && b.bottom <= innerHeight + 1; })
       && document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight
       && document.querySelector('#story')!.scrollHeight <= document.querySelector('#story')!.clientHeight + 1;
@@ -198,7 +199,7 @@ test('battle, long history, inventory and merchant pages fit phone, desktop and 
     await resize(page, size); await fitsScreen(page);
     await expect(page.locator('#story-pager')).toBeVisible();
     await click(page, 'Earlier story'); await fitsScreen(page);
-    await click(page, 'Inventory'); await fitsScreen(page);
+    await click(page, 'Inventory'); await expect(page.locator('#question')).toContainText('Which item'); await fitsScreen(page);
     while (await page.locator('#next-actions').isEnabled()) { await click(page, 'More choices'); await fitsScreen(page); }
     await click(page, 'Cancel'); await fitsScreen(page);
   }
@@ -207,7 +208,7 @@ test('battle, long history, inventory and merchant pages fit phone, desktop and 
   await resize(page, { width: 1366, height: 768 });
   await fitsScreen(page); await page.screenshot({ path: '/tmp/nomad-rpg-desktop.png' });
   const shop = createGame(42, 'shop-layout'); shop.scene = 'merchant'; shop.tavern = { merchant: true, aleg: true, quests: true, offer: null };
-  await importJourney(page, shop); await click(page, 'Buy');
+  await importJourney(page, shop); await click(page, 'Buy'); await expect(page.locator('#question')).toContainText('What do you want to buy');
   for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1366, height: 768 }]) {
     await resize(page, size); await fitsScreen(page);
     while (await page.locator('#next-actions').isEnabled()) { await click(page, 'More choices'); await fitsScreen(page); }
@@ -229,6 +230,18 @@ test('desktop separates unchanged status, log-only center and right-hand actions
   await expect(page.locator('.brand')).toHaveCSS('font-family', /Cinzel/);
   await expect(page.locator('#story')).toHaveCSS('font-family', /Alegreya/);
   await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toHaveCSS('background-image', /linear-gradient/);
+  const context = (await page.locator('.context-panel').boundingBox())!;
+  const common = (await page.locator('.common-panel').boundingBox())!;
+  expect(context.y + context.height).toBeLessThan(common.y);
+  await expect(page.locator('#common-actions button')).toHaveCount(3);
+  await expect(page.locator('#actions button[aria-label="Get status"]')).toHaveCount(0);
+  expect(await page.evaluate(() => [...document.querySelectorAll('button')].every(b => b.querySelector('.game-icon image')))).toBe(true);
+  expect(await page.locator('.sheet').evaluate(e => getComputedStyle(e).backgroundColor)).toBe(await page.locator('.context-panel').evaluate(e => getComputedStyle(e).backgroundColor));
+  await expect(page.locator('#actions .action').first()).toHaveCSS('font-size', '14px');
+  await click(page, 'Inventory'); await expect(page.locator('#question')).toContainText('Which item');
+  for (const button of await page.locator('#common-actions button').all()) await expect(button).toBeDisabled();
+  await click(page, 'Cancel'); await click(page, 'Get status');
+  await expect(page.locator('#story')).toContainText('Health:');
 });
 
 test('static blurred backgrounds follow all locations and indoor scenes without network access', async ({ page, context }) => {
@@ -239,7 +252,7 @@ test('static blurred backgrounds follow all locations and indoor scenes without 
     await importJourney(page, game);
     await expect(page.locator('body')).toHaveAttribute('data-location', location);
     expect((await page.evaluate(() => getComputedStyle(document.body, '::before').backgroundPosition)).replace(/0px/g, '0%')).toBe(position);
-    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').filter)).toContain('blur(9px)');
+    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').filter)).toContain('blur(3px)');
     expect(await page.evaluate(() => getComputedStyle(document.body, '::before').animationName)).toBe('none');
   }
   const indoor = createGame(42, 'indoor');

@@ -2,7 +2,7 @@ import '@fontsource/cinzel/latin-600.css';
 import '@fontsource/alegreya/latin-400.css';
 import '@fontsource/alegreya/latin-600.css';
 import './style.css';
-import { icon, actionIcon, enemyIcon } from './icons';
+import { icon, actionIcon, enemyIcon, decorateButton } from './icons';
 import { StoryPages } from './story';
 import { act, createGame, equipment, view, type Game } from './engine';
 import { load, rawSave, save, SaveConflict, validateGame, type Stored } from './storage';
@@ -24,7 +24,7 @@ function message(text: string, error = false) { $('status').textContent = text; 
 function storageError(text: string) { $('save-error').hidden = !text; $('save-error').textContent = text; }
 function setBusy(value: boolean) {
   busy = value;
-  document.querySelectorAll<HTMLButtonElement>('#actions button,#new-game,#import,#export,#update,#continue,#open-menu').forEach(b => b.disabled = value);
+  document.querySelectorAll<HTMLButtonElement>('#actions button,#common-actions button,#new-game,#import,#export,#update,#continue,#open-menu').forEach(b => b.disabled = value);
   if (!value && current) renderActions(current.game);
   ($('continue') as HTMLButtonElement).disabled = value || !current;
 }
@@ -55,18 +55,24 @@ function render(g: Game) {
   $('progress').textContent = `Chapter ${p.plot_stage} · Move ${p.moves}`;
   renderActions(g);
 }
+const commonControls = [
+  { id: 'inventory', label: 'Inventory', icon: 'bag' },
+  { id: 'get status', label: 'Get status', icon: 'status' },
+  { id: 'exit game', label: 'Exit game', icon: 'exit' },
+];
 function renderActions(g: Game) {
   const actions = $('actions'); actions.replaceChildren();
-  const options = view(g).options, size = window.innerWidth <= 700 ? (window.innerHeight <= 620 ? 2 : 4) : (window.innerHeight <= 520 ? 3 : 6);
+  const all = view(g).options;
+  const options = g.menu.kind === 'main' ? all.filter(o => !commonControls.some(c => c.id === o.id)) : all;
+  const short = window.innerHeight <= 620;
+  const size = window.innerWidth <= 700 ? (short ? (g.menu.kind === 'main' ? 2 : 1) : 3) : (window.innerHeight <= 520 ? 2 : 4);
   const count = Math.max(1, Math.ceil(options.length / size));
   actionPage = Math.min(actionPage, count - 1);
   for (const option of options.slice(actionPage * size, (actionPage + 1) * size)) {
     const b = document.createElement('button'); b.className = 'action';
     if (g.menu.kind === 'main' && ['enter tavern', 'check a chest'].includes(option.id)) b.classList.add('highlight');
-    const name = actionIcon(g, option.id);
-    if (name) { const wrapper = document.createElement('span'); wrapper.className = 'action-icon'; wrapper.append(icon(name)); b.append(wrapper); }
-    const label = document.createElement('span'); label.className = 'action-label';
-    label.textContent = (option.label[0].toUpperCase() + option.label.slice(1)).replace(/\s*\[\+[^\]]+\]/g, ''); b.append(label);
+    const label = (option.label[0].toUpperCase() + option.label.slice(1)).replace(/\s*\[\+[^\]]+\]/g, '');
+    decorateButton(b, actionIcon(g, option.id), label);
     b.onclick = () => void takeTurn(option.id, g.revision); actions.append(b);
   }
   $('action-pager').hidden = options.length <= size;
@@ -75,11 +81,27 @@ function renderActions(g: Game) {
   $('next-actions').onclick = () => { actionPage++; renderActions(g); };
   ($('previous-actions') as HTMLButtonElement).disabled = actionPage === 0;
   ($('next-actions') as HTMLButtonElement).disabled = actionPage === count - 1;
+  const common = $('common-actions'); common.replaceChildren();
+  for (const control of commonControls) {
+    const b = document.createElement('button'); b.className = 'action';
+    decorateButton(b, control.icon, control.label);
+    const available = g.menu.kind === 'main' && all.some(o => o.id === control.id);
+    b.disabled = busy || !available;
+    b.title = available ? control.label : 'Finish or cancel the current choice first';
+    b.onclick = () => void takeTurn(control.id, g.revision); common.append(b);
+  }
   if (g.status !== 'playing') {
-    const b = document.createElement('button'); b.className = 'action'; b.textContent = 'Begin a new journey';
+    const b = document.createElement('button'); b.className = 'action';
+    decorateButton(b, 'new', 'Begin a new journey');
     b.onclick = () => void newJourney(); actions.append(b);
   }
 }
+for (const [id, name] of Object.entries({
+  install: 'install', update: 'reload', 'open-menu': 'menu', continue: 'road',
+  'new-game': 'new', import: 'import', export: 'export',
+  'older-story': 'left', 'newer-story': 'right', 'previous-actions': 'left', 'next-actions': 'right',
+  'cancel-restart': 'cancel', 'confirm-restart': 'confirm',
+})) decorateButton($(id) as HTMLButtonElement, name);
 window.addEventListener('resize', () => { if (current) renderActions(current.game); });
 document.fonts.addEventListener('loadingdone', () => { if (current) storyPages.set(current.game.log); });
 async function commit(game: Game, force = false) {

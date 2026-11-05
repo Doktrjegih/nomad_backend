@@ -24,9 +24,12 @@
 <section class="card journey" aria-label="Your journey">
   <div class="story-wrap"><div class="story" id="story" role="log" aria-label="Adventure log" aria-live="polite"></div><nav class="pager" id="story-pager" aria-label="Story history" hidden><button class="quiet" id="older-story" aria-label="Earlier story">←</button><span id="story-page" class="small"></span><button class="quiet" id="newer-story" aria-label="Later story">→</button></nav></div>
 </section>
-<aside class="card action-panel" aria-label="Actions">
+<aside class="action-panel" aria-label="Actions">
+<section class="card context-panel" aria-label="Context actions">
   <div id="enemy-card" class="enemy-card" hidden><span id="enemy-icon"></span><div><strong id="enemy-name"></strong><span id="enemy-hp" class="small"></span></div></div>
   <div class="choices"><h3 id="question">Loading…</h3><div class="buttons" id="actions"></div><nav class="pager" id="action-pager" aria-label="Action pages" hidden><button class="quiet" id="previous-actions">Previous choices</button><span class="small" id="action-page"></span><button class="quiet" id="next-actions">More choices</button></nav></div>
+</section>
+<section class="card common-panel" aria-label="Common actions"><div class="buttons" id="common-actions"></div></section>
 </aside>
 </main>
 <div class="notices"><div id="status" role="status"></div><p id="save-error" role="alert" hidden></p></div>
