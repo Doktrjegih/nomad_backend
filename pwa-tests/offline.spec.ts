@@ -1,10 +1,17 @@
 import { test, expect, type Page } from '@playwright/test';
+async function resize(page: Page, size: { width: number; height: number }) {
+  await page.setViewportSize(size);
+  // CSS updates immediately; wait for the resize handler to recalculate action
+  // pages before testing whether the previous/next buttons are enabled.
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+}
 async function ready(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
 async function click(page: Page, name: string) {
   await expect(page.locator('#open-menu')).toBeEnabled();
@@ -31,7 +38,9 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   });
   expect(cached).toContain('/index.html'); expect(cached.some(k => k.endsWith('.js'))).toBe(true);
   expect(cached).toContain('/icon-512.png');
-  expect(cached).toContain('/game-icons.svg');
+  expect(cached).toContain('/art/icons.webp');
+  expect(cached).toContain('/art/locations.webp');
+  expect(cached.some(path => path.endsWith('.woff2'))).toBe(true);
   await context.setOffline(true);
   await click(page, 'Enter tavern'); await click(page, 'Take a beer');
   await expect(page.locator('#story .divider')).toHaveCount(1);
@@ -101,7 +110,7 @@ test('storage failures do not show an unsaved turn as successful', async ({ page
 });
 
 test('mobile layout keeps choices within the viewport', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 }); await ready(page);
+  await resize(page, { width: 390, height: 844 }); await ready(page);
   const width = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.document).toBeLessThanOrEqual(width.viewport);
 });
@@ -136,6 +145,7 @@ test('a service-worker update waits for consent and preserves the saved journey'
 });
 
 async function importJourney(page: Page, game: unknown) {
+  await click(page, 'Main menu');
   page.once('dialog', d => d.accept());
   await page.locator('#save-file').setInputFiles({ name: 'journey.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(game)) });
   await expect(page.locator('#game-screen')).toBeVisible();
@@ -164,10 +174,11 @@ test('equipment and every enemy have cached icons; tavern and chest choices are 
   const { createGame } = await import('../src/engine');
   await ready(page);
   await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toHaveClass(/highlight/);
-  await expect(page.locator('#weapon-icon use')).toHaveAttribute('href', '/game-icons.svg#item-3');
-  const svg = await (await page.request.get('/game-icons.svg')).text();
-  for (const id of [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 95, 96, 97, 98, 99]) expect(svg).toContain(`id="item-${id}"`);
-  for (const id of ['wanderer', 'bandit', 'knight', 'berserk', 'dog', 'hyena', 'wolf', 'werewolf', 'hunter', 'aleg', 'wisp', 'shade', 'specter', 'phantom']) expect(svg).toContain(`id="${id}"`);
+  await expect(page.locator('#weapon-icon svg')).toHaveAttribute('data-icon', 'item-3');
+  await expect(page.locator('#weapon-icon image')).toHaveAttribute('href', '/art/icons.webp');
+  const { ICON_TILES } = await import('../src/icons');
+  for (const id of [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 95, 96, 97, 98, 99]) expect(ICON_TILES[`item-${id}`]).toBeGreaterThanOrEqual(0);
+  for (const id of ['wanderer', 'bandit', 'knight', 'berserk', 'dog', 'hyena', 'wolf', 'werewolf', 'hunter', 'aleg', 'wisp', 'shade', 'specter', 'phantom']) expect(ICON_TILES[id]).toBeLessThan(36);
   const game = createGame(42, 'chest-test'); game.place.chest = true;
   await context.setOffline(true); await importJourney(page, game);
   await expect(page.getByRole('button', { name: 'Check a chest', exact: true })).toHaveClass(/highlight/);
@@ -182,22 +193,58 @@ test('battle, long history, inventory and merchant pages fit phone, desktop and 
   for (const item of ITEMS) addItem(game, item.id, 3);
   game.scene = 'battle'; game.enemy = makeEnemy(game, 'Van Helsing', 3, true);
   await importJourney(page, game); await expect(page.locator('#enemy-name')).toHaveText('Van Helsing');
-  await expect(page.locator('#enemy-icon use')).toHaveAttribute('href', '/game-icons.svg#hunter');
+  await expect(page.locator('#enemy-icon svg')).toHaveAttribute('data-icon', 'hunter');
   for (const size of [{ width: 1366, height: 768 }, { width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
-    await page.setViewportSize(size); await fitsScreen(page);
+    await resize(page, size); await fitsScreen(page);
     await expect(page.locator('#story-pager')).toBeVisible();
     await click(page, 'Earlier story'); await fitsScreen(page);
     await click(page, 'Inventory'); await fitsScreen(page);
     while (await page.locator('#next-actions').isEnabled()) { await click(page, 'More choices'); await fitsScreen(page); }
     await click(page, 'Cancel'); await fitsScreen(page);
   }
-  await page.setViewportSize({ width: 390, height: 844 }); await fitsScreen(page);
+  await resize(page, { width: 390, height: 844 }); await fitsScreen(page);
   await page.screenshot({ path: '/tmp/nomad-battle.png' });
+  await resize(page, { width: 1366, height: 768 });
+  await fitsScreen(page); await page.screenshot({ path: '/tmp/nomad-rpg-desktop.png' });
   const shop = createGame(42, 'shop-layout'); shop.scene = 'merchant'; shop.tavern = { merchant: true, aleg: true, quests: true, offer: null };
   await importJourney(page, shop); await click(page, 'Buy');
   for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }, { width: 1366, height: 768 }]) {
-    await page.setViewportSize(size); await fitsScreen(page);
+    await resize(page, size); await fitsScreen(page);
     while (await page.locator('#next-actions').isEnabled()) { await click(page, 'More choices'); await fitsScreen(page); }
     await click(page, 'Previous choices');
   }
+});
+
+test('desktop separates unchanged status, log-only center and right-hand actions', async ({ page }) => {
+  await resize(page, { width: 1366, height: 768 }); await ready(page);
+  const status = (await page.locator('.sheet').boundingBox())!;
+  const log = (await page.locator('.journey').boundingBox())!;
+  const actions = (await page.locator('.action-panel').boundingBox())!;
+  expect(status.x + status.width).toBeLessThan(log.x);
+  expect(log.x + log.width).toBeLessThan(actions.x);
+  expect(status.width).toBe(230);
+  await expect(page.locator('.journey #actions,.journey #enemy-card,.journey #location')).toHaveCount(0);
+  await expect(page.locator('.action-panel #actions')).toBeVisible();
+  await expect(page.locator('.location-strip #location')).toHaveText('Hometown');
+  await expect(page.locator('.brand')).toHaveCSS('font-family', /Cinzel/);
+  await expect(page.locator('#story')).toHaveCSS('font-family', /Alegreya/);
+  await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toHaveCSS('background-image', /linear-gradient/);
+});
+
+test('static blurred backgrounds follow all locations and indoor scenes without network access', async ({ page, context }) => {
+  const { createGame } = await import('../src/engine');
+  await ready(page); await context.setOffline(true);
+  for (const [location, position] of [['hometown', '50% 100%'], ['village', '50% 100%'], ['forest', '50% 0%'], ['mountains', '100% 0%'], ['cave', '0% 100%'], ['river', '100% 100%']]) {
+    const game = createGame(42, `background-${location}`); game.place.name = location;
+    await importJourney(page, game);
+    await expect(page.locator('body')).toHaveAttribute('data-location', location);
+    expect((await page.evaluate(() => getComputedStyle(document.body, '::before').backgroundPosition)).replace(/0px/g, '0%')).toBe(position);
+    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').filter)).toContain('blur(9px)');
+    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').animationName)).toBe('none');
+  }
+  const indoor = createGame(42, 'indoor');
+  await importJourney(page, indoor); await click(page, 'Enter tavern');
+  await expect(page.locator('body')).toHaveAttribute('data-location', 'tavern');
+  await click(page, 'Merchant'); await expect(page.locator('body')).toHaveAttribute('data-location', 'tavern');
+  await expect(page.locator('#location')).toHaveText('Merchant');
 });

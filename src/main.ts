@@ -1,3 +1,6 @@
+import '@fontsource/cinzel/latin-600.css';
+import '@fontsource/alegreya/latin-400.css';
+import '@fontsource/alegreya/latin-600.css';
 import './style.css';
 import { icon, actionIcon, enemyIcon } from './icons';
 import { StoryPages } from './story';
@@ -27,6 +30,7 @@ function setBusy(value: boolean) {
 }
 function render(g: Game) {
   const v = view(g), p = g.player;
+  document.body.dataset.location = g.scene === 'tavern' || g.scene === 'merchant' ? 'tavern' : g.place.name;
   $('location').textContent = v.location[0].toUpperCase() + v.location.slice(1);
   $('mode').textContent = g.status === 'playing' ? (g.scene === 'battle' ? 'Battle' : 'Your turn') : 'Journey ended';
   $('question').textContent = g.scene === 'battle' && g.menu.kind === 'main' ? 'What do you want to do?' : v.question;
@@ -53,7 +57,7 @@ function render(g: Game) {
 }
 function renderActions(g: Game) {
   const actions = $('actions'); actions.replaceChildren();
-  const options = view(g).options, size = window.innerWidth <= 700 ? 4 : 6;
+  const options = view(g).options, size = window.innerWidth <= 700 ? (window.innerHeight <= 620 ? 2 : 4) : (window.innerHeight <= 520 ? 3 : 6);
   const count = Math.max(1, Math.ceil(options.length / size));
   actionPage = Math.min(actionPage, count - 1);
   for (const option of options.slice(actionPage * size, (actionPage + 1) * size)) {
@@ -77,6 +81,7 @@ function renderActions(g: Game) {
   }
 }
 window.addEventListener('resize', () => { if (current) renderActions(current.game); });
+document.fonts.addEventListener('loadingdone', () => { if (current) storyPages.set(current.game.log); });
 async function commit(game: Game, force = false) {
   // Display a turn only after its complete snapshot has been durably written.
   current = await save(game, current?.token ?? null, force);

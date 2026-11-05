@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#181818"><meta name="description" content="An offline turn-based adventure.">
+<meta name="theme-color" content="#17120e"><meta name="description" content="An offline turn-based adventure.">
 <link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon-192.png">
 <title>Nomad</title>
 </head>
-<body>
-<header class="app-header"><div class="brand">NOMAD</div><div class="tools"><button class="quiet" id="install" hidden>Install game</button><button class="quiet" id="update" hidden>Update ready · Reload</button><button class="quiet" id="open-menu">Main menu</button></div></header>
+<body data-location="hometown">
+<header class="app-header"><div class="brand">NOMAD</div><div class="location-strip"><h2 id="location">—</h2><span class="small" id="progress"></span><span class="badge" id="mode"></span></div><div class="tools"><button class="quiet" id="install" hidden>Install game</button><button class="quiet" id="update" hidden>Update ready · Reload</button><button class="quiet" id="open-menu">Main menu</button></div></header>
 <p id="offline-status" role="alert" hidden></p>
 <section id="main-menu" class="main-menu" aria-label="Main menu">
   <h1>Nomad</h1>
@@ -22,11 +22,12 @@
   <div class="gear"><div><span class="gear-icon" id="weapon-icon"></span><div><span>Weapon</span><strong id="weapon">—</strong></div></div><div><span class="gear-icon" id="armor-icon"></span><div><span>Armor</span><strong id="armor">—</strong></div></div></div>
 </aside>
 <section class="card journey" aria-label="Your journey">
-  <div class="scene-heading"><div><h2 id="location">—</h2><span class="small" id="progress"></span></div><span class="badge" id="mode"></span></div>
-  <div id="enemy-card" class="enemy-card" hidden><span id="enemy-icon"></span><div><strong id="enemy-name"></strong><span id="enemy-hp" class="small"></span></div></div>
   <div class="story-wrap"><div class="story" id="story" role="log" aria-label="Adventure log" aria-live="polite"></div><nav class="pager" id="story-pager" aria-label="Story history" hidden><button class="quiet" id="older-story" aria-label="Earlier story">←</button><span id="story-page" class="small"></span><button class="quiet" id="newer-story" aria-label="Later story">→</button></nav></div>
-  <div class="choices"><h3 id="question">Loading…</h3><div class="buttons" id="actions"></div><nav class="pager" id="action-pager" aria-label="Action pages" hidden><button class="quiet" id="previous-actions">Previous choices</button><span class="small" id="action-page"></span><button class="quiet" id="next-actions">More choices</button></nav></div>
 </section>
+<aside class="card action-panel" aria-label="Actions">
+  <div id="enemy-card" class="enemy-card" hidden><span id="enemy-icon"></span><div><strong id="enemy-name"></strong><span id="enemy-hp" class="small"></span></div></div>
+  <div class="choices"><h3 id="question">Loading…</h3><div class="buttons" id="actions"></div><nav class="pager" id="action-pager" aria-label="Action pages" hidden><button class="quiet" id="previous-actions">Previous choices</button><span class="small" id="action-page"></span><button class="quiet" id="next-actions">More choices</button></nav></div>
+</aside>
 </main>
 <div class="notices"><div id="status" role="status"></div><p id="save-error" role="alert" hidden></p></div>
 <dialog id="restart-dialog"><h2>New journey?</h2><p>This replaces your current journey with a fresh character.</p><menu><button class="quiet" id="cancel-restart">Keep playing</button><button class="action" id="confirm-restart">Start again</button></menu></dialog>

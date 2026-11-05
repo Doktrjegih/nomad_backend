@@ -35,8 +35,16 @@ path. HTTP integration tests require local socket access.
 The main menu contains Continue, New journey, and save import/export. Returning to
 it pauses the interface without resetting your journey. Health and alcohol use
 matching progress bars. Equipped items, inventory/shop choices, and every enemy
-have custom grayscale SVG icons, included in the offline cache. Tavern and chest
-buttons have a bright highlight.
+use a generated, colored medieval RPG icon atlas. Tavern and chest buttons have a
+gold highlight. Wooden plate buttons, Cinzel headings and Alegreya log text complete
+the theme; fonts and their licenses are bundled locally.
+
+Desktop play has three columns: the unchanged character-status panel, a dedicated
+log panel, and a right-hand action panel. On portrait phones the status panel sits
+above the log/action columns. Location and chapter stay in the top header. A static,
+blurred painted background changes for taverns/shops, forests, mountains, caves,
+villages/hometown, and rivers. Art and fonts are included in the offline cache.
+The first complete offline download includes about 4 MB of lossless WebP artwork.
 
 The game fits the viewport without page or panel scrolling. Long action lists use
 Previous choices / More choices; story history uses the arrow buttons. Narrative
