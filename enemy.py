@@ -5,7 +5,7 @@ from json import loads
 import db
 from console import ExitException, color, get_effect_color, print
 from constants import *
-from enemies_categories import ENEMIES_PARAMS, enemies_names
+from enemies_categories import ENEMIES_PARAMS, BOSS_PARAMS, enemies_names
 from paths import ENEMIES
 from player import Player
 from quest import get_current_quests
@@ -31,8 +31,8 @@ class Enemy:
         self.name = template.name
         self.stage = stage
 
-        multiplier = random.uniform(0.8 + 0.05 * self.stage, 1.0 + 0.15 * self.stage)
-        self.health = int(self.player.max_hp * multiplier)  # todo: need balance
+        self.health = round((32 + 8 * (self.stage - 1)) * random.uniform(0.9, 1.1))
+        self.max_hp = self.health
 
         self.attack = template.attack + random.randint(MIN_ENEMY_ATK_SHIFT, MAX_ENEMY_ATK_SHIFT)  # todo: need balance
         self.defence = template.defence + random.randint(MIN_ENEMY_DEF_SHIFT, MAX_ENEMY_DEF_SHIFT)  # todo: need balance
@@ -44,6 +44,8 @@ class Enemy:
         self.effects_resist = self.get_effects_param(self.name, "resist")
 
     def _find_by_name(self, name: str):
+        if name in BOSS_PARAMS:
+            return BOSS_PARAMS[name]
         for group in ENEMIES_PARAMS.values():
             for template in group.values():
                 if template.name == name:
@@ -69,15 +71,15 @@ class Enemy:
     # ========== enemies' special methods start here ==========
     def hyena(self) -> None:
         """
-        Doubles the attack power when the health is below specific value
+        Increases attack below the configured percentage of maximum health
         """
         if hasattr(self, "base_attack"):
             self.attack = self.base_attack
-        if self.health < HYENA_SPECIAL_HP_THRESHOLD:
-            self.special_name = "double damage"
+        if self.health < self.max_hp * HYENA_SPECIAL_HP_THRESHOLD / 100:
+            self.special_name = "rage"
             if not hasattr(self, "base_attack"):
                 self.base_attack = self.attack
-            self.attack *= HYENA_SPECIAL_ATK_FACTOR
+            self.attack = round(self.attack * HYENA_SPECIAL_ATK_FACTOR)
             print(f"Special skill has been activated! Enemy attack is {self.attack}")
 
     def wolf(self) -> None:
@@ -100,7 +102,7 @@ class Enemy:
         """
         Heals the enemy's health by when it drops below specific value
         """
-        if self.health < WEREWOLF_SPECIAL_HP_THRESHOLD:
+        if self.health < self.max_hp * WEREWOLF_SPECIAL_HP_THRESHOLD / 100:
             if not hasattr(self, "healing_activatings"):
                 self.healing_activatings = 2
             if self.healing_activatings <= 0:
@@ -148,14 +150,14 @@ class Enemy:
                 return 2
             return 1
 
-        if self.name not in enemies_names('dogs'):  # todo: make expendable
-            reward = random.randint(MIN_GOLD_REWARD, MAX_GOLD_REWARD)
-            self.player.gold += reward
-            print(f'You get {reward} gold coins')
-            if self.stage > 2:
-                if random.randint(1, 100) > EQUIPMENT_CHANCE_THRESHOLD:
-                    db.add_item_to_inventory((item := random.choice(db.get_all_equipment())).item_id)
-                    print(f"You get {color('yellow', item.name)}")
+        # Every victory funds recovery, including animal encounters.
+        reward = random.randint(MIN_GOLD_REWARD, MAX_GOLD_REWARD)
+        self.player.gold += reward
+        print(f'You get {reward} gold coins')
+        if self.stage > 2:
+            if random.randint(1, 100) > EQUIPMENT_CHANCE_THRESHOLD:
+                db.add_item_to_inventory((item := random.choice(db.get_all_equipment())).item_id)
+                print(f"You get {color('yellow', item.name)}")
         if (items := db.get_enemy_loot(self.name)) and random.randint(1, 100) > LOOT_CHANCE_THRESHOLD:
             db.add_item_to_inventory((item := random.choice(items)).item_id, amount=(pieces := drop_rate()))
             print(f"You get {color('yellow', item.name)} ({pieces})")
@@ -198,7 +200,7 @@ class Enemy:
         :return: int damage to player
         """
         print(f'{self.name} attacks!')
-        attack = self.attack - self.player.defence
+        attack = round(self.attack * 10 / (10 + self.player.defence))
         attack += self.count_effect_damage()
         if attack < 1:
             attack = 1
@@ -284,48 +286,32 @@ class Enemy:
 
 class Boss(Enemy):
     def __init__(self, player: Player, name: str) -> None:
-        super().__init__(player=player, random_enemy=False)
+        super().__init__(player=player, random_enemy=False, name=name, stage=3 if name == "Van Helsing" else 4)
 
         self.name = name
         self.health = round(self.health * BOSS_HP_FACTOR)
-        self.defence = round(self.defence * BOSS_ATK_FACTOR)
-        self.attack = round(self.attack * BOSS_DEF_FACTOR)
+        self.max_hp = self.health
+        self.defence = round(self.defence * BOSS_DEF_FACTOR)
+        self.attack = round(self.attack * BOSS_ATK_FACTOR)
         self.boss = True
 
 
 def generate_enemy(player: Player) -> Enemy:
     """
-    Generates enemy according to current player drunk state
+    Generates an enemy from story progression and the active plot target
     :param player: object of Player class
     :return: object of Enemy class
     """
-    rand = random.randint(1, 100)
-    for quest in get_current_quests():
-        if quest.boss and rand > 75:
-            if quest.order == "Some shit":
-                return Boss(player, name="Aleg")
-            else:
-                return Boss(player, name=quest.order)
-    if player.drunk < 26:
-        return Enemy(player)
-    elif player.drunk < 51:
-        if rand > STAGE_2_LV_1_SPAWN_THRESHOLD:
-            return Enemy(player)
-        return Enemy(player, stage=2)
-    elif player.drunk < 76:
-        if rand > STAGE_3_LV_1_SPAWN_THRESHOLD:
-            return Enemy(player)
-        elif rand > STAGE_3_LV_2_SPAWN_THRESHOLD:
-            return Enemy(player, stage=2)
-        return Enemy(player, stage=3)
-    else:
-        if rand > STAGE_4_LV_1_SPAWN_THRESHOLD:
-            return Enemy(player)
-        elif rand > STAGE_4_LV_2_SPAWN_THRESHOLD:
-            return Enemy(player, stage=2)
-        elif rand > STAGE_4_LV_3_SPAWN_THRESHOLD:
-            return Enemy(player, stage=3)
-        return Enemy(player, stage=4)
+    # Progression, not alcohol, determines the encounter tier. Active story
+    # targets are offered regularly so random biome filtering cannot stall quests.
+    quests = [q for q in get_current_quests() if q.plot_quest and not q.is_finished]
+    if quests and random.random() < 0.5:
+        quest = quests[0]
+        if quest.boss:
+            return Boss(player, name="Aleg" if quest.order == "Some shit" else quest.order)
+        return Enemy(player, random_enemy=False, name=quest.order,
+                     stage=min(player.plot_stage, 4))
+    return Enemy(player, stage=min(player.plot_stage, 4))
 
 
 def enemy_for_npc_quest(player: Player, exclude: list[str] = []) -> Enemy:

@@ -1,4 +1,9 @@
 from pathlib import Path
+import random
+
+import db
+from player import Player
+from tests.framework import world_creation
 
 import pytest
 
@@ -43,3 +48,14 @@ def test_counter(request) -> None:
     Counts total tests' results and writes average value to file
     """
     request.addfinalizer(finish)
+
+
+@pytest.fixture
+def game_world():
+    random.seed(17)
+    Player.reset()
+    scene = world_creation()
+    yield scene
+    db.session.close()
+    db.engine.dispose()
+    Player.reset()

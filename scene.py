@@ -144,8 +144,10 @@ class Scene:
         self.enemy.show_rivals_stats()
         action = self.show_possible_options()
         if action == "attack":
+            self.player.moves += 1
             self.player_attack()
         elif action == "run away":
+            self.player.moves += 1
             self.try_run_away()
         else:
             self.check_common_actions(action)
@@ -184,6 +186,15 @@ class Scene:
             self.player.set_drunk(-DRUNK_FOR_MOVING)
             self.turns_in_biome_left = random.randint(MIN_LOCATION_SIZE, MAX_LOCATION_SIZE)
 
+        self.player.moves += 1
+        self.player.travel_moves += 1
+        # A safe stop is guaranteed even when the selected biome is hostile.
+        if self.turns_without_tavern >= TURNS_WITHOUT_TAVERN:
+            self.location = Location("peaceful", self.player.luck, name="village")
+            self.location.tavern = True
+            self.location.chest = False
+            self.location.npc = False
+
         # mandatory actions after location has been selected
         if self.location.tavern:
             self.tavern = None
@@ -195,10 +206,12 @@ class Scene:
         if self.location.enemies:
             self.state = "battle"
             possible_enemies = ENEMY_TO_LOCATION[self.location.name]
-            possible_enemies.append("Aleg")
+            possible_enemies = possible_enemies + ["Aleg", "Van Helsing"]
             while True:
                 self.enemy = generate_enemy(self.player)
-                if self.enemy.name not in possible_enemies:
+                if self.enemy.name not in possible_enemies and not any(
+                        q.plot_quest and not q.is_finished and q.order == self.enemy.name
+                        for q in get_current_quests()):
                     continue
                 else:
                     break
@@ -213,7 +226,7 @@ class Scene:
         Finishes battle if enemy's been slayed, else hits player in response
         """
         # check if player hits enemy
-        hit_chance = 100 - HIT_LUCK_FACTOR * self.player.luck - HIT_DRUNK_FACTOR * self.player.drunk
+        hit_chance = min(95, 88 + HIT_LUCK_FACTOR * self.player.luck - HIT_DRUNK_FACTOR * self.player.drunk)
         if hit_chance < DEFAULT_HIT_CHANCE:
             hit_chance = DEFAULT_HIT_CHANCE
         if random.randint(1, 100) > hit_chance:
@@ -222,7 +235,7 @@ class Scene:
             return
 
         # base and minimal attack
-        attack = self.player.attack - self.enemy.defence
+        attack = round(self.player.attack * 10 / (10 + self.enemy.defence))
         if attack < 1:
             attack = 1
 
@@ -280,6 +293,15 @@ class Scene:
         Finishes battle and reduces drunk level after that
         """
         self.enemy = None
+        if not run:
+            self.player.battles_won += 1
+            # A predictable first upgrade replaces dependence on rare chests.
+            if self.player.battles_won == 2:
+                db.add_item_to_inventory(99)
+                print("You earned an Iron sword!")
+            elif self.player.battles_won == 4:
+                db.add_item_to_inventory(95)
+                print("You earned Leather armor!")
         if run:
             self.player.set_drunk(-RUN_AWAY_DRUNK_LOSS)
         else:

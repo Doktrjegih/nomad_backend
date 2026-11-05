@@ -44,6 +44,9 @@ class Player:
             self.armor = None
             self.plot_stage = 1
             self.aleg_drinks = 0
+            self.moves = 0
+            self.travel_moves = 0
+            self.battles_won = 0
             self._initialized = True
 
     @classmethod
@@ -159,5 +162,5 @@ class Player:
                 else:
                     self.armor = Equipment(item[1], self.drunk)
 
-        self.attack = self.strength * PLAYER_ATK_FACTOR + (self.drunk // 10) + (self.weapon.attack if self.weapon else 0)
-        self.defence = self.strength * PLAYER_DEF_FACTOR + (self.drunk // 10) + (self.armor.defence if self.armor else 0)
+        self.attack = PLAYER_ATK + (self.strength - 1) * PLAYER_ATK_FACTOR + (self.drunk // 25) + (self.weapon.attack if self.weapon else 0)
+        self.defence = PLAYER_DEF + (self.agility - 1) * PLAYER_DEF_FACTOR + (self.armor.defence if self.armor else 0)

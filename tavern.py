@@ -57,6 +57,7 @@ class Tavern:
         if self.player.gold < BEER_PRICE:
             print(f"Not enough money, it's {BEER_PRICE} gold coins for beer")
             return
+        self.player.moves += 1
         self.player.set_drunk(beer)
         self.player.gold -= BEER_PRICE
 
@@ -68,6 +69,7 @@ class Tavern:
         if self.player.gold < FOOD_PRICE:
             print(f"Not enough money, it's {FOOD_PRICE} gold coins for steak")
             return
+        self.player.moves += 1
         self.player.health += FOOD_HP
         self.player.set_drunk(-FOOD_DRUNK_LOSS)
         # if self.player.health > self.player.max_hp:
@@ -94,7 +96,6 @@ class Tavern:
         quests = get_current_quests(ignore_plot=True)
         if len(quests) > 2 or not self.active_quests:
             print("Sorry, I don't have quests for you now")
-            self.tavern_menu()
             return
 
         # check if tavern quest was taken
@@ -231,7 +232,7 @@ class Tavern:
                                                 no=['n', 'no', '2'])
                 if confirm_buying[0] == 'no':
                     return
-                db.add_item_to_inventory(chosen_item.id)
+                db.add_item_to_inventory(chosen_item.item_id)
                 self.player.gold -= price
                 print(f'Bought {item_name}')
 
@@ -255,6 +256,7 @@ class Tavern:
                     print("Oh, nice work! I see you've done well")
                     self.player.plot_stage += 1
                     quest.close_quest(quests=quests, player=self.player)
+                    self.player.health = self.player.max_hp
                     self.player.improve_stats()
                     break
             else:
@@ -274,7 +276,7 @@ class Tavern:
 
                     print("I have a quest for you:")
                     if json_quest.get("boss"):
-                        order = Boss(self.player, name=json_quest["target"])
+                        order = Boss(self.player, name="Aleg" if json_quest["target"] == "Some shit" else json_quest["target"])
                         boss = True
                         print(f"Well, it's time. I have a tough one for you, {color('red', order.name)}")
                         print("You need to finish him")
@@ -285,6 +287,9 @@ class Tavern:
                         print(f"You need kill {color('red', order.name)} {json_quest['amount']} times")
                     quest = Quest(order=order.name, amount=json_quest["amount"], is_plot=True, boss=boss)
                     break
+            else:
+                print("All plot quests are complete!")
+                return
         answer = answer_handler(
             question="Are you accept? (yes/no) ",
             yes=["y", "yes", "1"],

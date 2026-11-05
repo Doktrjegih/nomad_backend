@@ -458,5 +458,25 @@
       "Bandit"
     ],
     "cost": 15
+  },
+  {
+    "id": 95,
+    "name": "Leather armor",
+    "type": "armor",
+    "cost": 20,
+    "levels": {
+      "0": {
+        "defence": 5
+      },
+      "1": {
+        "defence": 6
+      },
+      "2": {
+        "defence": 7
+      },
+      "3": {
+        "defence": 8
+      }
+    }
   }
 ]

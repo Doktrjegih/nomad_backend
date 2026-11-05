@@ -45,11 +45,13 @@ class Items:
             type_of_item = inventory[item_index][1].type_
             match type_of_item:
                 case "food":
+                    self.player.moves += 1
                     self.player.health += FOOD_HP
                     self.player.set_drunk(-FOOD_DRUNK_LOSS)
                     db.remove_item(inventory[item_index][0])
                     print(f"Your HP is {self.player.health} now")
                 case "alcohol":
+                    self.player.moves += 1
                     self.player.set_drunk(BEER_DRUNK)
                     db.remove_item(inventory[item_index][0])
                     print(f"You've drunk {item_name}")
@@ -113,9 +115,10 @@ class Items:
         """
         def choose_item(items: list[db.Items], luck: int = 1):
             weights = []
+            owned = {entry[1].item_id for entry in self.get_inventory()}
 
             for item in items:
-                base_weight = 1 / item.cost
+                base_weight = (0.1 if item.item_id in owned else 1) / max(1, item.cost) ** 0.5
                 adjusted_weight = base_weight ** (1 / (luck))
                 weights.append(adjusted_weight)
 
@@ -132,6 +135,8 @@ class JsonToEquipment:
     def __init__(self, init_dict) -> None:
         for key, value in init_dict.items():
             setattr(self, key, value)
+            if key == "id":
+                self.item_id = value
             match key:
                 case "type":
                     self.type_ = init_dict["type"]

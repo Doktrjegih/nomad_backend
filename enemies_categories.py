@@ -34,3 +34,9 @@ ENEMIES_PARAMS = {
 
 def enemies_names(category: str):
     return [enemy.name for enemy in ENEMIES_PARAMS[category].values()]
+
+
+BOSS_PARAMS = {
+    "Van Helsing": EnemyTemplate("Van Helsing", ATK_LV_3, DEF_LV_3),
+    "Aleg": EnemyTemplate("Aleg", ATK_LV_4, DEF_LV_4),
+}

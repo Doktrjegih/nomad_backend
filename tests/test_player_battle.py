@@ -1,60 +1,18 @@
 from unittest.mock import patch
-
-import pytest
-from pathlib import Path
 from enemy import Enemy
-from tests.framework import world_creation, turns_generator, assert_files_equal, compare_strings_ignore_numbers, get_row_from_file
-import db
-
-tests_folder = Path(__file__).parent
 
 
-@patch("builtins.input")
-@pytest.mark.usefixtures("clear_dir")
-def test_player_battle(mock_input):
-    scene = world_creation()
-
-    # set player's stats
-    scene.player.drunk = 30
-    scene.player.level = 1
-    scene.player.health = 10
-    scene.player.attack = 1
-    scene.player.defence = 1
-    scene.player.strength = 1
-    scene.player.endurance = 1
-    scene.player.agility = 1
-    scene.player.luck = 1
-
-    # add the main weapon
-    db.add_item_to_game({'id': 666, 'name': 'any gun', 'type': 'weapon', 'attack': 0, 'cost': 1})  # set gun stats here
-    db.add_item_to_inventory(666)
-    inventory = db.get_inventory()
-    db.put_on_off_item(inventory[0][0], state=True)
-    scene.player.recount_params()
-
-    # create the enemy
-    while True:
-        scene.enemy = Enemy(player=scene.player)
-        if scene.enemy.name != "Wet dog":
-            continue
-        break
-    scene.enemy.level = 5
-    scene.enemy.health = 5
-    scene.enemy.attack = 1
-    scene.enemy.defence = 1
-    scene.enemy.agility = 10
-
-    # start the battle
-    scene.state = 'battle'
-    # scene.battle = Battle(scene)
-
-    # start test
-    gen = turns_generator([4, 3, 0, 2, 1, 3, 1])
-    mock_input.side_effect = lambda x: next(gen)
-    try:
-        while True:
-            scene.show_current_scene()
-    except StopIteration:
-        assert_files_equal(Path(tests_folder, 'etalon_battle.log'), Path(tests_folder.parent, 'last_game.log'), ignore=[122])
-        compare_strings_ignore_numbers(get_row_from_file('etalon_battle.log', 122),
-                                       get_row_from_file('last_game.log', 122))
+def test_player_battle(game_world):
+    game_world.enemy = Enemy(game_world.player, random_enemy=False, name='Wet dog')
+    game_world.enemy.health = 1
+    game_world.state = 'battle'
+    hp = game_world.player.health
+    gold = game_world.player.gold
+    with patch('builtins.input', return_value='1'), patch('scene.random.randint', return_value=1):
+        game_world.show_current_scene()
+    assert game_world.state == 'peace'
+    assert game_world.enemy is None
+    assert game_world.player.health == hp  # Killing blow prevents retaliation.
+    assert game_world.player.gold > gold
+    assert game_world.player.battles_won == 1
+    assert game_world.player.moves == 1
