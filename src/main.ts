@@ -19,7 +19,12 @@ function render(g: Game) {
   $('mode').textContent = g.status === 'playing' ? (g.scene === 'battle' ? 'Battle' : 'Your turn') : 'Journey ended';
   $('question').textContent = v.question;
   const story = $('story'); story.replaceChildren();
-  for (const line of g.log) { const row = document.createElement('p'); row.textContent = line; story.append(row); }
+  let separated = false;
+  for (const line of g.log) {
+    if (!line.trim()) { separated = story.childElementCount > 0; continue; }
+    if (separated) { const divider = document.createElement('hr'); divider.className = 'divider'; story.append(divider); separated = false; }
+    const row = document.createElement('p'); row.textContent = line; story.append(row);
+  }
   story.scrollTop = story.scrollHeight;
   for (const key of ['attack', 'defence', 'gold', 'moves'] as const) $(key).textContent = String(p[key]);
   $('weapon').textContent = equipment(g, 'weapon')?.name ?? 'Unarmed';
@@ -28,7 +33,7 @@ function render(g: Game) {
   const hp = $('hp-bar');
   hp.setAttribute('aria-valuemin', '0'); hp.setAttribute('aria-valuemax', String(p.max_hp)); hp.setAttribute('aria-valuenow', String(Math.max(0, p.health)));
   (hp.firstElementChild as HTMLElement).style.width = `${Math.max(0, Math.min(100, 100 * p.health / p.max_hp))}%`;
-  $('condition').textContent = p.drunk ? `Alcohol level · ${p.drunk}%` : 'Sober & steady';
+  $('condition').textContent = `Alcohol level · ${p.drunk}%`;
   $('progress').textContent = `Chapter ${p.plot_stage} · Move ${p.moves}`;
   const actions = $('actions'); actions.replaceChildren();
   for (const option of v.options) {
@@ -45,7 +50,7 @@ async function commit(game: Game, force = false) {
   // Display a turn only after its complete snapshot has been durably written.
   current = await save(game, current?.token ?? null, force);
   storageBroken = false; storageError('');
-  render(current.game); message(''); $('save-status').textContent = 'Saved on this device.';
+  render(current.game); message('');
   channel?.postMessage('saved');
 }
 async function takeTurn(action: string, revision: number) {
@@ -106,17 +111,11 @@ let installPrompt: InstallPrompt | null = null;
 window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event as InstallPrompt; $('install').hidden = false; });
 $('install').onclick = async () => { if (installPrompt) { await installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; $('install').hidden = true; } };
 window.addEventListener('appinstalled', () => { $('install').hidden = true; });
-let offlineReady = false;
-function connectionStatus() {
-  $('offline-status').textContent = offlineReady ? `${navigator.onLine ? 'Ready for offline play' : 'Playing offline'} · Everything stays on this device.`
-    : 'Offline files are not cached yet. Connect once to finish downloading the game.';
-}
-window.addEventListener('online', connectionStatus); window.addEventListener('offline', connectionStatus);
 async function setupOffline() {
-  if (!('serviceWorker' in navigator) || !import.meta.env.PROD) { $('offline-status').textContent = 'Local development · Offline caching is enabled in the production build.'; return; }
+  if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return;
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
-    await navigator.serviceWorker.ready; offlineReady = true; connectionStatus();
+    await navigator.serviceWorker.ready;
     function offerUpdate() {
       if (!registration.waiting || !navigator.serviceWorker.controller) return;
       $('update').hidden = false;
@@ -128,7 +127,7 @@ async function setupOffline() {
     }
     offerUpdate();
     registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', offerUpdate));
-  } catch { connectionStatus(); }
+  } catch { $('offline-status').hidden = false; $('offline-status').textContent = 'Offline download failed. Reconnect and reload to try again.'; }
 }
 async function boot() {
   try {

@@ -1,15 +1,25 @@
 {
   "id": "/",
-  "name": "Nomad · A road of your own",
+  "name": "Nomad",
   "short_name": "Nomad",
   "description": "A fully offline turn-based adventure. Your journey stays on your device.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#141b19",
-  "theme_color": "#141b19",
+  "background_color": "#181818",
+  "theme_color": "#181818",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 async function ready(page: Page) {
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Enter tavern', exact: true })).toBeVisible();
-  await expect(page.locator('#offline-status')).toContainText('Ready for offline play');
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
 }
 async function click(page: Page, name: string) { await page.getByRole('button', { name, exact: true }).click(); }
@@ -21,11 +21,14 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   expect(cached).toContain('/icon-512.png');
   await context.setOffline(true);
   await click(page, 'Enter tavern'); await click(page, 'Take a beer');
+  await expect(page.locator('#story .divider')).toHaveCount(2);
+  await expect(page.locator('#offline-status')).toBeHidden();
   await expect(page.locator('#gold')).toHaveText('5'); await expect(page.locator('#condition')).toContainText('10%');
   await click(page, 'Merchant'); await click(page, 'Buy');
   await page.getByRole('button', { name: /Broken Spear.*3 gold/ }).click();
   await expect(page.locator('#question')).toContainText('Buy Broken Spear');
   await page.reload(); await expect(page.locator('#question')).toContainText('Buy Broken Spear');
+  await expect(page.locator('#story .divider')).toHaveCount(3);
   await click(page, 'Yes'); await expect(page.locator('#gold')).toHaveText('2');
   await click(page, 'Cancel'); await click(page, 'Inventory');
   await expect(page.getByRole('button', { name: /Broken Spear.*×2/ })).toBeVisible();
@@ -94,6 +97,7 @@ test('a stale tab restores the newest save when broadcast messages are unavailab
   await context.addInitScript(() => { Object.defineProperty(window, 'BroadcastChannel', { value: undefined }); });
   await ready(page); const other = await context.newPage(); await ready(other);
   await click(page, 'Enter tavern'); await click(page, 'Take a beer');
+  await expect(page.locator('#gold')).toHaveText('5');
   // Other tab still has the initial prompt and token.
   await click(other, 'Enter tavern');
   await expect(other.locator('#status')).toContainText('Another tab changed this journey');

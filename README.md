@@ -32,7 +32,7 @@ path. HTTP integration tests require local socket access.
 
 ## Offline play and saves
 
-Open the app once on HTTPS (or localhost) and wait for **Ready for offline play**.
+Open the app once on HTTPS (or localhost) and let the offline assets finish downloading.
 You can then disconnect, reload, close/reopen the app, and start new journeys
 without Internet. Use **Install game** when your browser offers installation; on
 iOS use Safari's Share → Add to Home Screen. Installation is optional.

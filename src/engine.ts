@@ -417,6 +417,7 @@ export function act(previous: Game, action: string, revision = previous.revision
   if (revision !== previous.revision || !view(previous).options.some(o => o.id === action)) throw new Error('Invalid or stale action');
   const g = structuredClone(previous), m = g.menu;
   g.revision++;
+  g.log.push(''); // Persist turn boundaries alongside narrative, including across reloads.
   g.menu = { kind: 'main' };
   switch (m.kind) {
     case 'main': mainAction(g, action); break;
@@ -471,5 +472,6 @@ export function act(previous: Game, action: string, revision = previous.revision
       }
       offerPlot(g); break;
   }
+  if (g.log[g.log.length - 1] === '') g.log.pop();
   return g;
 }
