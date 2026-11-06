@@ -11,7 +11,9 @@
     "build": "tsc --noEmit && vite build && node tools/build-sw.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "test": "tsx --test pwa-tests/engine.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "predev": "node tools/build-background.mjs",
+    "prebuild": "node tools/build-background.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.0",

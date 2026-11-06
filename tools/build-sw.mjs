@@ -4,7 +4,8 @@ async function files(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   return (await Promise.all(entries.map(e => e.isDirectory() ? files(`${dir}/${e.name}`) : [`${dir}/${e.name}`]))).flat();
 }
-const paths = (await files('dist')).sort();
+// The source atlas is embedded in scene-background.svg and is not requested by the app.
+const paths = (await files('dist')).filter(path => path !== 'dist/art/locations.webp').sort();
 const hash = createHash('sha256');
 for (const path of paths) { hash.update(path); hash.update(await readFile(path)); }
 const name = `nomad-shell-${hash.digest('hex').slice(0, 16)}`;

@@ -49,7 +49,11 @@ test('installs a complete static shell and plays, saves, reloads, and restarts e
   expect(cached).toContain('/art/controls.webp');
   expect(cached).toContain('/art/run.webp');
   expect(cached).toContain('/art/location-icons.webp');
-  expect(cached).toContain('/art/locations.webp');
+  expect(cached).toContain('/art/scene-background.svg');
+  expect(cached).not.toContain('/art/locations.webp');
+  const background = await (await page.request.get('/art/scene-background.svg')).text();
+  expect(background).toContain('<feGaussianBlur');
+  expect(background).toContain('href="data:image/webp;base64,');
   expect(cached.some(path => path.endsWith('.woff2'))).toBe(true);
   await context.setOffline(true);
   await click(page, 'Enter tavern'); await click(page, 'Take a beer');
@@ -270,9 +274,9 @@ test('static blurred backgrounds follow all locations and indoor scenes without 
     const game = createGame(42, `background-${location}`); game.place.name = location;
     await importJourney(page, game);
     await expect(page.locator('body')).toHaveAttribute('data-location', location);
-    expect((await page.evaluate(() => getComputedStyle(document.body, '::before').backgroundPosition)).replace(/0px/g, '0%')).toBe(position);
-    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').filter)).toContain('blur(3px)');
-    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').animationName)).toBe('none');
+    expect((await page.evaluate(() => getComputedStyle(document.querySelector('.scene-image')!).backgroundPosition)).replace(/0px/g, '0%')).toBe(position);
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.scene-image')!).filter)).toBe('none');
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.scene-image')!).animationName)).toBe('none');
   }
   const indoor = createGame(42, 'indoor');
   await importJourney(page, indoor); await click(page, 'Enter tavern');
@@ -367,6 +371,24 @@ test('portrait installed-app safe area keeps the header sharp and stacks status,
         safeBackground: getComputedStyle(e, '::before').backgroundColor,
       }));
       expect(header).toEqual({ background: 'rgb(36, 26, 16)', filter: 'none', backdrop: 'none', isolation: 'isolate', safeTop: '-24px', safeBackground: 'rgb(36, 26, 16)' });
+      await expect(page.locator('.brand')).toHaveCSS('text-shadow', 'none');
+      await page.locator('#open-menu').hover();
+      await expect(page.locator('#open-menu')).toHaveCSS('filter', 'none');
+      await expect(page.locator('#open-menu')).toHaveCSS('text-shadow', 'none');
+      const layers = await page.evaluate(() => ({
+        rootFilter: getComputedStyle(document.body).filter,
+        rootPseudo: getComputedStyle(document.body, '::before').content,
+        backgroundContainsUI: document.querySelector('.scene-background')!.contains(document.querySelector('.app-header')),
+        clipped: getComputedStyle(document.querySelector('.scene-background')!).overflow,
+        containment: getComputedStyle(document.querySelector('.scene-background')!).contain,
+        foreground: Number(getComputedStyle(document.querySelector('.app-shell')!).zIndex),
+        background: Number(getComputedStyle(document.querySelector('.scene-background')!).zIndex),
+        blurredElements: [...document.querySelectorAll('*')].filter(e => getComputedStyle(e).filter.includes('blur(')).length,
+      }));
+      expect(layers.rootFilter).toBe('none'); expect(layers.rootPseudo).toBe('none');
+      expect(layers.backgroundContainsUI).toBe(false); expect(layers.clipped).toBe('hidden');
+      expect(layers.containment).toBe('strict'); expect(layers.foreground).toBeGreaterThan(layers.background);
+      expect(layers.blurredElements).toBe(0);
       await click(page, 'Enter tavern'); await fitsScreen(page);
       await click(page, 'Go out'); await fitsScreen(page);
     }

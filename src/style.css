@@ -1,8 +1,10 @@
 :root{color-scheme:dark;--bg:#181818;--panel:#212121;--line:#454545;--muted:#b9ac98;--ink:#f1e6cf;font:16px/1.4 'Alegreya',Georgia,serif}
-*{box-sizing:border-box}body{margin:0;background:#17120e;color:var(--ink);height:100vh;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overflow:hidden;isolation:isolate}
-body:before{content:"";position:fixed;inset:-16px;z-index:-2;pointer-events:none;background-image:url('/art/locations.webp');background-size:300% 200%;background-position:0 100%;filter:blur(3px) saturate(.8)}
-body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(#100c08a6,#100c0873 50%,#100c08c9)}
-body[data-location="tavern"]:before{background-position:0 0}body[data-location="forest"]:before{background-position:50% 0}body[data-location="mountains"]:before{background-position:100% 0}body[data-location="cave"]:before{background-position:0 100%}body[data-location="hometown"]:before,body[data-location="village"]:before{background-position:50% 100%}body[data-location="river"]:before{background-position:100% 100%}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#17120e;color:var(--ink)}
+.scene-background{position:fixed;inset:0;z-index:0;overflow:hidden;contain:strict;isolation:isolate;pointer-events:none}
+.scene-image{position:absolute;inset:-16px;background-image:url('/art/scene-background.svg');background-size:300% 200%;background-position:0 100%}
+.scene-shade{position:absolute;inset:0;background:linear-gradient(#100c08a6,#100c0873 50%,#100c08c9)}
+.app-shell{position:relative;z-index:1;isolation:isolate;width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overflow:hidden}
+body[data-location="tavern"] .scene-image{background-position:0 0}body[data-location="forest"] .scene-image{background-position:50% 0}body[data-location="mountains"] .scene-image{background-position:100% 0}body[data-location="cave"] .scene-image{background-position:0 100%}body[data-location="hometown"] .scene-image,body[data-location="village"] .scene-image{background-position:50% 100%}body[data-location="river"] .scene-image{background-position:100% 100%}
 [hidden]{display:none!important}button{font:600 14px/1.35 'Cinzel',Georgia,serif;cursor:pointer;touch-action:manipulation;color:inherit}button:disabled{opacity:.35;cursor:default}button:focus-visible{outline:2px solid #ffdb87;outline-offset:2px}
 .quiet,.action{position:relative;border:1px solid #96633b;border-top-color:#c08a54;border-bottom-color:#3a2013;border-radius:4px;background:radial-gradient(circle at 6px 6px,#c3985a 0 1px,#29170d 1.5px 2px,transparent 2.5px),radial-gradient(circle at calc(100% - 6px) calc(100% - 6px),#c3985a 0 1px,#29170d 1.5px 2px,transparent 2.5px),repeating-linear-gradient(2deg,transparent 0 3px,#1f10082b 4px 5px,transparent 6px 10px),linear-gradient(180deg,#765033,#57351f 48%,#452715 51%,#674027);box-shadow:inset 0 1px #edbc6850,inset 0 -2px #1b0d0a90,0 2px 3px #0005;padding:9px 12px;min-height:36px;text-shadow:0 1px 2px #000}
 .action:hover:not(:disabled),.quiet:hover:not(:disabled){filter:brightness(1.2);border-color:#dfb96c}.action{display:flex;align-items:center;gap:10px;text-align:left}.action-label{min-width:0;overflow-wrap:anywhere}.action-icon{width:40px;height:40px;flex-shrink:0}.game-icon{overflow:hidden;border-radius:4px;display:block;width:100%;height:100%;color:inherit}.tools{display:flex;gap:8px;align-items:center}.app-header{width:100%;max-width:1600px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:12px 20px;flex-shrink:0;border-bottom:1px solid #a67c4566;background:linear-gradient(90deg,#20160be0,#26190cc9,#20160be0);box-shadow:0 4px 15px #0005}.brand{font:600 25px 'Cinzel',Georgia,serif;letter-spacing:5px;color:#e7c28b;text-shadow:0 2px 4px #000}.small{font-size:15px;color:var(--muted)}.location-strip{display:flex;align-items:center;gap:16px;min-width:0}.location-strip h2{font:600 19px 'Cinzel',Georgia,serif;margin:0;white-space:nowrap}.badge{font:600 10px 'Cinzel',Georgia,serif;white-space:nowrap;border:1px solid #86633d;border-radius:3px;padding:4px 8px;background:#30200dd9;color:#ead1a3}
@@ -24,7 +26,7 @@ body[data-screen="game"][data-battle="true"] .app-header{border-bottom-color:#9b
 /* The game header is opaque and isolated from the blurred background layer,
    including the installed iOS app's status-bar safe area. */
 @media(max-width:700px), (max-width:1050px) and (pointer:coarse){
-  body{padding-top:var(--safe-top,env(safe-area-inset-top));}
+  .app-shell{padding-top:var(--safe-top,env(safe-area-inset-top));}
   .app-header{position:relative;z-index:3;isolation:isolate;background:#241a10;filter:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
   .app-header:before{content:"";position:absolute;inset:calc(-1 * var(--safe-top,env(safe-area-inset-top))) 0 0;background:#241a10;z-index:-1;pointer-events:none;}
   .common-panel .buttons{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -56,3 +58,6 @@ body[data-screen="game"][data-battle="true"] .app-header{border-bottom-color:#9b
   .gear span:not(.gear-icon){font-size:10px;}
   .story{margin:6px 10px;}
 }
+
+/* Header glyphs must never be softened by shadows or a filtered hover layer. */
+.app-header button,.app-header button:hover,.app-header .brand{filter:none!important;text-shadow:none}

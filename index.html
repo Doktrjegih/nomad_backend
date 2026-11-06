@@ -7,6 +7,8 @@
 <title>Nomad</title>
 </head>
 <body data-location="hometown" data-screen="menu">
+<div class="scene-background" aria-hidden="true"><div class="scene-image"></div><div class="scene-shade"></div></div>
+<div class="app-shell">
 <header class="app-header" hidden><div class="brand">NOMAD</div><div class="location-strip" hidden><h2 id="location">—</h2></div><div class="tools"><button class="quiet" id="install" hidden>Install game</button><button class="quiet" id="update" hidden>Update ready · Reload</button><button class="quiet" id="open-menu" disabled>Main menu</button></div></header>
 <p id="offline-status" role="alert" hidden></p>
 <section id="main-menu" class="main-menu" aria-label="Main menu">
@@ -33,6 +35,7 @@
 </main>
 <div class="notices"><div id="status" role="status"></div><p id="save-error" role="alert" hidden></p></div>
 <dialog id="restart-dialog"><h2>New journey?</h2><p>This replaces your current journey with a fresh character.</p><menu><button class="quiet" id="cancel-restart">Keep playing</button><button class="action" id="confirm-restart">Start again</button></menu></dialog>
+</div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

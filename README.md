@@ -48,10 +48,13 @@ log panel, and a right-hand action panel split into contextual choices above and
 pinned Inventory and Status controls below. On portrait phones the status/equipment panel is at the top, the log is in the
 middle, and actions are anchored at the bottom. Inventory and Status remain
 directly below the contextual choices. The phone header has an opaque layer covering the installed-app
-status-bar safe area so the scene blur stays behind it. Only the location stays in the game header; the main menu hides it. A static,
-lightly blurred (3px) painted background changes for taverns/shops, forests, mountains, caves,
+status-bar safe area. The scene is softened inside a self-contained SVG image
+resource; a separate clipped background layer sits behind the application shell.
+No live DOM blur or root-body pseudo-element filter can soften header text.
+Header text shadows and filtered hover effects are disabled. Only the location stays in the game header; the main menu hides it. A static,
+lightly softened painted background changes for taverns/shops, forests, mountains, caves,
 villages/hometown, and rivers. Art and fonts are included in the offline cache.
-The first complete offline download includes about 9 MB of lossless WebP artwork, including the painted control icons.
+The first complete offline download includes about 10 MB of embedded/lossless WebP artwork, including the painted control icons.
 
 Uneventful travel logs “Nothing interesting so far.”; encounters suppress that message.
 Run away uses a painted boots icon. Route buttons show destination names without

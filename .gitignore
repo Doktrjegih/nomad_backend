@@ -178,3 +178,6 @@ stats.csv
 node_modules/
 test-results/
 playwright-report/
+
+# Generated image resource; built before Vite dev/build.
+/public/art/scene-background.svg
