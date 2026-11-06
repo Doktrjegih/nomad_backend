@@ -14,9 +14,9 @@ let storageBroken = false;
 let actionPage = 0;
 const storyPages = new StoryPages($('story'), $('story-pager'), $('story-page'), $('older-story'), $('newer-story'));
 function showGame() { document.querySelector<HTMLElement>('.app-header')!.hidden = false; document.body.dataset.screen = 'game'; document.querySelector<HTMLElement>('.location-strip')!.hidden = false; $('main-menu').hidden = true; $('game-screen').hidden = false; if (current) render(current.game); }
-function showMenu() { document.querySelector<HTMLElement>('.app-header')!.hidden = true; $('close-menu').hidden = !current; document.body.dataset.screen = 'menu'; document.querySelector<HTMLElement>('.location-strip')!.hidden = true; $('main-menu').hidden = false; $('game-screen').hidden = true; }
+function showMenu() { document.querySelector<HTMLElement>('.app-header')!.hidden = true; document.body.dataset.screen = 'menu'; document.querySelector<HTMLElement>('.location-strip')!.hidden = true; $('main-menu').hidden = false; $('game-screen').hidden = true; }
 $('open-menu').onclick = showMenu;
-$('close-menu').onclick = showGame;
+$('continue').onclick = showGame;
 
 const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('nomad-journey') : null;
 const errorText = (e: unknown) => e instanceof Error ? e.message : 'Something went wrong.';
@@ -24,9 +24,9 @@ function message(text: string, error = false) { $('status').textContent = text; 
 function storageError(text: string) { $('save-error').hidden = !text; $('save-error').textContent = text; }
 function setBusy(value: boolean) {
   busy = value;
-  document.querySelectorAll<HTMLButtonElement>('#actions button,#common-actions button,#new-game,#import,#export,#update,#close-menu,#open-menu').forEach(b => b.disabled = value);
+  document.querySelectorAll<HTMLButtonElement>('#actions button,#common-actions button,#new-game,#import,#export,#update,#continue,#open-menu').forEach(b => b.disabled = value);
   if (!value && current) renderActions(current.game);
-  ($('close-menu') as HTMLButtonElement).disabled = value || !current;
+  ($('continue') as HTMLButtonElement).disabled = value || !current;
 }
 function render(g: Game) {
   const v = view(g), p = g.player;

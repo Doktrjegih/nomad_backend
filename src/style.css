@@ -31,7 +31,7 @@ body[data-screen="game"][data-battle="true"] .app-header{border-bottom-color:#9b
 }
 @media(max-height:520px) and (min-width:701px){.common-panel .buttons{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:700px) and (orientation:portrait){
-  main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"actions" "log" "status";}
+  main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"status" "log" "actions";}
   .action-panel{grid-area:actions;gap:5px;}
   .journey{grid-area:log;}
   .sheet{grid-area:status;padding:8px;}

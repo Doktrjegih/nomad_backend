@@ -16,7 +16,7 @@ async function ready(page: Page) {
 }
 async function resume(page: Page) {
   await expect(page.locator('#new-game')).toBeEnabled();
-  if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.locator('#game-screen')).toBeVisible();
 }
 async function click(page: Page, name: string) {
@@ -25,7 +25,7 @@ async function click(page: Page, name: string) {
   const target = page.getByRole('button', { name, exact: true });
   if (await target.isVisible()) { await target.click(); return; }
   if (['New journey', 'Export save', 'Import save'].includes(name)) await page.getByRole('button', { name: 'Main menu', exact: true }).click();
-  else if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  else if (await page.locator('#main-menu').isVisible()) await page.getByRole('button', { name: 'Continue', exact: true }).click();
   const previous = page.getByRole('button', { name: 'Previous choices', exact: true });
   while (await previous.isVisible() && await previous.isEnabled()) await previous.click();
   const next = page.getByRole('button', { name: 'More choices', exact: true });
@@ -174,7 +174,10 @@ test('main menu resumes the same journey and alcohol uses an accessible progress
   await expect(page.locator('.location-strip')).toBeHidden();
   await expect(page.locator('.app-header')).toBeHidden();
   await expect(page.locator('#main-menu svg')).toHaveCount(0);
-  await expect(page.locator('#progress,#mode,#moves,#attack,#defence,#continue')).toHaveCount(0);
+  await expect(page.locator('#progress,#mode,#moves,#attack,#defence')).toHaveCount(0);
+  await expect(page.locator('#new-game')).toBeEnabled();
+  await expect(page.getByRole('navigation', { name: 'Game menu' }).getByRole('button')).toHaveText(['Continue', 'New journey', 'Import save', 'Export save']);
+  await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeDisabled();
   await click(page, 'New journey'); await click(page, 'Enter tavern'); await click(page, 'Take a beer');
   await expect(page.getByRole('progressbar', { name: 'Alcohol', exact: true })).toHaveAttribute('aria-valuenow', '10');
   await expect(page.locator('#alcohol-bar i')).toHaveCSS('width', /px$/);
@@ -337,7 +340,7 @@ test('route buttons show destination icons and names, and continuing keeps the c
   }
 });
 
-test('portrait installed-app safe area keeps the header sharp and stacks actions, log and status', async ({ browser, baseURL }) => {
+test('portrait installed-app safe area keeps the header sharp and stacks status, log and footer actions', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   try {
     await context.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
@@ -350,8 +353,8 @@ test('portrait installed-app safe area keeps the header sharp and stacks actions
       const stats = (await page.locator('.sheet').boundingBox())!;
       const common = (await page.locator('.common-panel').boundingBox())!;
       const choices = (await page.locator('.context-panel').boundingBox())!;
-      expect(actions.y + actions.height).toBeLessThan(log.y);
-      expect(log.y + log.height).toBeLessThan(stats.y);
+      expect(stats.y + stats.height).toBeLessThan(log.y);
+      expect(log.y + log.height).toBeLessThan(actions.y);
       expect(choices.y + choices.height).toBeLessThan(common.y);
       await expect(page.getByRole('button', { name: 'Inventory', exact: true })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Get status', exact: true })).toBeVisible();
@@ -375,7 +378,9 @@ test('portrait installed-app safe area keeps the header sharp and stacks actions
     await click(page, 'Main menu'); await expect(page.locator('.app-header')).toBeHidden();
     await expect(page.locator('#main-menu svg')).toHaveCount(0);
     await page.reload(); await resume(page); await expect(page.locator('#game-screen')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Continue', exact: true })).toHaveCount(0);
+    await click(page, 'Main menu');
+    await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeEnabled();
+    await click(page, 'Continue');
     await expect(page.getByRole('button', { name: 'Exit game', exact: true })).toHaveCount(0);
   } finally { await context.close(); }
 });
